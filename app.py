@@ -1,6 +1,6 @@
 # ==============================
-# FOOTBALL ORACLE v19.5 TITAN (MoV ELO EDITION) - STREAMLIT WEB APP
-# DİNAMİK ELO + COLD START + GOL FARKI ÇARPANI (MoV) + KESKİN PİYASA (MAX ODD)
+# FOOTBALL ORACLE v19.6 TITAN (MoV ELO EDITION) - STREAMLIT WEB APP
+# OPTİMİZE EDİLMİŞ VERİ ÇEKİMİ + MAJÖR LİG ÖNCELİKLENDİRMESİ
 # ==============================
 
 import streamlit as st
@@ -14,13 +14,29 @@ import re
 import io
 
 # --- SAYFA AYARLARI ---
-st.set_page_config(page_title="TITAN v19.5 Radar", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="TITAN v19.6 Radar", page_icon="🛡️", layout="wide")
 
 # --- AYARLAR VE HAFIZA ---
 CACHE_TTL = 3600 * 6 
 HFA_ELO_BONUS = 75 
 BASE_URL = "https://v3.football.api-sports.io"
 TARGET_BOOKIES = [1, 8, 11, 17]
+
+# MAJÖR LİG ID'LERİ (Bu ligler her zaman ilk sırada taranır ve API limitine takılmaz)
+MAJOR_LEAGUES = [
+    39,   # Premier League
+    140,  # La Liga
+    135,  # Serie A
+    78,   # Bundesliga
+    61,   # Ligue 1
+    2,    # Champions League
+    3,    # Europa League
+    848,  # Conference League
+    203,  # Türkiye Süper Lig
+    71,   # Brazil Serie A
+    119,  # Süper Lig (Alternatif)
+    253,  # MLS
+]
 
 if 'api_cache_global' not in st.session_state: st.session_state.api_cache_global = {}
 if 'league_stats_cache' not in st.session_state: st.session_state.league_stats_cache = {}
@@ -84,21 +100,28 @@ def get_risk_label(prob):
     else: return '<span style="background:#ef4444; color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold;">🔴 SÜRPRİZ</span>'
 
 # --- VERİ ÇEKME VE İŞLEME MODÜLLERİ ---
-def fetch_fixtures(api_key, target_date):
+def fetch_fixtures(api_key, target_date, scan_mode):
     st.session_state.req_session.headers.update({"x-apisports-key": api_key})
     date_cache_key = f"fixtures_v19_{target_date}"
     now = time.time()
     
     if date_cache_key in st.session_state.api_cache_global and now - st.session_state.api_cache_global[date_cache_key]["time"] < CACHE_TTL:
-        return st.session_state.api_cache_global[date_cache_key]["data"]
+        matches = st.session_state.api_cache_global[date_cache_key]["data"]
+    else:
+        try:
+            resp = st.session_state.req_session.get(f"{BASE_URL}/fixtures?date={target_date}").json()
+            if "response" not in resp: return []
+            matches = [m for m in resp.get("response", []) if m["fixture"]["status"]["short"] == "NS" and not any(b in f"{m['league']['country']} {m['league']['name']}".lower() for b in BANNED_KEYWORDS)]
+            st.session_state.api_cache_global[date_cache_key] = {"time": now, "data": matches}
+        except: return []
+
+    # MAJÖR LİG FİLTRESİ VE SIRALAMASI
+    if scan_mode == "Sadece Majör Ligler":
+        matches = [m for m in matches if m["league"]["id"] in MAJOR_LEAGUES]
     
-    try:
-        resp = st.session_state.req_session.get(f"{BASE_URL}/fixtures?date={target_date}").json()
-        if "response" not in resp: return []
-        target_matches = [m for m in resp.get("response", []) if m["fixture"]["status"]["short"] == "NS" and not any(b in f"{m['league']['country']} {m['league']['name']}".lower() for b in BANNED_KEYWORDS)]
-        st.session_state.api_cache_global[date_cache_key] = {"time": now, "data": target_matches}
-        return target_matches
-    except: return []
+    # Her zaman Majör ligleri listesinin en başına alıyoruz (API limiti biterse önce onları okumuş olsun)
+    matches.sort(key=lambda x: 0 if x["league"]["id"] in MAJOR_LEAGUES else 1)
+    return matches
 
 def calculate_league_stats(l_id, season):
     l_cache_key = f"stats_v19_5_coldstart_{l_id}_{season}" 
@@ -109,6 +132,7 @@ def calculate_league_stats(l_id, season):
     stats, avg_h, avg_a, league_rho, league_k = {}, 1.4, 1.2, -0.14, 20
     try:
         fin_prev = st.session_state.req_session.get(f"{BASE_URL}/fixtures?league={l_id}&season={season-1}&status=FT").json().get("response", [])
+        time.sleep(0.1) # API Rate Limit için mini bekleme
         elo_db = {}
         
         if fin_prev:
@@ -129,7 +153,9 @@ def calculate_league_stats(l_id, season):
             elo_db[team] = apply_elo_mean_reversion(elo_db[team], mean_elo=1500, reversion_rate=0.30)
             
         stand_resp = st.session_state.req_session.get(f"{BASE_URL}/standings?league={l_id}&season={season}").json()
+        time.sleep(0.1)
         fin = st.session_state.req_session.get(f"{BASE_URL}/fixtures?league={l_id}&season={season}&status=FT").json().get("response", [])
+        time.sleep(0.1)
         
         all_matches_for_avg = fin if len(fin) > 30 else (fin_prev + fin)
         if all_matches_for_avg:
@@ -174,7 +200,13 @@ def get_market_max_odds(fixture_id):
     odds = {"1": [], "X": [], "2": [], "o25": []}
     max_odds = {"1": 0.0, "X": 0.0, "2": 0.0, "o25": 0.0}
     try:
-        resp_data = st.session_state.req_session.get(f"{BASE_URL}/odds?fixture={fixture_id}").json().get("response", [])
+        resp = st.session_state.req_session.get(f"{BASE_URL}/odds?fixture={fixture_id}")
+        if resp.status_code == 429:
+            st.toast("⚠️ API Rate Limiti aşıldı! Bir süre bekliyoruz...", icon="⏳")
+            time.sleep(1) # Rate limit aşıldıysa zorla bekle
+            
+        resp_data = resp.json().get("response", [])
+        time.sleep(0.1) # Çok hızlı istek atmamak için
         if not resp_data: return max_odds
         
         for bk in resp_data[0].get("bookmakers", []):
@@ -197,12 +229,12 @@ def get_market_max_odds(fixture_id):
 # --- ARAYÜZ (UI) KURULUMU ---
 st.markdown("""
 <div style="background:#0f172a; color:#f8fafc; padding:20px; text-align:center; border-radius:12px; margin-bottom:15px; border-bottom: 3px solid #f59e0b;">
-    <h1 style="margin:0; font-size:28px; color:#fbbf24;">🛡️ FOOTBALL ORACLE v19.5 TITAN (MoV EDITION)</h1>
-    <p style="margin:5px 0 0 0; opacity:0.8; font-size:14px;">Cold Start Çözümü, Gol Farkı Çarpanı, Max Odd, Web Platformu Devrede</p>
+    <h1 style="margin:0; font-size:28px; color:#fbbf24;">🛡️ FOOTBALL ORACLE v19.6 TITAN (MoV EDITION)</h1>
+    <p style="margin:5px 0 0 0; opacity:0.8; font-size:14px;">Hızlandırılmış Motor, Rate Limit Koruması, Majör Lig Önceliklendirmesi</p>
 </div>
 """, unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns([2, 2, 1.5])
 with col1:
     api_key = st.text_input('🔑 API KEY:', type="password", placeholder="API-Sports Anahtarınızı Girin...")
 with col2:
@@ -219,6 +251,8 @@ with col2:
     
     selected_label = st.selectbox('📅 TARİH:', date_labels)
     target_date = date_values[date_labels.index(selected_label)]
+with col3:
+    scan_mode = st.radio("🔍 Tarama Modu:", ["Sadece Majör Ligler", "Tüm Uygun Ligler"], index=0)
 
 st.markdown("<h3 style='text-align: center; color: #475569; margin-top:20px;'>🔍 RADAR FİLTRELERİ</h3>", unsafe_allow_html=True)
 f1, f2, f3, f4 = st.columns(4)
@@ -228,12 +262,12 @@ with f3: only_banko = st.checkbox('🏦 Banko (≥%65)', value=False)
 with f4: only_over = st.checkbox('⚽ Sadece Üst', value=False)
 
 st.markdown("<br>", unsafe_allow_html=True)
-if st.button("🚀 TITAN v19.5 MOTORUNU ATEŞLE", use_container_width=True, type="primary"):
+if st.button("🚀 TITAN v19.6 MOTORUNU ATEŞLE", use_container_width=True, type="primary"):
     if not api_key:
         st.error("❌ Önce API Key girmelisin!")
     else:
-        with st.spinner(f"🚀 TITAN v19.5 PRO Tarama Başlatılıyor: {target_date}... Lütfen Bekleyin."):
-            target_matches = fetch_fixtures(api_key, target_date)
+        with st.spinner(f"🚀 TITAN v19.6 PRO Tarama Başlatılıyor: {target_date}... Lütfen Bekleyin."):
+            target_matches = fetch_fixtures(api_key, target_date, scan_mode)
             
             if not target_matches:
                 st.warning("Bu tarihte kritere uygun maç bulunamadı veya API limitine ulaşıldı.")
@@ -254,9 +288,20 @@ if st.button("🚀 TITAN v19.5 MOTORUNU ATEŞLE", use_container_width=True, type
                 insight_list = []
                 matches_rendered = 0
                 grouped_matches = {}
-                for m in target_matches: grouped_matches.setdefault(m["league"]["id"], []).append(m)
+                # Sıralamayı korumak için listeyi düz dict olarak değil sıralı ekliyoruz
+                for m in target_matches: 
+                    l_id = m["league"]["id"]
+                    if l_id not in grouped_matches: grouped_matches[l_id] = []
+                    grouped_matches[l_id].append(m)
+
+                progress_bar = st.progress(0)
+                total_leagues = len(grouped_matches)
+                current_league_idx = 0
 
                 for l_id, matches in grouped_matches.items():
+                    current_league_idx += 1
+                    progress_bar.progress(current_league_idx / total_leagues)
+                    
                     league_name = f"{matches[0]['league']['country']} - {matches[0]['league']['name']}"
                     season = matches[0]["league"]["season"]
                     league_html = ""
@@ -268,7 +313,10 @@ if st.button("🚀 TITAN v19.5 MOTORUNU ATEŞLE", use_container_width=True, type
                     for m in matches:
                         fid = m["fixture"]["id"]
                         odds = get_market_max_odds(fid) 
-                        if odds["1"] == 0 and odds["X"] == 0: continue
+                        
+                        # Eğer hiçbir oran gelmediyse boşuna matematiksel hesaplama yapma (Optimizasyon)
+                        if odds["1"] == 0 and odds["X"] == 0 and odds["2"] == 0 and odds["o25"] == 0: 
+                            continue
 
                         h, a = m["teams"]["home"]["name"], m["teams"]["away"]["name"]
                         h_s = stats.get(h, {"att_h": 1.0, "def_h": 1.0, "elo": 1400}); a_s = stats.get(a, {"att_a": 1.0, "def_a": 1.0, "elo": 1400})
@@ -323,15 +371,16 @@ if st.button("🚀 TITAN v19.5 MOTORUNU ATEŞLE", use_container_width=True, type
                         html += '<table class="ultimate-table"><thead><tr><th>Saat</th><th style="text-align:left;">Eşleşme</th><th>MS 1</th><th>MS X</th><th>MS 2</th><th>2.5 ÜST</th><th>Skor</th></tr></thead><tbody>' + league_html + '</tbody></table>'
 
                 html += "</div>"
+                progress_bar.empty()
                 
                 if matches_rendered == 0: 
-                    st.error("🛑 Kriterlere uygun maç bulunamadı. Filtreleri esnetmeyi deneyin.")
+                    st.error("🛑 Kriterlere uygun maç bulunamadı veya API limitleri aşıldığı için maçların oranları okunamadı.")
                 else:
                     st.success("✅ Tarama Tamamlandı!")
                     
                     # HTML Paneli
                     commentary = '<div style="background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-top: 20px;">'
-                    commentary += f'<h3 style="color:#34d399; margin-top:0;">🛡️ TITAN v19.5 PRO RADARI ({len(insight_list)} MoV Fırsatı)</h3><div class="report-scroll" style="max-height: 450px; overflow-y: auto;">'
+                    commentary += f'<h3 style="color:#34d399; margin-top:0;">🛡️ TITAN v19.6 PRO RADARI ({len(insight_list)} MoV Fırsatı)</h3><div class="report-scroll" style="max-height: 450px; overflow-y: auto;">'
                     for it in sorted(insight_list, key=lambda x: x["margin"], reverse=True):
                         kelly_badge = f'<span style="background:#10b981; color:white; padding:2px 6px; border-radius:4px; font-size:11px; margin-left:5px;">💰 Çeyrek Kelly: %{it["kelly"]:.1f}</span>' if it["kelly"] > 0 else ''
                         commentary += f'''
@@ -369,7 +418,7 @@ if st.button("🚀 TITAN v19.5 MOTORUNU ATEŞLE", use_container_width=True, type
                         st.download_button(
                             label="📥 Excel Raporunu İndir",
                             data=buffer,
-                            file_name=f"titan_v19_5_mov_raporu_{target_date}.xlsx",
+                            file_name=f"titan_v19_6_mov_raporu_{target_date}.xlsx",
                             mime="application/vnd.ms-excel",
                             type="primary"
                         )
