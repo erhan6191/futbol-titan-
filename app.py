@@ -11,11 +11,11 @@ from IPython.display import display, clear_output, HTML
 import time
 import datetime
 import pandas as pd
-import re 
+import re
 
 # --- AYARLAR VE HAFIZA ---
-CACHE_TTL = 3600 * 6 
-HFA_ELO_BONUS = 75 
+CACHE_TTL = 3600 * 6
+HFA_ELO_BONUS = 75
 BASE_URL = "https://v3.football.api-sports.io"
 TARGET_BOOKIES = [1, 8, 11, 17]
 
@@ -25,12 +25,12 @@ if 'league_stats_cache' not in globals(): league_stats_cache = {}
 req_session = requests.Session()
 
 BANNED_KEYWORDS = [
-    "u23", "u22", "u21", "u20", "u19", "u18", "u17", "development", "gelişim", 
-    "youth", "primavera", "juvenil", "academy", "premier league 2", "pdl", 
-    "professional development", "women", "femenina", "kadınlar", "feminine", 
-    "frauen", "dam", "w-league", "amateur", "amatör", "amateurs", "regional", 
+    "u23", "u22", "u21", "u20", "u19", "u18", "u17", "development", "gelişim",
+    "youth", "primavera", "juvenil", "academy", "premier league 2", "pdl",
+    "professional development", "women", "femenina", "kadınlar", "feminine",
+    "frauen", "dam", "w-league", "amateur", "amatör", "amateurs", "regional",
     "oberliga", "county", "state league", "npsl", "bölgesel", "non-league",
-    "reserve", "reserves", "rezerv", "friendly", "friendlies", "hazırlık", 
+    "reserve", "reserves", "rezerv", "friendly", "friendlies", "hazırlık",
     "club friendlies", "esoccer", "e-soccer", "esports", "university", "college", "ncaa"
 ]
 
@@ -65,7 +65,7 @@ def is_dynamic_value(fair_prob, book_odd):
     fair_odd = 100 / fair_prob
     edge = book_odd / fair_odd
     min_edge = 1.05 + (book_odd * 0.015)
-    max_edge = 1.55 
+    max_edge = 1.55
     return (min_edge < edge <= max_edge), edge
 
 def calculate_kelly(prob_percent, odds):
@@ -131,7 +131,7 @@ def fetch_fixtures(api_key, target_date):
     except: return []
 
 def calculate_league_stats(l_id, season):
-    l_cache_key = f"stats_v20_coldstart_{l_id}_{season}" 
+    l_cache_key = f"stats_v20_coldstart_{l_id}_{season}"
     now = time.time()
     if l_cache_key in league_stats_cache and now - league_stats_cache[l_cache_key]["time"] < CACHE_TTL:
         return league_stats_cache[l_cache_key]
@@ -192,7 +192,7 @@ def calculate_league_stats(l_id, season):
         result_data = {"stats": stats, "avg_h": avg_h, "avg_a": avg_a, "rho": league_rho, "k": league_k, "time": now}
         league_stats_cache[l_cache_key] = result_data
         return result_data
-    except Exception as e: 
+    except Exception as e:
         return {"stats": {}, "avg_h": 1.4, "avg_a": 1.2, "rho": -0.14, "k": 20, "time": now}
 
 def get_market_max_odds(fixture_id):
@@ -210,7 +210,7 @@ def get_market_max_odds(fixture_id):
                             elif v["value"] == "Draw": odds["X"].append(float(v["odd"]))
                             elif v["value"] == "Away": odds["2"].append(float(v["odd"]))
                     elif bet["name"] == "Goals Over/Under":
-                        for v in bet["values"]: 
+                        for v in bet["values"]:
                             if v["value"] == "Over 2.5": odds["o25"].append(float(v["odd"]))
                             
         for key in max_odds.keys():
@@ -225,11 +225,11 @@ def oracle_titan_scan(b):
         clear_output()
         api_key = api_in_fd.value.strip()
         target_date = date_drop.value
-        selected_league = league_drop.value # Yeni Lig Seçimi
+        selected_league = league_drop.value
         only_value = value_cb.value
-        only_safe = safe_cb.value 
-        only_banko = banko_cb.value 
-        only_over = over_cb.value 
+        only_safe = safe_cb.value
+        only_banko = banko_cb.value
+        only_over = over_cb.value
         
         if not api_key: print("❌ Önce API Key girmelisin!"); return
         print(f"🚀 TITAN v20.0 (PROP & MoV MOTORU) Tarama Başlatılıyor: {target_date}...")
@@ -258,7 +258,6 @@ def oracle_titan_scan(b):
         for m in target_matches: grouped_matches.setdefault(m["league"]["id"], []).append(m)
 
         for l_id, matches in grouped_matches.items():
-            # LİG FİLTRESİ KONTROLÜ
             if selected_league != 'ALL' and str(l_id) != str(selected_league):
                 continue
                 
@@ -272,13 +271,12 @@ def oracle_titan_scan(b):
 
             for m in matches:
                 fid = m["fixture"]["id"]
-                odds = get_market_max_odds(fid) 
+                odds = get_market_max_odds(fid)
                 if odds["1"] == 0 and odds["X"] == 0: continue
 
                 h, a = m["teams"]["home"]["name"], m["teams"]["away"]["name"]
                 h_s = stats.get(h, {"att_h": 1.0, "def_h": 1.0, "elo": 1400}); a_s = stats.get(a, {"att_a": 1.0, "def_a": 1.0, "elo": 1400})
                 
-                # GOL İHTİMALLERİ
                 lh = max(0.1, (0.65 * (h_s["att_h"] * a_s["def_a"] * avg_h)) + (0.35 * (avg_h * (1 + ((h_s["elo"] + HFA_ELO_BONUS) - a_s["elo"] + 70)/400))))
                 la = max(0.1, (0.65 * (a_s["att_a"] * h_s["def_h"] * avg_a)) + (0.35 * (avg_a * (1 - ((h_s["elo"] + HFA_ELO_BONUS) - a_s["elo"] + 70)/400))))
                 
@@ -287,7 +285,6 @@ def oracle_titan_scan(b):
                 o25 = mx[np.indices(mx.shape)[0] + np.indices(mx.shape)[1] >= 2.5].sum()*100
                 score = np.unravel_index(np.argmax(mx), mx.shape)
                 
-                # YENİ EKLENEN PROP İHTİMALLERİ (Korner & Şut)
                 p_cor_95, p_sho_85 = get_prop_projections(h_s["att_h"], h_s["def_h"], a_s["att_a"], a_s["def_a"])
                 
                 is_v1, edge_1 = is_dynamic_value(p1, odds["1"])
@@ -303,8 +300,8 @@ def oracle_titan_scan(b):
                 t_str = (datetime.datetime.fromtimestamp(m["fixture"]["timestamp"], datetime.timezone.utc) + datetime.timedelta(hours=3)).strftime('%d.%m %H:%M')
                 
                 def render_cell(prob, book, is_val):
-                    if only_safe and prob < 55: is_val = False 
-                    if only_banko and prob < 65: is_val = False 
+                    if only_safe and prob < 55: is_val = False
+                    if only_banko and prob < 65: is_val = False
                     c = "class='value-cell'" if is_val else ""
                     return f'<td {c}><div style="font-weight:700;">%{prob:.1f}</div><span style="font-size:9px; color:#6366f1;">[{get_fair_odds(prob):.2f}]</span><br><b style="font-size:11px;">{book if book>0 else "-"}</b></td>'
 
@@ -315,16 +312,16 @@ def oracle_titan_scan(b):
                 league_html += f"<td><span class='score-pill'>{score[0]}-{score[1]}</span></td></tr>"
 
                 for p, o, is_v, edge, t, icon in [(p1, odds["1"], is_v1, edge_1, "MS 1", "🏠"), (pX, odds["X"], is_vX, edge_X, "MS X", "⚖️"), (p2, odds["2"], is_v2, edge_2, "MS 2", "🚀"), (o25, odds["o25"], is_vo, edge_o, "ÜST", "⚽")]:
-                    if only_over and t != "ÜST": continue 
+                    if only_over and t != "ÜST": continue
                     
                     if is_v:
-                        if only_safe and p < 55: continue 
+                        if only_safe and p < 55: continue
                         if only_banko and p < 65: continue
                         
                         insight_list.append({
-                            "icon": icon, "team": h if t=="MS 1" else a if t=="MS 2" else t, 
-                            "match": f"{h} - {a}", "odd": o, "fair": get_fair_odds(p), 
-                            "margin": (edge-1)*100, "league": league_name, "type": t, 
+                            "icon": icon, "team": h if t=="MS 1" else a if t=="MS 2" else t,
+                            "match": f"{h} - {a}", "odd": o, "fair": get_fair_odds(p),
+                            "margin": (edge-1)*100, "league": league_name, "type": t,
                             "risk": get_risk_label(p), "p_xg": lh+la, "time": t_str, "kelly": calculate_kelly(p, o)
                         })
 
@@ -333,7 +330,7 @@ def oracle_titan_scan(b):
                 html += '<table class="ultimate-table"><thead><tr><th>Saat</th><th style="text-align:left;">Eşleşme</th><th>MS 1</th><th>MS X</th><th>MS 2</th><th>2.5 ÜST</th><th>9.5 KORNER</th><th>8.5 İ. ŞUT</th><th>Skor</th></tr></thead><tbody>' + league_html + '</tbody></table>'
 
         html += "</div>"; clear_output()
-        if matches_rendered == 0: 
+        if matches_rendered == 0:
             print("🛑 Kriterlere uygun maç bulunamadı. (Filtreler çok sıkı olabilir veya seçtiğiniz ligde bugün maç yok.)")
         else:
             commentary = '<div style="background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%); color: white; padding: 20px; border-radius: 12px; margin-top: 20px;">'
