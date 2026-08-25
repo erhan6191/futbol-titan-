@@ -1,6 +1,6 @@
 # ==============================
 # FOOTBALL ORACLE v20.0 TITAN (STREAMLIT WEB EDITION)
-# GOL FARKI ELO + KORNER (NEGATİF BİNOM) + ŞUT (NORMAL DAĞILIM) + LİG FİLTRESİ
+# GOL FARKI ELO + KORNER (NEGATİF BİNOM) + ŞUT (NORMAL DAĞILIM) + ÇOKLU LİG FİLTRESİ
 # ==============================
 
 import streamlit as st
@@ -214,7 +214,7 @@ def get_market_max_odds(fixture_id):
     return max_odds
 
 # --- ARAYÜZ (UI) KURULUMU ---
-st.markdown('<div style="background:#0f172a; color:#f8fafc; padding:20px; text-align:center; border-radius:12px 12px 0 0; margin-bottom:15px; border-bottom: 3px solid #f59e0b;"><h1 style="margin:0; font-size:24px; color:#fbbf24;">🛡️ FOOTBALL ORACLE v20.0 TITAN (WEB EDITION)</h1><p style="margin:5px 0 0 0; opacity:0.8; font-size:12px;">Korner (Negatif Binom), İsabetli Şut (Normal Dağılım), MoV ve Lig Filtresi Devrede</p></div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#0f172a; color:#f8fafc; padding:20px; text-align:center; border-radius:12px 12px 0 0; margin-bottom:15px; border-bottom: 3px solid #f59e0b;"><h1 style="margin:0; font-size:24px; color:#fbbf24;">🛡️ FOOTBALL ORACLE v20.0 TITAN (WEB EDITION)</h1><p style="margin:5px 0 0 0; opacity:0.8; font-size:12px;">Korner (Negatif Binom), İsabetli Şut (Normal Dağılım), MoV ve Çoklu Lig Filtresi Devrede</p></div>', unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -239,8 +239,15 @@ with col3:
         '🇧🇷 Brezilya Serie A': 71, '🇦🇷 Arjantin Liga Profesional': 128, '🇺🇸 ABD MLS': 253,
         '🇲🇽 Meksika Liga MX': 262
     }
-    selected_league_label = st.selectbox("🏆 LİG:", list(league_options.keys()))
-    selected_league = league_options[selected_league_label]
+    
+    # TEKLİ SEÇİM YERİNE ÇOKLU SEÇİM WIDGET'I EKLENDİ
+    selected_league_labels = st.multiselect(
+        "🏆 LİG (Çoklu Seçim Yapabilirsiniz):", 
+        list(league_options.keys()), 
+        default=['🌍 Tüm Ligler']
+    )
+    # Seçilen etiketleri ID'lere çevir
+    selected_league_ids = [league_options[label] for label in selected_league_labels]
 
 st.markdown('<div style="text-align:center; font-weight:bold; color:#475569; margin-bottom:5px; margin-top:10px;">🔍 RADAR FİLTRELERİ</div>', unsafe_allow_html=True)
 fc1, fc2, fc3, fc4 = st.columns(4)
@@ -252,6 +259,8 @@ with fc4: only_over = st.checkbox('⚽ Sadece Üst', value=False)
 if st.button("🚀 TITAN v20.0 MOTORUNU ATEŞLE", use_container_width=True, type="primary"):
     if not api_key_input:
         st.error("❌ Önce API Key girmelisin!")
+    elif len(selected_league_labels) == 0:
+        st.warning("⚠️ Lütfen taramak için en az bir lig seçin!")
     else:
         with st.spinner(f"🚀 TITAN v20.0 Tarama Başlatılıyor: {target_date}..."):
             target_matches = fetch_fixtures(api_key_input, target_date)
@@ -279,7 +288,10 @@ if st.button("🚀 TITAN v20.0 MOTORUNU ATEŞLE", use_container_width=True, type
                 for m in target_matches: grouped_matches.setdefault(m["league"]["id"], []).append(m)
 
                 for l_id, matches in grouped_matches.items():
-                    if selected_league != 'ALL' and str(l_id) != str(selected_league): continue
+                    
+                    # ÇOKLU LİG FİLTRESİ KONTROLÜ
+                    if 'ALL' not in selected_league_ids and int(l_id) not in selected_league_ids:
+                        continue
                         
                     league_name = f"{matches[0]['league']['country']} - {matches[0]['league']['name']}"
                     season = matches[0]["league"]["season"]
@@ -374,7 +386,7 @@ if st.button("🚀 TITAN v20.0 MOTORUNU ATEŞLE", use_container_width=True, type
                     
                     # STREAMLIT ICIN EXCEL INDIRME BUTONU
                     df = pd.DataFrame(insight_list)
-                    import re # For regex
+                    import re
                     def clean_html(raw_html): return re.sub(re.compile('<.*?>'), '', raw_html).strip()
                     df['risk'] = df['risk'].apply(clean_html)
                     df = df[['time', 'league', 'match', 'type', 'fair', 'odd', 'margin', 'kelly', 'p_xg', 'risk']]
