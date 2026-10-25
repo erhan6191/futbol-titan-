@@ -1,8 +1,8 @@
 streamlit
 requests
 numpy
+plotly
 scipy
 pandas
 openpyxl
 xlsxwriter
-openpyxl
