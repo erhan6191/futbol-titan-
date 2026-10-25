@@ -110,7 +110,6 @@ with st.sidebar:
 # ==============================================================================
 # LİG HAVUZU VE AKILLI METİN EŞLEŞTİRME MOTORU
 # ==============================================================================
-# Tek tıkla çekilecek Spor Toto standart ligleri (Süper Lig + Avrupa Ana Ligler)
 STANDART_TOTO_LIGLERI = [203, 204, 39, 140, 135, 78, 61, 88, 94, 144, 2, 3, 848]
 
 KATEGORIZE_LIGLER = {
@@ -139,11 +138,9 @@ KATEGORIZE_LIGLER = {
 
 
 def metin_temizle(s):
-    """Türkçe karakterleri, kulüp eklerini (FK, SK, AS, FC) temizleyerek saf takım adını bırakır."""
     tr_harita = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
     s = s.translate(tr_harita).lower()
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("utf-8")
-    # Kısaltmaları genişlet
     kisaltmalar = {
         "f.bahce": "fenerbahce", "g.saray": "galatasaray", "b.sehir": "basaksehir",
         "karagumruk": "fatih karagumruk", "m.united": "manchester united",
@@ -157,19 +154,14 @@ def metin_temizle(s):
 
 
 def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
-    """
-    Kullanıcının bahis sitesinden kopyalayıp yapıştırdığı metni satır satır okur
-    ve havuzdaki en uygun maçlarla (1'den 15'e sırayla) otomatik eşleştirir.
-    """
-    satirlar = [s.strip() for s in yapistirilan_metin.splitlines() if len(s.strip()) > 4]
+    satirlar = [s.strip() for s in yapistirilan_metin.splitlines() if len(s.strip()) > 2]
     eslesen_maclar = []
     kullanilan_idler = set()
 
     for satir in satirlar:
-        # Satır başındaki sıra numaralarını (1., 1-, 01 vb.) ve oranları temizle
         temiz_satir = re.sub(r"^\d+[\.\-\)\s]+", "", satir)
-        temiz_satir = Metin_Adayi = metin_temizle(temiz_satir)
-        if len(Metin_Adayi) < 4:
+        metin_adayi = metin_temizle(temiz_satir)
+        if len(metin_adayi) < 3:
             continue
 
         en_iyi_skor = 0.0
@@ -182,17 +174,16 @@ def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
             dep_temiz = metin_temizle(m["dep"])
             mac_birlesik = f"{ev_temiz} {dep_temiz}"
 
-            # Genel benzerlik + Ev/Deplasman kelime kapsama skoru
-            skor_genel = SequenceMatcher(None, Metin_Adayi, mac_birlesik).ratio()
-            ev_var = 0.25 if (ev_temiz and ev_temiz.split()[0] in Metin_Adayi) else 0.0
-            dep_var = 0.25 if (dep_temiz and dep_temiz.split()[0] in Metin_Adayi) else 0.0
+            skor_genel = SequenceMatcher(None, metin_adayi, mac_birlesik).ratio()
+            ev_var = 0.3 if (ev_temiz and ev_temiz.split()[0] in metin_adayi) else 0.0
+            dep_var = 0.3 if (dep_temiz and dep_temiz.split()[0] in metin_adayi) else 0.0
             toplam_skor = skor_genel + ev_var + dep_var
 
             if toplam_skor > en_iyi_skor:
                 en_iyi_skor = toplam_skor
                 en_iyi_mac = m
 
-        if en_iyi_mac and en_iyi_skor >= 0.48:
+        if en_iyi_mac and en_iyi_skor >= 0.40:
             eslesen_maclar.append(en_iyi_mac)
             kullanilan_idler.add(en_iyi_mac["id"])
             if len(eslesen_maclar) == 15:
@@ -207,7 +198,7 @@ def tum_liglerden_maclari_getir(secilen_lig_idleri, api_key, bas_tarih_str, bit_
     tum_maclar = []
     progress = st.progress(0, text="Lig bültenleri hızlıca taranıyor...")
     for idx, lig_id in enumerate(secilen_lig_idleri):
-        url = f"https://v3.football.api-sports.io/fixtures?league={lig_id}&next=20"
+        url = f"https://v3.football.api-sports.io/fixtures?league={lig_id}&next=25"
         try:
             res = requests.get(url, headers=headers, timeout=8).json()
             if res.get("response"):
@@ -308,7 +299,7 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
             "tuzak_farki": max(h1, hx, h2) - max(g1, gx, g2)
         })
         progress.progress((i + 1) / len(secilen_maclar))
-        time.sleep(0.1)
+        time.sleep(0.05)
     progress.empty()
     return sonuclar
 
@@ -335,9 +326,6 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
     return yeni_sonuclar, skor_metinleri
 
 
-# ==============================================================================
-# OTONOM ANALİZ, ENTROPİ FİLTRESİ VE AĞIRLIKLI GARANTİ MOTORU
-# ==============================================================================
 def tam_otonom_analiz(mac_verileri, strateji):
     beklenen_1, beklenen_x, beklenen_2, min_puan, max_puan = 0, 0, 0, 0, 0
     en_yuksek = []
@@ -568,14 +556,14 @@ tab_uretim, tab_takip, tab_otomasyon = st.tabs([
 ])
 
 # ------------------------------------------------------------------------------
-# SEKME 1: 5 SANİYEDE KOPYALA-YAPIŞTIR BÜLTEN SEÇİCİ VE DERİN ELEME
+# SEKME 1: BÜLTEN SEÇİCİ VE DERİN ELEME (GELİŞTİRİLMİŞ 2. YOL İLE)
 # ------------------------------------------------------------------------------
 with tab_uretim:
     if not api_key:
         st.info("👈 Başlamak için sol menüden **API-Football Anahtarınızı** girin.")
     else:
         acik_kal = st.session_state.analiz_verisi is None
-        with st.expander("⚡ ADIM 1: Hızlı Bülten Seçimi (Kopyala-Yapıştır veya Tek Tıkla Havuz)", expanded=acik_kal):
+        with st.expander("⚡ ADIM 1: Bülten ve Maç Havuzu Seçimi", expanded=acik_kal):
             bugun = datetime.now().date()
             varsayilan_bitis = bugun + timedelta(days=5)
 
@@ -623,11 +611,14 @@ with tab_uretim:
 
             if st.session_state.mac_listesi:
                 st.markdown("---")
+                
+                # --- YENİ ENTEGRE EDİLEN GELİŞMİŞ 3'LÜ SEÇİM YÖNTEMİ ---
                 secim_yontemi = st.radio(
-                    "🎯 15 Maçı Nasıl Seçmek İstersiniz?",
+                    "🎯 15 Maçı Nasıl Belirlemek İstersiniz?",
                     [
-                        "🪄 Yöntem A: Bahis Sitesinden Kopyala-Yapıştır ile Otomatik Bul (5 Saniye)",
-                        "🔍 Yöntem B: Arama Kutusuyla Sırayla Yazarak Seç"
+                        "✨ Yöntem A: Bahis Sitesinden Kopyala-Yapıştır ile Otomatik Eşleştir",
+                        "📂 Yöntem B: Maç Listesi Dosyası Yükle (.TXT / .CSV)",
+                        "🔍 Yöntem C: Arama Kutusuyla El ile Tek Tek Seç"
                     ],
                     horizontal=True
                 )
@@ -639,25 +630,51 @@ with tab_uretim:
                     y_col1, y_col2 = st.columns([2.5, 1.2])
                     with y_col1:
                         yapistirilan = st.text_area(
-                            "📋 Nesine / Bilyoner / Misli sayfasındaki 15 maçı fareyle seçip buraya yapıştırın (Ctrl+V):",
+                            "📋 Nesine / Bilyoner / Misli sayfasındaki 15 maçı kopyalayıp buraya yapıştırın (Ctrl+V):",
                             placeholder="Örnek:\n1. Çaykur Rizespor - Trabzonspor\n2. Beşiktaş - Başakşehir\n3. Galatasaray - Fenerbahçe...",
                             height=130
                         )
                     with y_col2:
                         st.write("")
                         st.write("")
-                        if st.button("🪄 Metindeki Maçları Otomatik Eşleştir", use_container_width=True):
+                        if st.button("🪄 Metindeki Maçları Eşleştir", use_container_width=True):
                             if yapistirilan.strip():
                                 bulunanlar = bulten_metni_eslestir(yapistirilan, st.session_state.mac_listesi)
-                                st.session_state.secilen_15_mac = bulunanlar
-                                varsayilan_etiketler = [m["label"] for m in bulunanlar]
-                                st.success(f"✅ Metinden **{len(bulunanlar)} maç** sırasıyla otomatik eşleştirildi!")
+                                if bulunanlar:
+                                    st.session_state.secilen_15_mac = bulunanlar
+                                    st.success(f"✅ Metinden **{len(bulunanlar)} maç** başarıyla eşleştirildi!")
+                                    st.rerun()
+                                else:
+                                    st.warning("⚠️ Eşleşme sağlanamadı. Lütfen takım adlarının havuzda mevcut olduğundan emin olun.")
 
-                # Her iki yöntemde de klavyeyle anında yazılıp tamamlanabilen hızlı kutu
+                elif "Yöntem B" in secim_yontemi:
+                    d_col1, d_col2 = st.columns([2, 1])
+                    with d_col1:
+                        yuklenen_dosya = st.file_uploader(
+                            "📁 Her satırda bir maç olacak şekilde hazırladığınız .txt veya .csv dosyasını yükleyin:",
+                            type=["txt", "csv"]
+                        )
+                    with d_col2:
+                        st.write("")
+                        st.write("")
+                        if yuklenen_dosya is not None:
+                            try:
+                                dosya_icerigi = yuklenen_dosya.getvalue().decode("utf-8-sig")
+                                bulunanlar = bulten_metni_eslestir(dosya_icerigi, st.session_state.mac_listesi)
+                                if bulunanlar:
+                                    st.session_state.secilen_15_mac = bulunanlar
+                                    st.success(f"✅ Dosyadan **{len(bulunanlar)} maç** eşleştirildi!")
+                                    st.rerun()
+                                else:
+                                    st.warning("⚠️ Dosyadaki maçlar havuzla eşleşmedi.")
+                            except Exception as e:
+                                st.error(f"Hata: {e}")
+
+                # Her durumda ortak kullanılan esnek seçim/görüntüleme kutusu
                 secilen_etiketler = st.multiselect(
-                    f"✅ Seçilen Bülten Maçları ({len(st.session_state.mac_listesi)} maçlık havuzda takım adını klavyeyle yazıp Enter'a basabilirsiniz):",
+                    f"✅ Kesinleşen 15 Bülten Maçı ({len(st.session_state.mac_listesi)} maçlık havuzdan dilediğinizi ekleyip çıkarabilirsiniz):",
                     options=list(opsiyon_haritasi.keys()),
-                    default=varsayilan_etiketler,
+                    default=[m["label"] for m in st.session_state.secilen_15_mac if m["label"] in opsiyon_haritasi],
                     max_selections=15
                 )
                 st.session_state.secilen_15_mac = [opsiyon_haritasi[e] for e in secilen_etiketler]
@@ -666,9 +683,9 @@ with tab_uretim:
                 with alt_b1:
                     s_sayi = len(st.session_state.secilen_15_mac)
                     if s_sayi == 15:
-                        st.success("🎯 **15 / 15 Maç Hazır!** Sağdaki butona basarak analizi başlatabilirsiniz.")
+                        st.success("🎯 **15 / 15 Maç Hazır!** Analizi başlatabilirsiniz.")
                     else:
-                        st.warning(f"📌 Şu an **{s_sayi} / 15** maç seçili. Eksik maç varsa yukarıdaki kutuya takım adını yazıp seçebilirsiniz.")
+                        st.warning(f"📌 Şu an **{s_sayi} / 15** maç seçili. 15 maçı tamamlayın.")
                 with alt_b2:
                     if len(st.session_state.secilen_15_mac) == 15:
                         if st.button("🚀 Analizi Başlat", type="primary", use_container_width=True):
@@ -676,7 +693,7 @@ with tab_uretim:
                             st.session_state.analiz_verisi = hibrit_tahminleri_al(st.session_state.secilen_15_mac, api_key)
                             st.rerun()
 
-        # ADIM 2: KAYDIRMASIZ TEK EKRAN ŞABLON VE DERİN ELEME SONUÇ PANELİ
+        # ADIM 2: ŞABLON VE DERİN ELEME SONUÇ PANELİ
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
             if ai_filtre_modu:
@@ -848,9 +865,9 @@ with tab_takip:
                     height=440
                 )
             else:
-                st.info("👈 Sol tablodan maç sonuçlarını (1, X, 2) seçtiğiniz anda canlı ikramiye potası hesaplanır.")
+                st.info("👈 Sol tablodan maç sonuçlarını seçtiğiniz anda canlı ikramiye potası hesaplanır.")
         else:
-            st.info("👈 Takip başlatmak için önce 1. Sekmeden kupon üretin veya sol taraftan kupon dosyası (.txt) yükleyin.")
+            st.info("👈 Takip başlatmak için önce kupon üretin veya kupon dosyası yükleyin.")
 
 # ------------------------------------------------------------------------------
 # SEKME 3: OTOMATİK YATIRMA
