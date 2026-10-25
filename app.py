@@ -517,42 +517,54 @@ tab_uretim, tab_takip, tab_otomasyon = st.tabs([
 ])
 
 # ------------------------------------------------------------------------------
-# SEKME 1: KAPSAMLI LİG SEÇİMİ VE ÜRETİM
+# SEKME 1: KAPSAMLI LİG SEÇİMİ VE ÜRETİM (KÜMELENMİŞ HAVUZ MİMARİSİ)
 # ------------------------------------------------------------------------------
 with tab_uretim:
     st.markdown("### 🌍 50+ Kapsamlı Lig ve Turnuva Seçim Paneli")
     if api_key:
-        # Kategori Filtresi Seçimi
         secilen_kategori = st.selectbox(
             "📁 Önce Lig Kategorisi Seçin:", 
-            list(KATEGORIZE_LIGLER.keys())
+            list(KATEGORIZE_LIGLER.keys()),
+            key="kat_secimi"
         )
         
         aktif_ligler_dict = KATEGORIZE_LIGLER[secilen_kategori]
         secilen_lig_adlari = st.multiselect(
             f"🏆 {secilen_kategori} İçinden Ligleri Seçin:",
             list(aktif_ligler_dict.keys()),
-            default=list(aktif_ligler_dict.keys())[:3]
+            key=f"lig_secimi_{secilen_kategori}"
         )
         
         secilen_lig_idleri = [aktif_ligler_dict[l] for l in secilen_lig_adlari]
         
-        if secilen_lig_idleri:
-            if st.button("🔍 Seçilen Liglerdeki Maçları Listele", use_container_width=True):
-                with st.spinner("Seçilen liglerin maç bültenleri çekiliyor..."):
-                    st.session_state.mac_listesi = tum_liglerden_maclari_getir(secilen_lig_idleri, api_key)
-                    st.success(f"✅ Toplam **{len(st.session_state.mac_listesi)} maç** bülfene eklendi!")
-                    
+        col_b1, col_b2 = st.columns([1, 1])
+        with col_b1:
+            if secilen_lig_idleri:
+                if st.button("📥 Seçilen Liglerin Maçlarını Havuza Ekle", use_container_width=True):
+                    with st.spinner("Maç bültenleri taranıyor..."):
+                        yeni_maclar = tum_liglerden_maclari_getir(secilen_lig_idleri, api_key)
+                        mevcut_idler = {m["id"] for m in st.session_state.mac_listesi}
+                        for m in yeni_maclar:
+                            if m["id"] not in mevcut_idler:
+                                st.session_state.mac_listesi.append(m)
+                        st.success(f"✅ Havuza yeni maçlar eklendi! Toplam Havuz Maç Sayısı: {len(st.session_state.mac_listesi)}")
+        with col_b2:
+            if st.button("🗑️ Havuzu ve Seçimleri Sıfırla", use_container_width=True):
+                st.session_state.mac_listesi = []
+                st.session_state.analiz_verisi = None
+                st.rerun()
+
         if st.session_state.mac_listesi:
             st.markdown("---")
             opsiyonlar = {m['label']: m for m in st.session_state.mac_listesi}
             secilenler_label = st.multiselect(
-                "🎯 Bülten Havuzundan Tam 15 Maç Seçin (Resmi sıraya göre seçin):", 
+                "🎯 Biriken Havuzdan Tam 15 Maç Seçin (Resmi sıraya göre seçin):", 
                 list(opsiyonlar.keys()), 
-                max_selections=15
+                max_selections=15,
+                key="final_15_secim"
             )
             
-            st.caption(f"Seçilen Maç Sayısı: **{len(secilenler_label)} / 15**")
+            st.caption(f"Havuzdaki Toplam Maç: **{len(st.session_state.mac_listesi)}** | Seçilen Maç Sayısı: **{len(secilenler_label)} / 15**")
             
             if len(secilenler_label) == 15:
                 if st.button("🚀 Hibrit Analizi ve Motoru Başlat", type="primary", use_container_width=True):
