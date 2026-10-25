@@ -10,19 +10,14 @@ import plotly.express as px
 
 st.set_page_config(page_title="Spor Toto AI Pro v5.1 (Kompakt)", page_icon="🏆", layout="wide")
 
-# --- ÖZEL CSS İLE EKRANI KOMPAKT HALE GETİRME ---
+# --- EKRANI KOMPAKT YAPAN ÖZEL CSS ---
 st.markdown("""
     <style>
         .block-container {
-            padding-top: 1.2rem;
+            padding-top: 1rem;
             padding-bottom: 1rem;
             padding-left: 2rem;
             padding-right: 2rem;
-        }
-        stMetric {
-            background-color: #f0f2f6;
-            padding: 10px;
-            border-radius: 5px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -254,12 +249,14 @@ tab_uretim, tab_takip, tab_otomasyon = st.tabs(["🚀 1. Hibrit Üretim", "📡 
 with tab_uretim:
     if api_key:
         kat = st.selectbox("Kategori:", list(KATEGORIZE_LIGLER.keys()), key="k1")
-         ligler = st.multiselect("Ligler:", list(KATEGORIZE_LIGLER[kat].keys()), key="l1")
+        ligler = st.multiselect("Ligler:", list(KATEGORIZE_LIGLER[kat].keys()), key="l1")
+        
         if st.button("📥 Maçları Havuza Ekle", use_container_width=True):
             yeni = tum_liglerden_maclari_getir([KATEGORIZE_LIGLER[kat][l] for l in ligler], api_key)
             mevcut = {m["id"] for m in st.session_state.mac_listesi}
             for m in yeni:
-                if m["id"] not in mevcut: st.session_state.mac_listesi.append(m)
+                if m["id"] not in mevcut: 
+                    st.session_state.mac_listesi.append(m)
             st.success(f"Havuzda toplam {len(st.session_state.mac_listesi)} maç var.")
             
         if st.session_state.mac_listesi:
@@ -283,7 +280,7 @@ with tab_uretim:
                 "Tuzak": "🚨 Evet" if v["tuzak_farki"] >= 12 else "✅ Normal",
                 "1": "1" in s, "X": "X" in s, "2": "2" in s
             } for v, s in zip(veriler, sablon)]),
-            disabled=["Maç", "1%", "X%", "2%", "Tuzak"], hide_index=True, use_container_width=True, height=400
+            disabled=["Maç", "1%", "X%", "2%", "Tuzak"], hide_index=True, use_container_width=True, height=350
         )
 
         sirali = df_edit.sort_values("Sıra").reset_index(drop=True)
@@ -313,7 +310,7 @@ with tab_takip:
     col_t1, col_t2 = st.columns([1, 1.5])
     with col_t1:
         kaynak = st.radio("Kaynak:", ["📂 Dosya Yükle", "⚡ Oturumdakiler"], index=1 if st.session_state.uretilen_kuponlar is not None else 0)
-         aktif_k = kupon_dosyasi_coz(st.file_uploader("Dosya:", type=["txt","csv"])) if "Dosya" in kaynak else st.session_state.uretilen_kuponlar
+        aktif_k = kupon_dosyasi_coz(st.file_uploader("Dosya:", type=["txt","csv"])) if "Dosya" in kaynak else st.session_state.uretilen_kuponlar
         
         if api_key and len(st.session_state.secilen_mac_idleri) == 15 and st.button("🔄 Skorları Çek"):
             st.session_state.canli_sonuclar, st.session_state.canli_skor_metni = canli_skorlari_cek(st.session_state.secilen_mac_idleri, api_key)
@@ -322,7 +319,7 @@ with tab_takip:
         sonuc_df = st.data_editor(
             pd.DataFrame({"No": list(range(1, 16)), "Maç": m_isim, "Skor": st.session_state.canli_skor_metni, "Sonuç": st.session_state.canli_sonuclar}),
             column_config={"Sonuç": st.column_config.SelectboxColumn("Sonuç", options=["⏳ Bekliyor", "1", "X", "2"], required=True)},
-            disabled=["No", "Maç", "Skor"], hide_index=True, use_container_width=True, height=420
+            disabled=["No", "Maç", "Skor"], hide_index=True, use_container_width=True, height=350
         )
     with col_t2:
         if aktif_k is not None and len(aktif_k) > 0:
