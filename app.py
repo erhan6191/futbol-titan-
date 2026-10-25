@@ -11,13 +11,13 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
-st.set_page_config(page_title="Spor Toto AI Pro v8.0", page_icon="🏆", layout="wide")
+st.set_page_config(page_title="Spor Toto AI Pro v8.5", page_icon="🏆", layout="wide")
 
 # --- KOMPAKT VE MODERN ARAYÜZ CSS ---
 st.markdown("""
     <style>
         .block-container {
-            padding-top: 2.2rem !important;
+            padding-top: 2rem !important;
             padding-bottom: 1rem !important;
             padding-left: 1.5rem !important;
             padding-right: 1.5rem !important;
@@ -29,7 +29,7 @@ st.markdown("""
             border-radius: 8px;
         }
         div[data-testid="stMetricValue"] {
-            font-size: 1.25rem !important;
+            font-size: 1.2rem !important;
             font-weight: 700 !important;
         }
     </style>
@@ -43,16 +43,31 @@ varsayilan_state = {
     "secilen_mac_idleri": [],
     "uretilen_kuponlar": None,
     "canli_sonuclar": ["⏳ Bekliyor"] * 15,
-    "canli_skor_metni": ["-"] * 15
+    "canli_skor_metni": ["-"] * 15,
+    "kalan_kota": "Bilinmiyor"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
+# --- DESTEKLENEN SPOR TOTO LİG HAVUZU (ID -> İSİM) ---
+DESTEKLENEN_LIGLER = {
+    203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
+    39: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League", 40: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship",
+    140: "🇪🇸 La Liga", 135: "🇮🇹 Serie A", 78: "🇩🇪 Bundesliga", 61: "🇫🇷 Ligue 1",
+    2: "⭐ Şampiyonlar Ligi", 3: "⭐ Avrupa Ligi", 848: "⭐ Konferans Ligi", 5: "⭐ Uluslar Ligi",
+    88: "🇳🇱 Eredivisie", 94: "🇵🇹 Primeira Liga", 144: "🇧🇪 Pro League",
+    103: "🇨🇭 Super League", 218: "🇦🇹 Bundesliga", 179: "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Premiership",
+    197: "🇬🇷 Super League", 119: "🇩🇰 Superliga", 106: "🇵🇱 Ekstraklasa",
+    71: "🇧🇷 Série A", 128: "🇦🇷 Liga Prof.", 253: "🇺🇸 MLS", 307: "🇸🇦 Pro League"
+}
+
 # --- SOL MENÜ ---
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v8.0")
+    st.markdown("## 🏆 Spor Toto AI v8.5")
     api_key = st.text_input("🔑 API-Football Anahtarı:", type="password")
+    if api_key:
+        st.caption(f"📊 Kalan Günlük API Kotası: **{st.session_state.kalan_kota}**")
 
     st.markdown("---")
     st.markdown("### 🎯 1. Garanti ve Bütçe")
@@ -73,22 +88,15 @@ with st.sidebar:
         max_kolon_limiti = None
 
     st.markdown("---")
-    st.markdown("### ✂️ 2. İleri Seviye Kupon Eleme")
-    akilli_merkez = st.toggle("🧠 Maksimum Kapsama Optimizasyonu", value=True)
-    entropi_filtresi = st.toggle("🌀 Simetrik/Yapay Dizilim Elemesi", value=True)
-    benzerlik_elemesi = st.select_slider(
-        "🔍 Kuponlar Arası Min. Farklı Maç:",
-        options=[1, 2, 3, 4],
-        value=1
-    )
-
-    st.markdown("---")
-    st.markdown("### 🧠 3. Oyun Stratejisi")
+    st.markdown("### ✂️ 2. Kupon Eleme & Strateji")
     strateji_modu = st.radio(
         "Yapay Zeka Modu:",
         ["⚖️ Dengeli (Önerilen)", "🛡️ Favori Ağırlıklı", "💎 İkramiye Avcısı (Sürpriz)"]
     )
+    akilli_merkez = st.toggle("🧠 Maksimum Kapsama Optimizasyonu", value=True)
+    entropi_filtresi = st.toggle("🌀 Simetrik/Yapay Dizilim Elemesi", value=True)
     tuzak_koruma = st.toggle("🚨 Tuzak Favorileri Yık (Çifteye Çevir)", value=True)
+    benzerlik_elemesi = st.select_slider("🔍 Kuponlar Arası Min. Farklı Maç:", options=[1, 2, 3, 4], value=1)
     ai_filtre_modu = st.toggle("🤖 Otonom Filtre", value=True)
 
     if not ai_filtre_modu:
@@ -108,33 +116,153 @@ with st.sidebar:
 
 
 # ==============================================================================
-# LİG HAVUZU VE AKILLI METİN EŞLEŞTİRME MOTORU
+# ULTRA DÜŞÜK TÜKETİMLİ API VE METİN EŞLEŞTİRME MOTORU
 # ==============================================================================
-STANDART_TOTO_LIGLERI = [203, 204, 39, 140, 135, 78, 61, 88, 94, 144, 2, 3, 848]
+def api_istegi_at(url, api_key, timeout=8):
+    headers = {"x-apisports-key": api_key}
+    res = requests.get(url, headers=headers, timeout=timeout)
+    kalan = res.headers.get("x-ratelimit-requests-remaining")
+    if kalan is not None:
+        st.session_state.kalan_kota = kalan
+    return res.json()
 
-KATEGORIZE_LIGLER = {
-    "🇹🇷 Türkiye": {"Trendyol Süper Lig": 203, "Trendyol 1. Lig": 204, "Türkiye Kupası": 205},
-    "🇪🇺 Avrupa Büyükler": {
-        "Premier League (İngiltere)": 39, "Championship (İngiltere 2)": 40,
-        "La Liga (İspanya)": 140, "Serie A (İtalya)": 135,
-        "Bundesliga (Almanya)": 78, "Ligue 1 (Fransa)": 61
-    },
-    "⭐ Avrupa Kupaları": {
-        "UEFA Şampiyonlar Ligi": 2, "UEFA Avrupa Ligi": 3,
-        "UEFA Konferans Ligi": 848, "UEFA Uluslar Ligi": 5
-    },
-    "🌍 Diğer Avrupa": {
-        "Eredivisie (Hollanda)": 88, "Primeira Liga (Portekiz)": 94,
-        "Pro League (Belçika)": 144, "Super League (İsviçre)": 103,
-        "Bundesliga (Avusturya)": 218, "Premiership (İskoçya)": 179,
-        "Super League (Yunanistan)": 197, "Super Lig (Danimarka)": 119,
-        "Ekstraklasa (Polonya)": 106, "Super Liga (Sırbistan)": 286
-    },
-    "🌎 Amerika & Diğer": {
-        "Série A (Brezilya)": 71, "Liga Profesional (Arjentin)": 128,
-        "MLS (ABD)": 253, "Pro League (Suudi Arabistan)": 307
-    }
-}
+
+@st.cache_data(ttl=21600, show_spinner=False)
+def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
+    """
+    13 lig için 13 ayrı istek atmak yerine, seçilen günün tüm maçlarını TEK İSTEKTE (1 Request) çeker.
+    6 saat (21600 sn) boyunca hafızada tutar, tekrar API kotası harcamaz.
+    """
+    url = f"https://v3.football.api-sports.io/fixtures?date={tarih_str}&timezone=Europe/Istanbul"
+    gunun_maclari = []
+    try:
+        data = api_istegi_at(url, api_key, timeout=10)
+        for item in data.get("response", []):
+            lig_id = item["league"]["id"]
+            if sadece_toto_ligleri and lig_id not in DESTEKLENEN_LIGLER:
+                continue
+            f_id = item["fixture"]["id"]
+            ev = item["teams"]["home"]["name"]
+            dep = item["teams"]["away"]["name"]
+            saat = item["fixture"]["date"][11:16]
+            lig_etiket = DESTEKLENEN_LIGLER.get(lig_id, f"{item['league']['country']} - {item['league']['name']}")
+            gunun_maclari.append({
+                "id": f_id,
+                "lig_id": lig_id,
+                "lig": lig_etiket,
+                "tarih": tarih_str,
+                "saat": saat,
+                "ev": ev,
+                "dep": dep,
+                "karsilasma": f"{ev} - {dep}",
+                "label": f"[{lig_etiket}] {ev} - {dep} ({tarih_str} {saat})"
+            })
+    except Exception:
+        pass
+    return gunun_maclari
+
+
+def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_ligleri=True):
+    tum_maclar = []
+    gun_sayisi = (bit_tarih - bas_tarih).days + 1
+    progress = st.progress(0, text="Bülten günleri taranıyor (Ultra tasarruflu mod)...")
+    for i in range(gun_sayisi):
+        g_str = (bas_tarih + timedelta(days=i)).strftime("%Y-%m-%d")
+        maclar = gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri)
+        tum_maclar.extend(maclar)
+        progress.progress((i + 1) / gun_sayisi)
+    progress.empty()
+    # Türkiye liglerini listenin en üstüne sırala
+    tum_maclar.sort(key=lambda x: (0 if x["lig_id"] in [203, 204] else 1, x["tarih"], x["saat"]))
+    return tum_maclar
+
+
+def olasilik_yumusat(p1, px_val, p2):
+    p1, px_val, p2 = max(5.0, float(p1)), max(5.0, float(px_val)), max(5.0, float(p2))
+    toplam = p1 + px_val + p2
+    y1 = int(round(p1 * 100 / toplam))
+    yx = int(round(px_val * 100 / toplam))
+    y2 = max(1, 100 - y1 - yx)
+    # Toplamın tam 100 olmasını garanti altına al
+    fark = 100 - (y1 + yx + y2)
+    if fark != 0:
+         y1 += fark
+    return y1, yx, y2
+
+
+def halk_egilimi_simule_et(p1, px_val, p2):
+    w1, wx, w2 = (p1 ** 1.55), (px_val ** 1.15), (p2 ** 1.55)
+    t = w1 + wx + w2
+    h1 = int(round(w1 * 100 / t))
+    hx = int(round(wx * 100 / t))
+    h2 = max(1, 100 - h1 - hx)
+    return h1, hx, h2
+
+
+@st.cache_data(ttl=43200, show_spinner=False)
+def tek_mac_analiz_cek(f_id, api_key):
+    """
+    HER MAÇI TEKİL OLARAK 12 SAAT ÖNBELLEKLER!
+    Böylece 15 maçtan 1'ini değiştirdiğinizde diğer 14 maç için tekrar API kotası harcanmaz.
+    """
+    ai_1, ai_x, ai_2 = 36.0, 33.0, 31.0
+    odds_1, odds_x, odds_2 = None, None, None
+    try:
+        res_pred = api_istegi_at(f"https://v3.football.api-sports.io/predictions?fixture={f_id}", api_key, timeout=6)
+        if res_pred.get("response") and res_pred["response"][0].get("predictions"):
+            t = res_pred["response"][0]["predictions"]["percent"]
+            ai_1 = float(t["home"].replace("%", ""))
+            ai_x = float(t["draw"].replace("%", ""))
+            ai_2 = float(t["away"].replace("%", ""))
+    except Exception:
+        pass
+
+    try:
+        res_odds = api_istegi_at(f"https://v3.football.api-sports.io/odds?fixture={f_id}", api_key, timeout=6)
+        if res_odds.get("response") and res_odds["response"][0].get("bookmakers"):
+            buro = res_odds["response"][0]["bookmakers"][0]
+            for bahis in buro.get("bets", []):
+                if bahis.get("id") == 1 or bahis.get("name") == "Match Winner":
+                    degerler = {v["value"]: float(v["odd"]) for v in bahis.get("values", [])}
+                    if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
+                        inv_1, inv_x, inv_2 = 1.0 / degerler["Home"], 1.0 / degerler["Draw"], 1.0 / degerler["Away"]
+                        inv_top = inv_1 + inv_x + inv_2
+                        odds_1 = (inv_1 / inv_top) * 100
+                        odds_x = (inv_x / inv_top) * 100
+                        odds_2 = (inv_2 / inv_top) * 100
+                    break
+    except Exception:
+        pass
+
+    ham_1 = ((odds_1 * 0.65) + (ai_1 * 0.35)) if odds_1 is not None else ai_1
+    ham_x = ((odds_x * 0.65) + (ai_x * 0.35)) if odds_x is not None else ai_x
+    ham_2 = ((odds_2 * 0.65) + (ai_2 * 0.35)) if odds_2 is not None else ai_2
+
+    return olasilik_yumusat(ham_1, ham_x, ham_2)
+
+
+def hibrit_tahminleri_al(secilen_maclar, api_key):
+    sonuclar = []
+    progress = st.progress(0, text="Maç analizleri hazırlanıyor (Önbellek destekli)...")
+    for i, mac in enumerate(secilen_maclar):
+        f_id = mac["id"]
+        g1, gx, g2 = tek_mac_analiz_cek(f_id, api_key)
+        h1, hx, h2 = halk_egilimi_simule_et(g1, gx, g2)
+        sonuclar.append({
+            "bulten_no": i + 1,
+            "id": f_id,
+            "mac": mac["karsilasma"],
+            "lig": mac.get("lig", "-"),
+            "tarih": mac.get("tarih", "-"),
+            "1": g1,
+            "X": gx,
+            "2": g2,
+            "halk_favori": max(h1, hx, h2),
+            "tuzak_farki": max(h1, hx, h2) - max(g1, gx, g2)
+        })
+        progress.progress((i + 1) / len(secilen_maclar))
+    progress.empty()
+    return sonuclar
 
 
 def metin_temizle(s):
@@ -144,11 +272,12 @@ def metin_temizle(s):
     kisaltmalar = {
         "f.bahce": "fenerbahce", "g.saray": "galatasaray", "b.sehir": "basaksehir",
         "karagumruk": "fatih karagumruk", "m.united": "manchester united",
-        "m.city": "manchester city", "b.munchen": "bayern munich", "b.dortmund": "borussia dortmund"
+        "m.city": "manchester city", "b.munchen": "bayern munich", "b.dortmund": "borussia dortmund",
+        "c.rizespor": "rizespor", "g.antep": "gaziantep"
     }
     for k, u in kisaltmalar.items():
         s = s.replace(k, u)
-    s = re.sub(r"\b(fk|sk|as|fc|ac|sc|cf|cd|ud|rc|rcd|sv|vfb|vfl|tsg|1899|1907|spor|belediyespor|united|city|club)\b", " ", s)
+    s = re.sub(r"\b(fk|sk|as|fc|ac|sc|cf|cd|ud|rc|rcd|sv|vfb|vfl|tsg|1899|1907|spor|belediyespor|united|city|club|caykur|atakas|람스|rams|bellona|iklimlendirme)\b", " ", s)
     s = re.sub(r"[^a-z0-9\s]", " ", s)
     return " ".join(s.split())
 
@@ -175,15 +304,15 @@ def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
             mac_birlesik = f"{ev_temiz} {dep_temiz}"
 
             skor_genel = SequenceMatcher(None, metin_adayi, mac_birlesik).ratio()
-            ev_var = 0.3 if (ev_temiz and ev_temiz.split()[0] in metin_adayi) else 0.0
-            dep_var = 0.3 if (dep_temiz and dep_temiz.split()[0] in metin_adayi) else 0.0
+            ev_var = 0.35 if (ev_temiz and ev_temiz.split()[0] in metin_adayi) else 0.0
+            dep_var = 0.35 if (dep_temiz and dep_temiz.split()[0] in metin_adayi) else 0.0
             toplam_skor = skor_genel + ev_var + dep_var
 
             if toplam_skor > en_iyi_skor:
                 en_iyi_skor = toplam_skor
                 en_iyi_mac = m
 
-        if en_iyi_mac and en_iyi_skor >= 0.40:
+        if en_iyi_mac and en_iyi_skor >= 0.42:
             eslesen_maclar.append(en_iyi_mac)
             kullanilan_idler.add(en_iyi_mac["id"])
             if len(eslesen_maclar) == 15:
@@ -192,125 +321,12 @@ def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
     return eslesen_maclar
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def tum_liglerden_maclari_getir(secilen_lig_idleri, api_key, bas_tarih_str, bit_tarih_str):
-    headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "v3.football.api-sports.io"}
-    tum_maclar = []
-    progress = st.progress(0, text="Lig bültenleri hızlıca taranıyor...")
-    for idx, lig_id in enumerate(secilen_lig_idleri):
-        url = f"https://v3.football.api-sports.io/fixtures?league={lig_id}&next=25"
-        try:
-            res = requests.get(url, headers=headers, timeout=8).json()
-            if res.get("response"):
-                for item in res["response"]:
-                    f_id = item["fixture"]["id"]
-                    ev = item["teams"]["home"]["name"]
-                    dep = item["teams"]["away"]["name"]
-                    tarih = item["fixture"]["date"][:10]
-                    saat = item["fixture"]["date"][11:16]
-                    lig_adi = item["league"]["name"]
-                    if bas_tarih_str <= tarih <= bit_tarih_str:
-                        tum_maclar.append({
-                            "id": f_id,
-                            "lig": lig_adi,
-                            "tarih": tarih,
-                            "saat": saat,
-                            "ev": ev,
-                            "dep": dep,
-                            "karsilasma": f"{ev} - {dep}",
-                            "label": f"{ev} - {dep} ({lig_adi} | {tarih})"
-                        })
-        except Exception:
-            pass
-        progress.progress((idx + 1) / len(secilen_lig_idleri))
-    progress.empty()
-    return tum_maclar
-
-
-def olasilik_yumusat(p1, px_val, p2):
-    p1, px_val, p2 = max(5.0, float(p1)), max(5.0, float(px_val)), max(5.0, float(p2))
-    toplam = p1 + px_val + p2
-    y1 = int(round(p1 * 100 / toplam))
-    yx = int(round(px_val * 100 / toplam))
-    y2 = int(100 - y1 - yx)
-    return y1, yx, y2
-
-
-def halk_egilimi_simule_et(p1, px_val, p2):
-    w1, wx, w2 = (p1 ** 1.55), (px_val ** 1.15), (p2 ** 1.55)
-    t = w1 + wx + w2
-    h1 = int(round(w1 * 100 / t))
-    hx = int(round(wx * 100 / t))
-    h2 = int(100 - h1 - hx)
-    return h1, hx, h2
-
-
-@st.cache_data(ttl=3600, show_spinner=False)
-def hibrit_tahminleri_al(secilen_maclar, api_key):
-    headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "v3.football.api-sports.io"}
-    sonuclar = []
-    progress = st.progress(0, text="Hibrit Motor: AI ve Bahis Oranları çekiliyor...")
-    for i, mac in enumerate(secilen_maclar):
-        f_id = mac["id"]
-        ai_1, ai_x, ai_2 = 36.0, 33.0, 31.0
-        odds_1, odds_x, odds_2 = None, None, None
-        try:
-            res_pred = requests.get(f"https://v3.football.api-sports.io/predictions?fixture={f_id}", headers=headers, timeout=6).json()
-            if res_pred.get("response") and res_pred["response"][0].get("predictions"):
-                t = res_pred["response"][0]["predictions"]["percent"]
-                ai_1 = float(t["home"].replace("%", ""))
-                ai_x = float(t["draw"].replace("%", ""))
-                ai_2 = float(t["away"].replace("%", ""))
-        except Exception:
-            pass
-        try:
-            res_odds = requests.get(f"https://v3.football.api-sports.io/odds?fixture={f_id}", headers=headers, timeout=6).json()
-            if res_odds.get("response") and res_odds["response"][0].get("bookmakers"):
-                buro = res_odds["response"][0]["bookmakers"][0]
-                for bahis in buro.get("bets", []):
-                    if bahis.get("id") == 1 or bahis.get("name") == "Match Winner":
-                        degerler = {v["value"]: float(v["odd"]) for v in bahis.get("values", [])}
-                        if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
-                            inv_1, inv_x, inv_2 = 1.0 / degerler["Home"], 1.0 / degerler["Draw"], 1.0 / degerler["Away"]
-                            inv_top = inv_1 + inv_x + inv_2
-                            odds_1 = (inv_1 / inv_top) * 100
-                            odds_x = (inv_x / inv_top) * 100
-                            odds_2 = (inv_2 / inv_top) * 100
-                        break
-        except Exception:
-            pass
-
-        ham_1 = ((odds_1 * 0.65) + (ai_1 * 0.35)) if odds_1 is not None else ai_1
-        ham_x = ((odds_x * 0.65) + (ai_x * 0.35)) if odds_x is not None else ai_x
-        ham_2 = ((odds_2 * 0.65) + (ai_2 * 0.35)) if odds_2 is not None else ai_2
-
-        g1, gx, g2 = olasilik_yumusat(ham_1, ham_x, ham_2)
-        h1, hx, h2 = halk_egilimi_simule_et(g1, gx, g2)
-        sonuclar.append({
-            "bulten_no": i + 1,
-            "id": f_id,
-            "mac": mac["karsilasma"],
-            "lig": mac.get("lig", "-"),
-            "tarih": mac.get("tarih", "-"),
-            "1": g1,
-            "X": gx,
-            "2": g2,
-            "halk_favori": max(h1, hx, h2),
-            "tuzak_farki": max(h1, hx, h2) - max(g1, gx, g2)
-        })
-        progress.progress((i + 1) / len(secilen_maclar))
-        time.sleep(0.05)
-    progress.empty()
-    return sonuclar
-
-
 def canli_skorlari_cek(fixture_id_listesi, api_key):
-    headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "v3.football.api-sports.io"}
     ids_str = "-".join(str(fid) for fid in fixture_id_listesi)
     url = f"https://v3.football.api-sports.io/fixtures?ids={ids_str}"
     yeni_sonuclar, skor_metinleri = ["⏳ Bekliyor"] * 15, ["-"] * 15
     try:
-        res = requests.get(url, headers=headers, timeout=10).json()
+        res = api_istegi_at(url, api_key, timeout=10)
         if res.get("response"):
             id_haritasi = {item["fixture"]["id"]: item for item in res["response"]}
             for idx, fid in enumerate(fixture_id_listesi):
@@ -326,6 +342,9 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
     return yeni_sonuclar, skor_metinleri
 
 
+# ==============================================================================
+# MATEMATİKSEL FİLTRELEME VE KUPON OPTİMİZASYON MOTORU
+# ==============================================================================
 def tam_otonom_analiz(mac_verileri, strateji):
     beklenen_1, beklenen_x, beklenen_2, min_puan, max_puan = 0, 0, 0, 0, 0
     en_yuksek = []
@@ -415,7 +434,7 @@ def vektorel_filtrele(sablon, mac_verileri, limitler, entropi_aktif=True):
     )
     matris = matris[maske]
     if len(matris) == 0:
-        return np.empty((0, 15), dtype=np.int8), np.array([])
+        return np.empty((0, 15), dtype="<U1"), np.array([])
 
     oran_mat = np.array([[v["1"], v["X"], v["2"]] for v in mac_verileri], dtype=np.int16)
     secilen_oranlar = oran_mat[np.arange(15), matris]
@@ -429,7 +448,7 @@ def vektorel_filtrele(sablon, mac_verileri, limitler, entropi_aktif=True):
     matris = matris[maske_puan]
     puanlar = puanlar[maske_puan]
     if len(matris) == 0:
-        return np.empty((0, 15), dtype=np.int8), np.array([])
+        return np.empty((0, 15), dtype="<U1"), np.array([])
 
     if limitler.get("aktif_blok_filtresi") and limitler["max_blok_tekrar"] < 3:
         bloklar = matris.reshape(-1, 5, 3)
@@ -441,11 +460,11 @@ def vektorel_filtrele(sablon, mac_verileri, limitler, entropi_aktif=True):
         matris = matris[~ihlal]
         puanlar = puanlar[~ihlal]
         if len(matris) == 0:
-            return np.empty((0, 15), dtype=np.int8), np.array([])
+            return np.empty((0, 15), dtype="<U1"), np.array([])
 
     for deger, anahtar in [(0, "ardisik_1"), (1, "ardisik_x"), (2, "ardisik_2")]:
-        max_ard = limitler[anahtar]
-        if max_ard < 15 and len(matris) > 0:
+        max_ard = int(limitler[anahtar])
+        if 1 <= max_ard < 15 and len(matris) > 0:
             pencereler = sliding_window_view(matris == deger, window_shape=max_ard + 1, axis=1)
             ardisik_ihlal = np.any(np.all(pencereler, axis=2), axis=1)
             matris = matris[~ardisik_ihlal]
@@ -459,7 +478,7 @@ def vektorel_filtrele(sablon, mac_verileri, limitler, entropi_aktif=True):
             puanlar = puanlar[entropi_maske]
 
     if len(matris) == 0:
-        return np.empty((0, 15), dtype=np.int8), np.array([])
+        return np.empty((0, 15), dtype="<U1"), np.array([])
 
     idx = np.argsort(puanlar)[::-1]
     return ters[matris[idx]], puanlar[idx]
@@ -467,10 +486,12 @@ def vektorel_filtrele(sablon, mac_verileri, limitler, entropi_aktif=True):
 
 def gelismis_garanti_ve_budama_uygula(kolonlar, puanlar, hedef, max_k=None, akilli_merkez=True, min_fark=1):
     if len(kolonlar) == 0:
-        return np.empty((0, 15)), np.array([]), 0.0
+        return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0
 
-    harita = {"1": 0, "X": 1, "2": 2}
-    mat = np.vectorize(harita.get)(kolonlar).astype(np.int8)
+    # Vektörel hızlı dönüşüm (np.vectorize hatasını önler)
+    mat = np.zeros(kolonlar.shape, dtype=np.int8)
+    mat[kolonlar == "X"] = 1
+    mat[kolonlar == "2"] = 2
 
     if hedef == 15:
         nihai = list(range(len(kolonlar)))
@@ -519,8 +540,12 @@ def gelismis_garanti_ve_budama_uygula(kolonlar, puanlar, hedef, max_k=None, akil
 
 
 def monte_carlo_simule_et(kuponlar, veriler):
-    harita = {"1": 0, "X": 1, "2": 2}
-    k_num = np.vectorize(harita.get)(kuponlar).astype(np.int8)
+    if len(kuponlar) == 0:
+        return {"15_oran": 0.0, "14_arti_oran": 0.0, "12_arti_oran": 0.0}
+    k_num = np.zeros(kuponlar.shape, dtype=np.int8)
+    k_num[kuponlar == "X"] = 1
+    k_num[kuponlar == "2"] = 2
+
     rng = np.random.default_rng(42)
     sim = np.zeros((3000, 15), dtype=np.int8)
     for idx, v in enumerate(veriler):
@@ -550,145 +575,86 @@ def kupon_dosyasi_coz(dosya):
 # ANA SEKMELER
 # ==============================================================================
 tab_uretim, tab_takip, tab_otomasyon = st.tabs([
-    "🚀 1. Hızlı Bülten Eşleştirme & Kupon Üretim",
+    "🚀 1. Pratik Bülten Seçimi & Kupon Üretimi",
     "📡 2. Canlı Kupon Takibi",
     "🤖 3. Otomatik Yatırma"
 ])
 
 # ------------------------------------------------------------------------------
-# SEKME 1: BÜLTEN SEÇİCİ VE DERİN ELEME (GELİŞTİRİLMİŞ 2. YOL İLE)
+# SEKME 1: BASİTLEŞTİRİLMİŞ TEK ADIMLI BÜLTEN SEÇİCİ VE KUPON ÜRETİMİ
 # ------------------------------------------------------------------------------
 with tab_uretim:
     if not api_key:
         st.info("👈 Başlamak için sol menüden **API-Football Anahtarınızı** girin.")
     else:
         acik_kal = st.session_state.analiz_verisi is None
-        with st.expander("⚡ ADIM 1: Bülten ve Maç Havuzu Seçimi", expanded=acik_kal):
+        with st.expander("⚡ ADIM 1: Bülten Maçlarını Seçin (Sadeleştirilmiş & Kotayı Korumalı)", expanded=acik_kal):
             bugun = datetime.now().date()
-            varsayilan_bitis = bugun + timedelta(days=5)
+            varsayilan_bitis = bugun + timedelta(days=3)
 
-            ust_c1, ust_c2, ust_c3 = st.columns([1.4, 1.8, 0.8])
-            with ust_c1:
-                tarih_araligi = st.date_input(
-                    "📅 Bülten Tarih Aralığı:",
-                    value=(bugun, varsayilan_bitis)
-                )
-            with ust_c2:
+            c_ust1, c_ust2, c_ust3, c_ust4 = st.columns([1.5, 1.1, 1.4, 0.8])
+            with c_ust1:
+                tarih_araligi = st.date_input("📅 Bülten Günleri:", value=(bugun, varsayilan_bitis))
+            with c_ust2:
                 st.write("")
-                if st.button("⚡ Tek Tıkla Tüm Spor Toto Liglerini Getir (Önerilen)", type="primary", use_container_width=True):
+                sadece_toto = st.checkbox("Sadece Popüler Ligler", value=True, help="İşaret kaldırılırsa seçilen günlerdeki tüm dünya liglerini listeler.")
+            with c_ust3:
+                st.write("")
+                if st.button("📥 Seçili Günlerin Maçlarını Yükle", type="primary", use_container_width=True):
                     if isinstance(tarih_araligi, tuple) and len(tarih_araligi) == 2:
-                        bas_str = tarih_araligi[0].strftime("%Y-%m-%d")
-                        bit_str = tarih_araligi[1].strftime("%Y-%m-%d")
-                        yeni = tum_liglerden_maclari_getir(STANDART_TOTO_LIGLERI, api_key, bas_str, bit_str)
-                        mevcut = {m["id"] for m in st.session_state.mac_listesi}
-                        for m in yeni:
-                            if m["id"] not in mevcut:
-                                st.session_state.mac_listesi.append(m)
-            with ust_c3:
+                        st.session_state.mac_listesi = tarih_araligi_maclarini_getir(
+                            tarih_araligi[0], tarih_araligi[1], api_key, sadece_toto
+                        )
+                    else:
+                        st.warning("Lütfen başlangıç ve bitiş tarihini birlikte seçin.")
+            with c_ust4:
                 st.write("")
-                if st.button("🗑️ Havuzu Temizle", use_container_width=True):
+                if st.button("🗑️ Sıfırla", use_container_width=True):
                     st.session_state.mac_listesi = []
                     st.session_state.secilen_15_mac = []
                     st.session_state.analiz_verisi = None
                     st.rerun()
 
-            with st.expander("➕ Farklı Bir Lig veya Kupa Eklemek İsterseniz Tıklayın"):
-                ek_c1, ek_c2, ek_c3 = st.columns([1.2, 2, 1])
-                with ek_c1:
-                    kat = st.selectbox("Bölge:", list(KATEGORIZE_LIGLER.keys()), key="k1")
-                with ek_c2:
-                    ligler = st.multiselect("Ligler:", list(KATEGORIZE_LIGLER[kat].keys()), key=f"lig_{kat}")
-                with ek_c3:
-                    st.write("")
-                    if st.button("📥 Seçili Ligleri Ekle", use_container_width=True) and ligler:
-                        bas_str = tarih_araligi[0].strftime("%Y-%m-%d")
-                        bit_str = tarih_araligi[1].strftime("%Y-%m-%d")
-                        yeni = tum_liglerden_maclari_getir([KATEGORIZE_LIGLER[kat][l] for l in ligler], api_key, bas_str, bit_str)
-                        mevcut = {m["id"] for m in st.session_state.mac_listesi}
-                        for m in yeni:
-                            if m["id"] not in mevcut:
-                                st.session_state.mac_listesi.append(m)
-
             if st.session_state.mac_listesi:
-                st.markdown("---")
-                
-                # --- YENİ ENTEGRE EDİLEN GELİŞMİŞ 3'LÜ SEÇİM YÖNTEMİ ---
-                secim_yontemi = st.radio(
-                    "🎯 15 Maçı Nasıl Belirlemek İstersiniz?",
-                    [
-                        "✨ Yöntem A: Bahis Sitesinden Kopyala-Yapıştır ile Otomatik Eşleştir",
-                        "📂 Yöntem B: Maç Listesi Dosyası Yükle (.TXT / .CSV)",
-                        "🔍 Yöntem C: Arama Kutusuyla El ile Tek Tek Seç"
-                    ],
-                    horizontal=True
-                )
-
                 opsiyon_haritasi = {m["label"]: m for m in st.session_state.mac_listesi}
-                varsayilan_etiketler = [m["label"] for m in st.session_state.secilen_15_mac if m["label"] in opsiyon_haritasi]
 
-                if "Yöntem A" in secim_yontemi:
-                    y_col1, y_col2 = st.columns([2.5, 1.2])
-                    with y_col1:
-                        yapistirilan = st.text_area(
-                            "📋 Nesine / Bilyoner / Misli sayfasındaki 15 maçı kopyalayıp buraya yapıştırın (Ctrl+V):",
-                            placeholder="Örnek:\n1. Çaykur Rizespor - Trabzonspor\n2. Beşiktaş - Başakşehir\n3. Galatasaray - Fenerbahçe...",
-                            height=130
-                        )
-                    with y_col2:
-                        st.write("")
-                        st.write("")
-                        if st.button("🪄 Metindeki Maçları Eşleştir", use_container_width=True):
-                            if yapistirilan.strip():
-                                bulunanlar = bulten_metni_eslestir(yapistirilan, st.session_state.mac_listesi)
-                                if bulunanlar:
-                                    st.session_state.secilen_15_mac = bulunanlar
-                                    st.success(f"✅ Metinden **{len(bulunanlar)} maç** başarıyla eşleştirildi!")
-                                    st.rerun()
-                                else:
-                                    st.warning("⚠️ Eşleşme sağlanamadı. Lütfen takım adlarının havuzda mevcut olduğundan emin olun.")
+                # Tek Ekranda Hem Kopyala-Yapıştır Hem Doğrudan Arama
+                col_sol, col_sag = st.columns([1.2, 2.2])
+                with col_sol:
+                    yapistirilan = st.text_area(
+                        "📋 Hızlı Eşleştir (Opsiyonel - Bülteni Yapıştırın):",
+                        placeholder="Nesine/Bilyoner/Misli'den 15 maçı kopyalayıp buraya yapıştırın...",
+                        height=115
+                    )
+                    if st.button("🪄 Metinden Otomatik Seç", use_container_width=True) and yapistirilan.strip():
+                        bulunanlar = bulten_metni_eslestir(yapistirilan, st.session_state.mac_listesi)
+                        if bulunanlar:
+                            st.session_state.secilen_15_mac = bulunanlar
+                            st.toast(f"✅ {len(bulunanlar)} maç otomatik eşleştirildi!")
+                            st.rerun()
+                        else:
+                            st.warning("⚠️ Eşleşme bulunamadı. Sağdaki kutudan aratarak seçebilirsiniz.")
 
-                elif "Yöntem B" in secim_yontemi:
-                    d_col1, d_col2 = st.columns([2, 1])
-                    with d_col1:
-                        yuklenen_dosya = st.file_uploader(
-                            "📁 Her satırda bir maç olacak şekilde hazırladığınız .txt veya .csv dosyasını yükleyin:",
-                            type=["txt", "csv"]
-                        )
-                    with d_col2:
-                        st.write("")
-                        st.write("")
-                        if yuklenen_dosya is not None:
-                            try:
-                                dosya_icerigi = yuklenen_dosya.getvalue().decode("utf-8-sig")
-                                bulunanlar = bulten_metni_eslestir(dosya_icerigi, st.session_state.mac_listesi)
-                                if bulunanlar:
-                                    st.session_state.secilen_15_mac = bulunanlar
-                                    st.success(f"✅ Dosyadan **{len(bulunanlar)} maç** eşleştirildi!")
-                                    st.rerun()
-                                else:
-                                    st.warning("⚠️ Dosyadaki maçlar havuzla eşleşmedi.")
-                            except Exception as e:
-                                st.error(f"Hata: {e}")
+                with col_sag:
+                    varsayilan_secimler = [m["label"] for m in st.session_state.secilen_15_mac if m["label"] in opsiyon_haritasi]
+                    secilen_etiketler = st.multiselect(
+                        f"🎯 15 Bülten Maçı ({len(st.session_state.mac_listesi)} maç içinden takım adı yazarak ekleyip çıkarabilirsiniz):",
+                        options=list(opsiyon_haritasi.keys()),
+                        default=varsayilan_secimler,
+                        max_selections=15,
+                        placeholder="Takım veya lig adı yazın (Örn: Galatasaray, Fenerbahçe, Premier)..."
+                    )
+                    st.session_state.secilen_15_mac = [opsiyon_haritasi[e] for e in secilen_etiketler]
 
-                # Her durumda ortak kullanılan esnek seçim/görüntüleme kutusu
-                secilen_etiketler = st.multiselect(
-                    f"✅ Kesinleşen 15 Bülten Maçı ({len(st.session_state.mac_listesi)} maçlık havuzdan dilediğinizi ekleyip çıkarabilirsiniz):",
-                    options=list(opsiyon_haritasi.keys()),
-                    default=[m["label"] for m in st.session_state.secilen_15_mac if m["label"] in opsiyon_haritasi],
-                    max_selections=15
-                )
-                st.session_state.secilen_15_mac = [opsiyon_haritasi[e] for e in secilen_etiketler]
-
-                alt_b1, alt_b2 = st.columns([3, 1.2])
-                with alt_b1:
                     s_sayi = len(st.session_state.secilen_15_mac)
-                    if s_sayi == 15:
-                        st.success("🎯 **15 / 15 Maç Hazır!** Analizi başlatabilirsiniz.")
-                    else:
-                        st.warning(f"📌 Şu an **{s_sayi} / 15** maç seçili. 15 maçı tamamlayın.")
-                with alt_b2:
-                    if len(st.session_state.secilen_15_mac) == 15:
-                        if st.button("🚀 Analizi Başlat", type="primary", use_container_width=True):
+                    b_col1, b_col2 = st.columns([2, 1.2])
+                    with b_col1:
+                        if s_sayi == 15:
+                            st.success("✅ **15 / 15 Maç Hazır!** Analizi başlatabilirsiniz.")
+                        else:
+                            st.info(f"📌 Şu an **{s_sayi} / 15** maç seçili.")
+                    with b_col2:
+                        if st.button("🚀 Analizi Başlat", type="primary", disabled=(s_sayi != 15), use_container_width=True):
                             st.session_state.secilen_mac_idleri = [m["id"] for m in st.session_state.secilen_15_mac]
                             st.session_state.analiz_verisi = hibrit_tahminleri_al(st.session_state.secilen_15_mac, api_key)
                             st.rerun()
@@ -714,7 +680,6 @@ with tab_uretim:
                     "Sıra": v["bulten_no"],
                     "ID": v["id"],
                     "Lig": v.get("lig", "-"),
-                    "Tarih": v.get("tarih", "-"),
                     "Karşılaşma": v["mac"],
                     "1 (%)": v["1"],
                     "X (%)": v["X"],
@@ -726,7 +691,7 @@ with tab_uretim:
                     "2": "2" in s
                 } for v, s in zip(veriler, sablon)]),
                 column_config={"ID": None},
-                disabled=["Lig", "Tarih", "Karşılaşma", "1 (%)", "X (%)", "2 (%)", "Halk (%)", "Durum"],
+                disabled=["Lig", "Karşılaşma", "1 (%)", "X (%)", "2 (%)", "Halk (%)", "Durum"],
                 hide_index=True,
                 use_container_width=True,
                 height=560
@@ -773,7 +738,7 @@ with tab_uretim:
                         st.download_button(
                             "📥 Kuponları İndir (.TXT)",
                             "\n".join([" ".join(k) for k in garanti]),
-                            f"spor_toto_v8_{garanti_derecesi}G.txt",
+                            f"spor_toto_v85_{garanti_derecesi}G.txt",
                             type="primary",
                             use_container_width=True
                         )
@@ -812,7 +777,7 @@ with tab_takip:
             aktif_k = st.session_state.uretilen_kuponlar
 
         if api_key and len(st.session_state.secilen_mac_idleri) == 15:
-            if st.button("🔄 Canlı Skorları API'den Otomatik Çek", type="primary", use_container_width=True):
+            if st.button("🔄 Canlı Skorları API'den Çek (Sadece 1 İstek Harcar)", type="primary", use_container_width=True):
                 st.session_state.canli_sonuclar, st.session_state.canli_skor_metni = canli_skorlari_cek(
                     st.session_state.secilen_mac_idleri, api_key
                 )
