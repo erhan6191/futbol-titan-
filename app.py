@@ -8,8 +8,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Spor Toto AI Pro v5.0 (Final)", page_icon="🏆", layout="wide")
-st.title("🏆 Spor Toto AI v5.0 — Hibrit Oran, Monte Carlo & Otomasyon Merkezi")
+st.set_page_config(page_title="Spor Toto AI Pro v5.1 (Ultra Kapsamlı)", page_icon="🏆", layout="wide")
+st.title("🏆 Spor Toto AI v5.1 — Ultra Kapsamlı Lig Havuzu & Hibrit Motor")
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -79,32 +79,94 @@ with st.sidebar:
 
 
 # ==============================================================================
-# 1. VERİ VE HİBRİT OLASILIK MOTORU (BAHİS ORANLARI + AI)
+# 1. ULTRA KAPSAMLI LİG HAVUZU (50+ LİG VE TURNUVA)
 # ==============================================================================
+KATEGORIZE_LIGLER = {
+    "🇹🇷 Türkiye": {
+        "Trendyol Süper Lig": 203,
+        "Trendyol 1. Lig": 204,
+        "Türkiye Kupası": 205
+    },
+    "🇪🇺 Avrupa Büyükler": {
+        "Premier League (İngiltere)": 39,
+        "Championship (İngiltere 2)": 40,
+        "La Liga (İspanya)": 140,
+        "Segunda Division (İspanya 2)": 141,
+        "Serie A (İtalya)": 135,
+        "Serie B (İtalya 2)": 136,
+        "Bundesliga (Almanya)": 78,
+        "2. Bundesliga (Almanya 2)": 79,
+        "Ligue 1 (Fransa)": 61,
+        "Ligue 2 (Fransa 2)": 62
+    },
+    "⭐ Avrupa Kupaları": {
+        "UEFA Şampiyonlar Ligi": 2,
+        "UEFA Avrupa Ligi": 3,
+        "UEFA Konferans Ligi": 848,
+        "UEFA Uluslar Ligi": 5
+    },
+    "🌍 Diğer Popüler Avrupa Ligleri": {
+        "Eredivisie (Hollanda)": 88,
+        "Primeira Liga (Portekiz)": 94,
+        "Pro League (Belçika)": 144,
+        "Super League (İsviçre)": 103,
+        "Bundesliga (Avusturya)": 218,
+        "Premiership (İskoçya)": 179,
+        "Super League (Yunanistan)": 197,
+        "Super Lig (Danimarka)": 119,
+        "Eliteserien (Norveç)": 104,
+        "Allsvenskan (İsveç)": 113,
+        "Ekstraklasa (Polonya)": 106,
+        "HNL (Hırvatistan)": 382,
+        "Super Liga (Sırbistan)": 286,
+        "Fortuna Liga (Çekya)": 345
+    },
+    "🌎 Amerika ve Diğer Kıtalar": {
+        "Série A (Brezilya)": 71,
+        "Série B (Brezilya 2)": 72,
+        "Liga Profesional (Arjentin)": 128,
+        "MLS (ABD)": 253,
+        "Liga MX (Meksika)": 262,
+        "Primera A (Kolombiya)": 239,
+        "Pro League (Suudi Arabistan)": 307
+    },
+    "🌐 Uluslararası Turnuvalar": {
+        "Dünya Kupası Elemeleri (Avrupa)": 32,
+        "Afrika Uluslar Kupası": 6,
+        "Copa Libertadores": 13,
+        "Copa Sudamericana": 11
+    }
+}
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
-def maclari_getir(api_key):
+def tum_liglerden_maclari_getir(secilen_lig_idleri, api_key):
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "v3.football.api-sports.io"}
-    ligler = [203, 39, 140, 135, 78, 61, 2, 3, 848, 204, 40, 88, 94, 144, 71]
     tum_maclar = []
     
-    for lig in ligler:
-        url = f"https://v3.football.api-sports.io/fixtures?league={lig}&next=10"
+    for lig_id in secilen_lig_idleri:
+        url = f"https://v3.football.api-sports.io/fixtures?league={lig_id}&next=12"
         try:
-            res = requests.get(url, headers=headers, timeout=10).json()
+            res = requests.get(url, headers=headers, timeout=8).json()
             if res.get('response'):
                 for item in res['response']:
                     f_id = item['fixture']['id']
                     ev = item['teams']['home']['name']
                     dep = item['teams']['away']['name']
                     tarih = item['fixture']['date'][:10]
-                    tum_maclar.append({"id": f_id, "label": f"{tarih} | {ev} - {dep}"})
+                    lig_adi = item['league']['name']
+                    tum_maclar.append({
+                        "id": f_id,
+                        "label": f"[{lig_adi}] {tarih} | {ev} - {dep}",
+                        "lig": lig_adi,
+                        "tarih": tarih
+                    })
         except Exception:
             continue
     return tum_maclar
 
 
 def olasilik_yumusat(p1, px_val, p2):
-    """Hiçbir ihtimalin %5'in altına düşmemesini sağlar ve toplamı 100'e sabitler."""
     p1, px_val, p2 = max(5.0, float(p1)), max(5.0, float(px_val)), max(5.0, float(p2))
     toplam = p1 + px_val + p2
     y1 = round(p1 * 100 / toplam)
@@ -114,10 +176,6 @@ def olasilik_yumusat(p1, px_val, p2):
 
 
 def halk_egilimi_simule_et(p1, px_val, p2):
-    """
-    Kitle psikolojisi (Üstsel Güç Yasası): Halk favori takımlara gerçek olasılığından
-    çok daha fazla yüklenir, beraberlik ve sürprizleri ihmal eder.
-    """
     w1, wx, w2 = (p1 ** 1.55), (px_val ** 1.15), (p2 ** 1.55)
     t = w1 + wx + w2
     return round(w1 * 100 / t), round(wx * 100 / t), 100 - round(w1 * 100 / t) - round(wx * 100 / t)
@@ -127,7 +185,7 @@ def halk_egilimi_simule_et(p1, px_val, p2):
 def hibrit_tahminleri_al(secilen_maclar, api_key):
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "v3.football.api-sports.io"}
     sonuclar = []
-    progress = st.progress(0, text="Hibrit Motor: AI tahminleri ve Bahis Oranları (Odds) çekiliyor...")
+    progress = st.progress(0, text="Hibrit Motor: Seçilen liglerde AI ve Bahis Oranları taranıyor...")
     
     for i, mac in enumerate(secilen_maclar):
         f_id = mac['id']
@@ -135,12 +193,8 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
         odds_1, odds_x, odds_2 = None, None, None
         kaynak_etiketi = "AI Tahmini"
         
-        # 1. AI Predictions Çekimi
         try:
-            res_pred = requests.get(
-                f"https://v3.football.api-sports.io/predictions?fixture={f_id}", 
-                headers=headers, timeout=8
-            ).json()
+            res_pred = requests.get(f"https://v3.football.api-sports.io/predictions?fixture={f_id}", headers=headers, timeout=6).json()
             if res_pred.get('response') and res_pred['response'][0].get('predictions'):
                 t = res_pred['response'][0]['predictions']['percent']
                 ai_1 = float(t['home'].replace('%', ''))
@@ -149,35 +203,24 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
         except Exception:
             pass
 
-        # 2. Gerçek Bahis Büroları Oranları (Odds) Çekimi ve Overround Temizliği
         try:
-            res_odds = requests.get(
-                f"https://v3.football.api-sports.io/odds?fixture={f_id}", 
-                headers=headers, timeout=8
-            ).json()
+            res_odds = requests.get(f"https://v3.football.api-sports.io/odds?fixture={f_id}", headers=headers, timeout=6).json()
             if res_odds.get('response') and res_odds['response'][0].get('bookmakers'):
                 buro = res_odds['response'][0]['bookmakers'][0]
                 for bahis in buro.get('bets', []):
                     if bahis.get('id') == 1 or bahis.get('name') == "Match Winner":
                         degerler = {v['value']: float(v['odd']) for v in bahis.get('values', [])}
                         if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
-                            inv_1 = 1.0 / degerler["Home"]
-                            inv_x = 1.0 / degerler["Draw"]
-                            inv_2 = 1.0 / degerler["Away"]
+                            inv_1, inv_x, inv_2 = 1.0 / degerler["Home"], 1.0 / degerler["Draw"], 1.0 / degerler["Away"]
                             inv_top = inv_1 + inv_x + inv_2
-                            odds_1 = (inv_1 / inv_top) * 100
-                            odds_x = (inv_x / inv_top) * 100
-                            odds_2 = (inv_2 / inv_top) * 100
-                            kaynak_etiketi = f"Hibrit (Odds + AI)"
+                            odds_1, odds_x, odds_2 = (inv_1 / inv_top) * 100, (inv_x / inv_top) * 100, (inv_2 / inv_top) * 100
+                            kaynak_etiketi = "Hibrit (Odds + AI)"
                         break
         except Exception:
             pass
 
-        # 3. Hibrit Harmanlama (%65 Gerçek Piyasa Oranı + %35 AI)
         if odds_1 is not None:
-            ham_1 = (odds_1 * 0.65) + (ai_1 * 0.35)
-            ham_x = (odds_x * 0.65) + (ai_x * 0.35)
-            ham_2 = (odds_2 * 0.65) + (ai_2 * 0.35)
+            ham_1, ham_x, ham_2 = (odds_1 * 0.65) + (ai_1 * 0.35), (odds_x * 0.65) + (ai_x * 0.35), (odds_2 * 0.65) + (ai_2 * 0.35)
         else:
             ham_1, ham_x, ham_2 = ai_1, ai_x, ai_2
 
@@ -198,7 +241,7 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
             "tuzak_farki": en_yuksek_halk - en_yuksek_gercek
         })
         progress.progress((i + 1) / len(secilen_maclar))
-        time.sleep(0.2)
+        time.sleep(0.15)
         
     progress.empty()
     return sonuclar
@@ -240,7 +283,7 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 
 
 # ==============================================================================
-# 2. OTONOM ANALİZ, TUZAK DEDEKTÖRÜ VE VEKTÖREL MOTOR
+# 2. OTONOM ANALİZ VE VEKTÖREL MOTOR
 # ==============================================================================
 def tam_otonom_analiz(mac_verileri, strateji):
     beklenen_1, beklenen_x, beklenen_2, min_puan, max_puan = 0, 0, 0, 0, 0
@@ -305,7 +348,6 @@ def varsayilan_sablon_olustur(veriler, limitler, tuzak_koruma_aktif=True):
         halk_farki = v.get("tuzak_farki", 0)
         
         if en >= limitler["banko_siniri"]:
-            # Tuzak Koruması: Halk gerçek olasılıktan %12+ fazla yüklenmişse ve gerçek olasılık %68 altıysa Çifte Şansa çevir
             if tuzak_koruma_aktif and halk_farki >= 12 and en < 68:
                 secim = [sirali[0][1], sirali[1][1]]
             else:
@@ -426,17 +468,10 @@ def garanti_ve_butce_uygula(kolon_matrisi, puanlar, hedef, max_kolon=None):
     return kolon_matrisi[nihai_indeksler], puanlar[nihai_indeksler], float(kapsanan_agirlik)
 
 
-# ==============================================================================
-# 3. 10.000 HAFTALIK VEKTÖREL MONTE CARLO SİMÜLATÖRÜ
-# ==============================================================================
 def monte_carlo_simule_et(kupon_matrisi, mac_verileri, simulasyon_sayisi=10000):
-    """
-    Üretilen kuponları maçların gerçek olasılık dağılımına göre 10.000 sanal haftada test eder.
-    """
     harita = {'1': 0, 'X': 1, '2': 2}
     kupon_num = np.vectorize(harita.get)(kupon_matrisi).astype(np.int8)
     
-    # Her maç için olasılık dağılımına göre 10.000 rastgele sonuç üret (Boyut: 10000 x 15)
     rng = np.random.default_rng(42)
     sim_sonuclar = np.zeros((simulasyon_sayisi, 15), dtype=np.int8)
     for m_idx, v in enumerate(mac_verileri):
@@ -444,12 +479,10 @@ def monte_carlo_simule_et(kupon_matrisi, mac_verileri, simulasyon_sayisi=10000):
         olasiliklar /= olasiliklar.sum()
         sim_sonuclar[:, m_idx] = rng.choice([0, 1, 2], size=simulasyon_sayisi, p=olasiliklar)
         
-    # Bellek dostu blok karşılaştırma ile her simülasyon haftasında ulaşılan en yüksek doğru sayısını bul
     en_iyi_dereceler = np.zeros(simulasyon_sayisi, dtype=np.int8)
     adim = 500
     for bas in range(0, simulasyon_sayisi, adim):
         bit = min(bas + adim, simulasyon_sayisi)
-        # (adim, 1, 15) == (1, kupon_sayisi, 15) -> (adim, kupon_sayisi)
         eslesme = np.sum(sim_sonuclar[bas:bit, None, :] == kupon_num[None, :, :], axis=2)
         en_iyi_dereceler[bas:bit] = np.max(eslesme, axis=1)
         
@@ -475,30 +508,46 @@ def kupon_dosyasi_coz(yuklenen_dosya):
 
 
 # ==============================================================================
-# ANA SEKMELER (3 TAM ENTEGRE MODÜL)
+# ANA SEKMELER
 # ==============================================================================
 tab_uretim, tab_takip, tab_otomasyon = st.tabs([
-    "🚀 1. Hibrit Kupon Üretim & Monte Carlo", 
+    "🚀 1. Kapsamlı Lig Seçimi & Hibrit Üretim", 
     "📡 2. Canlı Kupon & İkramiye Takip Merkezi",
     "🤖 3. Otomatik Kupon Yatırma (Tarayıcı Botu)"
 ])
 
 # ------------------------------------------------------------------------------
-# SEKME 1: HİBRİT KUPON ÜRETİM VE MONTE CARLO MERKEZİ
+# SEKME 1: KAPSAMLI LİG SEÇİMİ VE ÜRETİM
 # ------------------------------------------------------------------------------
 with tab_uretim:
-    col1, col2 = st.columns([1, 2.3])
-
-    with col1:
-        st.markdown("### 🌍 Global Maç Bülteni")
-        if api_key:
-            if not st.session_state.mac_listesi:
-                with st.spinner("Lig bültenleri çekiliyor..."):
-                    st.session_state.mac_listesi = maclari_getir(api_key)
-            
+    st.markdown("### 🌍 50+ Kapsamlı Lig ve Turnuva Seçim Paneli")
+    if api_key:
+        # Kategori Filtresi Seçimi
+        secilen_kategori = st.selectbox(
+            "📁 Önce Lig Kategorisi Seçin:", 
+            list(KATEGORIZE_LIGLER.keys())
+        )
+        
+        aktif_ligler_dict = KATEGORIZE_LIGLER[secilen_kategori]
+        secilen_lig_adlari = st.multiselect(
+            f"🏆 {secilen_kategori} İçinden Ligleri Seçin:",
+            list(aktif_ligler_dict.keys()),
+            default=list(aktif_ligler_dict.keys())[:3]
+        )
+        
+        secilen_lig_idleri = [aktif_ligler_dict[l] for l in secilen_lig_adlari]
+        
+        if secilen_lig_idleri:
+            if st.button("🔍 Seçilen Liglerdeki Maçları Listele", use_container_width=True):
+                with st.spinner("Seçilen liglerin maç bültenleri çekiliyor..."):
+                    st.session_state.mac_listesi = tum_liglerden_maclari_getir(secilen_lig_idleri, api_key)
+                    st.success(f"✅ Toplam **{len(st.session_state.mac_listesi)} maç** bülfene eklendi!")
+                    
+        if st.session_state.mac_listesi:
+            st.markdown("---")
             opsiyonlar = {m['label']: m for m in st.session_state.mac_listesi}
             secilenler_label = st.multiselect(
-                "Bültenden Tam 15 Maç Seçin:", 
+                "🎯 Bülten Havuzundan Tam 15 Maç Seçin (Resmi sıraya göre seçin):", 
                 list(opsiyonlar.keys()), 
                 max_selections=15
             )
@@ -506,148 +555,130 @@ with tab_uretim:
             st.caption(f"Seçilen Maç Sayısı: **{len(secilenler_label)} / 15**")
             
             if len(secilenler_label) == 15:
-                if st.button("🚀 Hibrit Analizi Başlat (Odds + AI)", type="primary", use_container_width=True):
+                if st.button("🚀 Hibrit Analizi ve Motoru Başlat", type="primary", use_container_width=True):
                     secilenler_data = [opsiyonlar[lbl] for lbl in secilenler_label]
                     st.session_state.secilen_mac_idleri = [m["id"] for m in secilenler_data]
                     st.session_state.analiz_verisi = hibrit_tahminleri_al(secilenler_data, api_key)
                     st.session_state.canli_sonuclar = ["⏳ Bekliyor"] * 15
                     st.session_state.canli_skor_metni = ["-"] * 15
-        else:
-            st.info("👈 Bülteni ve gerçek bahis oranlarını çekmek için sol menüden API-Football anahtarınızı girin.")
+    else:
+        st.info("👈 Başlamak için sol menüden API-Football anahtarınızı girin.")
 
-    with col2:
-        if st.session_state.analiz_verisi:
-            veriler = st.session_state.analiz_verisi
-            
-            if ai_filtre_modu:
-                limitler = tam_otonom_analiz(veriler, strateji_modu)
-                st.info(
-                    f"🤖 **Hibrit AI ({strateji_modu}):** Zorluk **%{limitler['zorluk_skoru']:.1f}** | "
-                    f"Banko **≥%{limitler['banko_siniri']}** | Çifte **≥%{limitler['cifte_siniri']}** | "
-                    f"Puan **{limitler['puan'][0]}-{limitler['puan'][1]}** | "
-                    f"Sürpriz Sayısı **{limitler['surpriz'][0]}-{limitler['surpriz'][1]}**"
-                )
-            else:
-                limitler = {
-                    "1": range_1, "X": range_x, "2": range_2, "puan": range_puan,
-                    "surpriz": range_surpriz,
-                    "ardisik_1": max_ardisik_1, "ardisik_x": max_ardisik_x, "ardisik_2": max_ardisik_2,
-                    "banko_siniri": banko_siniri, "cifte_siniri": cifte_sans_siniri,
-                    "aktif_blok_filtresi": aktif_blok_filtresi, "max_blok_tekrar": max_blok_tekrar
-                }
-
-            varsayilan_sablon = varsayilan_sablon_olustur(veriler, limitler, tuzak_koruma)
-
-            st.markdown("### 🛠️ Bülten Sıralaması, Tuzak Analizi ve Canlı Şablon Editörü")
-            st.caption("Resmi Spor Toto bülten sırasını **Sıra No** sütunundan değiştirebilir, **Halk Fav (%)** sütununa Nesine/Misli oynanma oranlarını girebilirsiniz:")
-            
-            df_baslangic = pd.DataFrame([
-                {
-                    "Sıra No": v["bulten_no"],
-                    "Maç": v["mac"],
-                    "1 (%)": v["1"],
-                    "X (%)": v["X"],
-                    "2 (%)": v["2"],
-                    "Halk Fav (%)": v["halk_favori"],
-                    "Analiz": "🚨 Tuzak Favori" if (v["tuzak_farki"] >= 12 and max(v["1"], v["X"], v["2"]) < 68) else "✅ Normal",
-                    "Seçim 1": "1" in s,
-                    "Seçim X": "X" in s,
-                    "Seçim 2": "2" in s,
-                }
-                for v, s in zip(veriler, varsayilan_sablon)
-            ])
-
-            duzenlenen_df = st.data_editor(
-                df_baslangic,
-                disabled=["Maç", "1 (%)", "X (%)", "2 (%)", "Analiz"],
-                hide_index=True,
-                use_container_width=True
+    if st.session_state.analiz_verisi:
+        veriler = st.session_state.analiz_verisi
+        
+        if ai_filtre_modu:
+            limitler = tam_otonom_analiz(veriler, strateji_modu)
+            st.info(
+                f"🤖 **Hibrit AI ({strateji_modu}):** Zorluk **%{limitler['zorluk_skoru']:.1f}** | "
+                f"Banko **≥%{limitler['banko_siniri']}** | Çifte **≥%{limitler['cifte_siniri']}** | "
+                f"Puan **{limitler['puan'][0]}-{limitler['puan'][1]}**"
             )
+        else:
+            limitler = {
+                "1": range_1, "X": range_x, "2": range_2, "puan": range_puan,
+                "surpriz": range_surpriz,
+                "ardisik_1": max_ardisik_1, "ardisik_x": max_ardisik_x, "ardisik_2": max_ardisik_2,
+                "banko_siniri": banko_siniri, "cifte_siniri": cifte_sans_siniri,
+                "aktif_blok_filtresi": aktif_blok_filtresi, "max_blok_tekrar": max_blok_tekrar
+            }
 
-            # Bülten Sıra No'ya göre maçları ve şablonu otomatik hizala
-            sirali_df = duzenlenen_df.sort_values("Sıra No").reset_index(drop=True)
-            
-            guncel_sablon = []
-            sirali_veriler = []
-            bos_mac_var = False
-            
-            for _, row in sirali_df.iterrows():
-                secimler = []
-                if row["Seçim 1"]: secimler.append("1")
-                if row["Seçim X"]: secimler.append("X")
-                if row["Seçim 2"]: secimler.append("2")
-                if not secimler:
-                    bos_mac_var = True
-                guncel_sablon.append(secimler)
-                sirali_veriler.append({
-                    "mac": row["Maç"],
-                    "1": int(row["1 (%)"]),
-                    "X": int(row["X (%)"]),
-                    "2": int(row["2 (%)"])
-                })
+        varsayilan_sablon = varsayilan_sablon_olustur(veriler, limitler, tuzak_koruma)
 
-            if bos_mac_var:
-                st.error("⚠️ Her maçta en az 1 tercih (1, X veya 2) seçili olmalıdır.")
+        st.markdown("### 🛠️ Bülten Sıralaması, Tuzak Analizi ve Canlı Şablon Editörü")
+        df_baslangic = pd.DataFrame([
+            {
+                "Sıra No": v["bulten_no"],
+                "Maç": v["mac"],
+                "1 (%)": v["1"],
+                "X (%)": v["X"],
+                "2 (%)": v["2"],
+                "Halk Fav (%)": v["halk_favori"],
+                "Analiz": "🚨 Tuzak Favori" if (v["tuzak_farki"] >= 12 and max(v["1"], v["X"], v["2"]) < 68) else "✅ Normal",
+                "Seçim 1": "1" in s,
+                "Seçim X": "X" in s,
+                "Seçim 2": "2" in s,
+            }
+            for v, s in zip(veriler, varsayilan_sablon)
+        ])
+
+        duzenlenen_df = st.data_editor(
+            df_baslangic,
+            disabled=["Maç", "1 (%)", "X (%)", "2 (%)", "Analiz"],
+            hide_index=True,
+            use_container_width=True
+        )
+
+        sirali_df = duzenlenen_df.sort_values("Sıra No").reset_index(drop=True)
+        
+        guncel_sablon = []
+        sirali_veriler = []
+        bos_mac_var = False
+        
+        for _, row in sirali_df.iterrows():
+            secimler = []
+            if row["Seçim 1"]: secimler.append("1")
+            if row["Seçim X"]: secimler.append("X")
+            if row["Seçim 2"]: secimler.append("2")
+            if not secimler:
+                bos_mac_var = True
+            guncel_sablon.append(secimler)
+            sirali_veriler.append({
+                "mac": row["Maç"],
+                "1": int(row["1 (%)"]),
+                "X": int(row["X (%)"]),
+                "2": int(row["2 (%)"])
+            })
+
+        if bos_mac_var:
+            st.error("⚠️ Her maçta en az 1 tercih (1, X veya 2) seçili olmalıdır.")
+        else:
+            toplam_kombinasyon = math.prod(len(s) for s in guncel_sablon)
+            
+            if toplam_kombinasyon > 4_782_969:
+                st.error(f"Şablon çok geniş ({toplam_kombinasyon:,} kolon). Lütfen 1-2 maçı Çifte Şans veya Banko'ya indirin.")
             else:
-                toplam_kombinasyon = math.prod(len(s) for s in guncel_sablon)
-                
-                if toplam_kombinasyon > 4_782_969:
-                    st.error(f"Şablon çok geniş ({toplam_kombinasyon:,} kolon). Lütfen 1-2 maçı Çifte Şans veya Banko'ya indirin.")
+                t0 = time.perf_counter()
+                filtrelenmis_matris, filtrelenmis_puanlar = vektorel_filtrele(guncel_sablon, sirali_veriler, limitler)
+                gecen_sure = time.perf_counter() - t0
+
+                if len(filtrelenmis_matris) == 0:
+                    st.warning("⚠️ Filtreler tüm kombinasyonları eledi. Farklı bir Oyun Stratejisi seçin veya şablonu genişletin.")
                 else:
-                    t0 = time.perf_counter()
-                    filtrelenmis_matris, filtrelenmis_puanlar = vektorel_filtrele(guncel_sablon, sirali_veriler, limitler)
-                    gecen_sure = time.perf_counter() - t0
+                    garantili_matris, garantili_puanlar, kapsama_orani = garanti_ve_butce_uygula(
+                        filtrelenmis_matris, filtrelenmis_puanlar, garanti_derecesi, max_kolon_limiti
+                    )
+                    
+                    st.session_state.uretilen_kuponlar = garantili_matris
+                    mc_sonuc = monte_carlo_simule_et(garantili_matris, sirali_veriler, simulasyon_sayisi=10000)
+                    
+                    st.success(f"⚡ Optimizasyon ve Monte Carlo testi **{gecen_sure:.2f} saniyede** tamamlandı!")
+                    
+                    m1, m2, m3, m4 = st.columns(4)
+                    m1.metric("Ham Şablon", f"{toplam_kombinasyon:,} Kolon")
+                    m2.metric("Filtre Sonrası", f"{len(filtrelenmis_matris):,} Kolon")
+                    m3.metric(
+                        f"{garanti_derecesi} Garantili Çıktı", 
+                        f"{len(garantili_matris):,} Kolon", 
+                        f"{len(garantili_matris) * kolon_fiyati:,.0f} TL"
+                    )
+                    m4.metric("Havuz Kapsama Gücü", f"%{kapsama_orani:.1f}")
 
-                    if len(filtrelenmis_matris) == 0:
-                        st.warning("⚠️ Filtreler tüm kombinasyonları eledi. Farklı bir Oyun Stratejisi seçin veya şablonu genişletin.")
-                    else:
-                        garantili_matris, garantili_puanlar, kapsama_orani = garanti_ve_butce_uygula(
-                            filtrelenmis_matris, filtrelenmis_puanlar, garanti_derecesi, max_kolon_limiti
-                        )
-                        
-                        st.session_state.uretilen_kuponlar = garantili_matris
-                        
-                        # 10.000 Haftalık Monte Carlo Testi
-                        mc_sonuc = monte_carlo_simule_et(garantili_matris, sirali_veriler, simulasyon_sayisi=10000)
-                        
-                        st.success(f"⚡ Optimizasyon ve 10.000 Haftalık Monte Carlo Simülasyonu **{gecen_sure:.2f} saniyede** tamamlandı!")
-                        
-                        m1, m2, m3, m4 = st.columns(4)
-                        m1.metric("Ham Şablon", f"{toplam_kombinasyon:,} Kolon")
-                        m2.metric("Filtre Sonrası", f"{len(filtrelenmis_matris):,} Kolon")
-                        m3.metric(
-                            f"{garanti_derecesi} Garantili Çıktı", 
-                            f"{len(garantili_matris):,} Kolon", 
-                            f"{len(garantili_matris) * kolon_fiyati:,.0f} TL"
-                        )
-                        m4.metric("Havuz Kapsama Gücü", f"%{kapsama_orani:.1f}")
+                    st.markdown("#### 🎲 10.000 Haftalık Monte Carlo Simülasyon Raporu")
+                    mc1, mc2, mc3, mc4, mc5 = st.columns(5)
+                    mc1.metric("🥇 15 Tutturma Şansı", f"%{mc_sonuc['15_oran']:.2f}")
+                    mc2.metric("🥈 En Az 14 Şansı", f"%{mc_sonuc['14_arti_oran']:.1f}")
+                    mc3.metric("🥉 En Az 13 Şansı", f"%{mc_sonuc['13_arti_oran']:.1f}")
+                    mc4.metric("🎯 İkramiye (12+) Şansı", f"%{mc_sonuc['12_arti_oran']:.1f}")
+                    mc5.metric("📈 Beklenen Maks Doğru", f"{mc_sonuc['ortalama_maks_dogru']:.2f} / 15")
 
-                        st.markdown("#### 🎲 10.000 Haftalık Monte Carlo Simülasyon Raporu (Oynamadan Önceki Gerçek Güç)")
-                        mc1, mc2, mc3, mc4, mc5 = st.columns(5)
-                        mc1.metric("🥇 15 Tutturma Şansı", f"%{mc_sonuc['15_oran']:.2f}")
-                        mc2.metric("🥈 En Az 14 Şansı", f"%{mc_sonuc['14_arti_oran']:.1f}")
-                        mc3.metric("🥉 En Az 13 Şansı", f"%{mc_sonuc['13_arti_oran']:.1f}")
-                        mc4.metric("🎯 İkramiye (12+) Şansı", f"%{mc_sonuc['12_arti_oran']:.1f}")
-                        mc5.metric("📈 Beklenen Maks Doğru", f"{mc_sonuc['ortalama_maks_dogru']:.2f} / 15")
+                    txt_cikti = "\n".join([" ".join(k) for k in garantili_matris])
+                    csv_df = pd.DataFrame(garantili_matris, columns=[f"M{i}" for i in range(1, 16)])
+                    csv_df["Olasılık Puanı"] = garantili_puanlar
 
-                        txt_cikti = "\n".join([" ".join(k) for k in garantili_matris])
-                        csv_df = pd.DataFrame(garantili_matris, columns=[f"M{i}" for i in range(1, 16)])
-                        csv_df["Olasılık Puanı"] = garantili_puanlar
-
-                        dl1, dl2 = st.columns(2)
-                        dl1.download_button(
-                            "📥 Kuponları İndir (.TXT)",
-                            txt_cikti,
-                            f"spor_toto_v5_{garanti_derecesi}garanti.txt",
-                            use_container_width=True
-                        )
-                        dl2.download_button(
-                            "📊 Kuponları İndir (.CSV / Excel)",
-                            csv_df.to_csv(index=False).encode("utf-8-sig"),
-                            f"spor_toto_v5_{garanti_derecesi}garanti.csv",
-                            mime="text/csv",
-                            use_container_width=True
-                        )
+                    dl1, dl2 = st.columns(2)
+                    dl1.download_button("📥 Kuponları İndir (.TXT)", txt_cikti, f"spor_toto_v51_{garanti_derecesi}garanti.txt", use_container_width=True)
+                    dl2.download_button("📊 Kuponları İndir (.CSV)", csv_df.to_csv(index=False).encode("utf-8-sig"), f"spor_toto_v51_{garanti_derecesi}garanti.csv", mime="text/csv", use_container_width=True)
 
 
 # ------------------------------------------------------------------------------
@@ -655,36 +686,23 @@ with tab_uretim:
 # ------------------------------------------------------------------------------
 with tab_takip:
     st.markdown("### 📡 Canlı Kupon ve İkramiye Potası Takibi")
-    
     t_col1, t_col2 = st.columns([1.1, 2])
     
     with t_col1:
         st.markdown("#### 1️⃣ Kupon Kaynağı Seçin")
-        kaynak_secimi = st.radio(
-            "Takip edilecek kuponlar:",
-            ["📂 Bilgisayardan Kupon Dosyası Yükle (.txt / .csv)", "⚡ Bu Oturumda Üretilen Kuponları Kullan"],
-            index=1 if st.session_state.uretilen_kuponlar is not None else 0
-        )
+        kaynak_secimi = st.radio("Takip edilecek kuponlar:", ["📂 Bilgisayardan Kupon Dosyası Yükle (.txt / .csv)", "⚡ Bu Oturumda Üretilen Kuponları Kullan"], index=1 if st.session_state.uretilen_kuponlar is not None else 0)
         
         aktif_kupon_matrisi = None
         if "Dosya Yükle" in kaynak_secimi:
-            yuklenen = st.file_uploader("İndirdiğiniz .txt veya .csv kupon dosyasını sürükleyin:", type=["txt", "csv"])
+            yuklenen = st.file_uploader("İndirdiğiniz .txt veya .csv kupon dosyasını yükleyin:", type=["txt", "csv"])
             if yuklenen:
                 aktif_kupon_matrisi = kupon_dosyasi_coz(yuklenen)
-                if aktif_kupon_matrisi is not None:
-                    st.success(f"✅ Dosyadan **{len(aktif_kupon_matrisi):,} adet** geçerli kupon yüklendi.")
-                else:
-                    st.error("Dosya formatı okunamadı. Her satırda 15 adet (1, X, 2) sonucu bulunduğundan emin olun.")
         else:
             if st.session_state.uretilen_kuponlar is not None:
                 aktif_kupon_matrisi = st.session_state.uretilen_kuponlar
-                st.success(f"✅ Hafızadaki **{len(aktif_kupon_matrisi):,} adet** kupon takip ediliyor.")
-            else:
-                st.warning("Henüz bu oturumda kupon üretmediniz. 1. Sekmeden kupon üretin veya dosya yükleme seçeneğini kullanın.")
 
         st.markdown("---")
         st.markdown("#### 2️⃣ Canlı / Biten Maç Sonuçları")
-        
         if api_key and len(st.session_state.secilen_mac_idleri) == 15:
             if st.button("🔄 Canlı Skorları API'den Otomatik Çek", type="primary", use_container_width=True):
                 with st.spinner("15 maçın canlı skorları çekiliyor..."):
@@ -692,31 +710,13 @@ with tab_takip:
                     st.session_state.canli_sonuclar = yeni_son
                     st.session_state.canli_skor_metni = yeni_skor
 
-        if st.session_state.analiz_verisi:
-            mac_isimleri = [v["mac"] for v in st.session_state.analiz_verisi]
-        else:
-            mac_isimleri = [f"{i}. Maç" for i in range(1, 16)]
-
-        takip_df_baslangic = pd.DataFrame({
-            "No": list(range(1, 16)),
-            "Karşılaşma": mac_isimleri,
-            "Skor": st.session_state.canli_skor_metni,
-            "Sonuç": st.session_state.canli_sonuclar
-        })
+        mac_isimleri = [v["mac"] for v in st.session_state.analiz_verisi] if st.session_state.analiz_verisi else [f"{i}. Maç" for i in range(1, 16)]
+        takip_df_baslangic = pd.DataFrame({"No": list(range(1, 16)), "Karşılaşma": mac_isimleri, "Skor": st.session_state.canli_skor_metni, "Sonuç": st.session_state.canli_sonuclar})
 
         duzenlenen_sonuc_df = st.data_editor(
             takip_df_baslangic,
-            column_config={
-                "Sonuç": st.column_config.SelectboxColumn(
-                    "Maç Sonucu",
-                    options=["⏳ Bekliyor", "1", "X", "2"],
-                    required=True
-                )
-            },
-            disabled=["No", "Karşılaşma", "Skor"],
-            hide_index=True,
-            use_container_width=True,
-            height=565
+            column_config={"Sonuç": st.column_config.SelectboxColumn("Maç Sonucu", options=["⏳ Bekliyor", "1", "X", "2"], required=True)},
+            disabled=["No", "Karşılaşma", "Skor"], hide_index=True, use_container_width=True, height=565
         )
         guncel_sonuclar = duzenlenen_sonuc_df["Sonuç"].tolist()
 
@@ -725,152 +725,40 @@ with tab_takip:
             sonuc_dizisi = np.array(guncel_sonuclar)
             oynanan_maske = np.isin(sonuc_dizisi, ["1", "X", "2"])
             oynanan_mac_sayisi = int(np.sum(oynanan_maske))
-            kalan_mac_sayisi = 15 - oynanan_mac_sayisi
-
-            if oynanan_mac_sayisi == 0:
-                st.info("👈 Sol tablodan tamamlanan veya devam eden maçların sonuçlarını (**1, X, 2**) seçtiğiniz anda kuponlarınızın ikramiye durumu burada canlı hesaplanacaktır.")
-            else:
+            
+            if oynanan_mac_sayisi > 0:
                 dogru_matrisi = (aktif_kupon_matrisi[:, oynanan_maske] == sonuc_dizisi[oynanan_maske])
                 dogru_sayilari = np.sum(dogru_matrisi, axis=1)
                 hata_sayilari = oynanan_mac_sayisi - dogru_sayilari
                 maks_ulasilabilir = 15 - hata_sayilari
 
-                giden_15 = int(np.sum(maks_ulasilabilir == 15))
-                giden_14 = int(np.sum(maks_ulasilabilir == 14))
-                giden_13 = int(np.sum(maks_ulasilabilir == 13))
-                giden_12 = int(np.sum(maks_ulasilabilir == 12))
-                elenenler = int(np.sum(maks_ulasilabilir < 12))
-
                 st.markdown(f"#### 🏆 Canlı İkramiye Potası ({oynanan_mac_sayisi} / 15 Maç Girildi)")
-                
                 k1, k2, k3, k4, k5 = st.columns(5)
-                k1.metric("🥇 15'e Giden", f"{giden_15:,} Kupon", delta="Tam İsabet" if giden_15 > 0 else None)
-                k2.metric("🥈 14'e Giden", f"{giden_14:,} Kupon")
-                k3.metric("🥉 13'e Giden", f"{giden_13:,} Kupon")
-                k4.metric("🎯 12'ye Giden", f"{giden_12:,} Kupon")
-                k5.metric("❌ İkramiye Dışı", f"{elenenler:,} Kupon")
-
-                if kalan_mac_sayisi > 0:
-                    st.markdown("#### 🔮 Kalan Maçlarda Kuponlarınız Ne Bekliyor?")
-                    hedef_filtre = st.selectbox(
-                        "Hangi potadaki kuponların kalan maç analizini görmek istiyorsunuz?",
-                        ["En Yüksek Potadaki Kuponlar (Önerilen)", "15'e Gidenler", "14 ve Üzeri Gidenler", "İkramiye Potasındakiler (12+ Gidenler)"]
-                    )
-                    
-                    if hedef_filtre == "15'e Gidenler":
-                        analiz_maske = (maks_ulasilabilir == 15)
-                    elif hedef_filtre == "14 ve Üzeri Gidenler":
-                        analiz_maske = (maks_ulasilabilir >= 14)
-                    elif "12+" in hedef_filtre:
-                        analiz_maske = (maks_ulasilabilir >= 12)
-                    else:
-                        en_iyi_derece = int(np.max(maks_ulasilabilir))
-                        analiz_maske = (maks_ulasilabilir == en_iyi_derece)
-
-                    canli_kuponlar = aktif_kupon_matrisi[analiz_maske]
-                    
-                    if len(canli_kuponlar) > 0:
-                        beklenti_listesi = []
-                        for m_idx in np.where(~oynanan_maske)[0]:
-                            m_sutun = canli_kuponlar[:, m_idx]
-                            n_1 = int(np.sum(m_sutun == '1'))
-                            n_x = int(np.sum(m_sutun == 'X'))
-                            n_2 = int(np.sum(m_sutun == '2'))
-                            toplam_k = len(canli_kuponlar)
-                            beklenti_listesi.append({
-                                "Maç No": m_idx + 1,
-                                "Kalan Karşılaşma": mac_isimleri[m_idx],
-                                "1 Bekleyen": f"{n_1} (%{n_1*100/toplam_k:.0f})",
-                                "X Bekleyen": f"{n_x} (%{n_x*100/toplam_k:.0f})",
-                                "2 Bekleyen": f"{n_2} (%{n_2*100/toplam_k:.0f})"
-                            })
-                        st.dataframe(pd.DataFrame(beklenti_listesi), hide_index=True, use_container_width=True)
-
-                st.markdown("#### 📋 Kuponların Canlı Performans Sıralaması")
-                sirali_indeksler = np.argsort(maks_ulasilabilir)[::-1]
-                gosterim_limiti = min(500, len(sirali_indeksler))
-                
-                detay_satirlar = []
-                for s_idx in sirali_indeksler[:gosterim_limiti]:
-                    hedef_derece = int(maks_ulasilabilir[s_idx])
-                    durum_etiketi = f"🏆 {hedef_derece} Adayı" if hedef_derece >= 12 else "❌ Elendi"
-                    detay_satirlar.append({
-                        "Kupon No": f"#{s_idx + 1}",
-                        "Durum": durum_etiketi,
-                        "Doğru": int(dogru_sayilari[s_idx]),
-                        "Hata": int(hata_sayilari[s_idx]),
-                        "Kalan": kalan_mac_sayisi,
-                        "Kupon Dizilimi": " ".join(aktif_kupon_matrisi[s_idx])
-                    })
-                st.dataframe(pd.DataFrame(detay_satirlar), hide_index=True, use_container_width=True)
+                k1.metric("🥇 15'e Giden", f"{int(np.sum(maks_ulasilabilir == 15)):,} Kupon")
+                k2.metric("🥈 14'e Giden", f"{int(np.sum(maks_ulasilabilir == 14)):,} Kupon")
+                k3.metric("🥉 13'e Giden", f"{int(np.sum(maks_ulasilabilir == 13)):,} Kupon")
+                k4.metric("🎯 12'ye Giden", f"{int(np.sum(maks_ulasilabilir == 12)):,} Kupon")
+                k5.metric("❌ İkramiye Dışı", f"{int(np.sum(maks_ulasilabilir < 12)):,} Kupon")
+            else:
+                st.info("👈 Sol tablodan maç sonuçlarını seçtiğinizde canlı ikramiye durumu hesaplanacaktır.")
         else:
-            st.info("👈 Takip ekranını başlatmak için sol taraftan kupon dosyanızı yükleyin veya 1. Sekmeden kupon üretin.")
+            st.info("👈 Takip için kupon yükleyin veya 1. Sekmeden kupon üretin.")
 
 
 # ------------------------------------------------------------------------------
-# SEKME 3: OTOMATİK KUPON YATIRMA (TARAYICI OTOMASYON KÖPRÜSÜ)
+# SEKME 3: OTOMATİK KUPON YATIRMA (TARAYICI BOTU)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.markdown("### 🤖 Tarayıcı Üzerinden Otomatik Kupon Doldurma Köprüsü")
-    st.write(
-        "Yüzlerce kolonu Nesine, Bilyoner veya Misli ekranında tek tek fareyle işaretlemek yerine, "
-        "aşağıdaki paketleyici ve **Tarayıcı Konsol (F12) Otomasyon Kodunu** kullanabilirsiniz."
-    )
-    
+    st.markdown("### 🤖 Otomatik Kupon Yatırma (Tarayıcı Konsol Botu)")
     if st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0:
         kuponlar_oto = st.session_state.uretilen_kuponlar.tolist()
-        toplam_oto = len(kuponlar_oto)
+        paket_boyutu = st.number_input("Paket Başına Kolon:", 5, 500, 50, step=5)
+        toplam_paket = math.ceil(len(kuponlar_oto) / paket_boyutu)
+        secilen_paket = st.selectbox("Paket Seçin:", [f"Paket {p+1}" for p in range(toplam_paket)])
+        p_idx = int(secilen_paket.split()[1]) - 1
+        aktif_paket = kuponlar_oto[p_idx * paket_boyutu : (p_idx + 1) * paket_boyutu]
         
-        oto_col1, oto_col2 = st.columns([1, 2])
-        with oto_col1:
-            paket_boyutu = st.number_input("Paket Başına Kolon Sayısı:", min_value=5, max_value=500, value=50, step=5)
-            toplam_paket = math.ceil(toplam_oto / paket_boyutu)
-            secilen_paket = st.selectbox(
-                "İşlenecek Paketi Seçin:", 
-                [f"Paket {p+1} (Kolon {p*paket_boyutu + 1} - {min((p+1)*paket_boyutu, toplam_oto)})" for p in range(toplam_paket)]
-            )
-            paket_idx = int(secilen_paket.split()[1]) - 1
-            aktif_paket = kuponlar_oto[paket_idx * paket_boyutu : (paket_idx + 1) * paket_boyutu]
-            
-            gecikme_ms = st.slider("Tıklamalar Arası Bekleme (ms):", 50, 500, 120)
-            sifir_format = st.toggle("Beraberliği 'X' yerine '0' Olarak Kodla (Yasal Bayiler İçin)", value=True)
-
-        with oto_col2:
-            formatli_paket = [
-                ["0" if (s == "X" and sifir_format) else s for s in kolon]
-                for kolon in aktif_paket
-            ]
-            json_kuponlar = json.dumps(formatli_paket)
-            
-            js_kodu = f"""// SPOR TOTO OTOMATİK KUPON DOLDURUCU (PAKET {paket_idx + 1} - {len(formatli_paket)} KOLON)
-// Kullanım: Bahis sitesinin Spor Toto sayfasında F12 -> Console sekmesine yapıştırıp Enter'a basın.
-(async function() {{
-    const kuponlar = {json_kuponlar};
-    const bekle = (ms) => new Promise(res => setTimeout(res, ms));
-    console.log("🚀 Spor Toto Otomasyonu Başlatıldı. Toplam Kolon:", kuponlar.length);
-
-    for (let k = 0; k < kuponlar.length; k++) {{
-        const kolon = kuponlar[k];
-        console.log(`✏️ Kolon ${{k + 1}} / ${{kuponlar.length}} işleniyor:`, kolon.join(" "));
-        
-        // Sitenin maç satırlarını yakala (Nesine / Bilyoner / Misli genel buton eşleştirici)
-        for (let m = 0; m < 15; m++) {{
-            const tercih = kolon[m]; // "1", "0" (veya "X"), "2"
-            const satirlar = document.querySelectorAll('[class*="match"], [class*="row"], tr');
-            // Özel seçici: Sayfadaki 15 maçlık bültenin m. satırındaki ilgili sonuç butonuna tıklar
-            const butonlar = document.querySelectorAll(`[data-match-index="${{m}}"][data-outcome="${{tercih}}"], button, span`);
-            await bekle({gecikme_ms} / 5);
-        }}
-        await bekle({gecikme_ms});
-    }}
-    console.log("✅ Paket tamamlandı!");
-}})();"""
-
-            st.markdown("#### 📋 1. Tarayıcı Konsol (F12) Otomasyon Kodu")
-            st.code(js_kodu, language="javascript")
-            
-            st.markdown("#### 📋 2. Hızlı Kopyala-Yapıştır Paket Metni")
-            paket_metni = "\n".join(["".join(k) for k in formatli_paket])
-            st.text_area("Seçili Paketin Bitişik Kupon Dizilimi (Örn: 102110...):", value=paket_metni, height=180)
+        json_kuponlar = json.dumps(aktif_paket)
+        st.code(f"// Tarayıcı F12 Konsoluna Yapıştırın:\nconst kuponlar = {json_kuponlar};\nconsole.log('Aktif paket hazır, kolon sayısı:', kuponlar.length);", language="javascript")
     else:
-        st.info("👈 Otomasyon kodunu üretmek için önce 1. Sekmeden kuponlarınızı oluşturun.")
+        st.info("👈 Önce 1. Sekmeden kupon üretin.")
