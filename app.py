@@ -12,14 +12,20 @@ import pandas as pd
 
 st.set_page_config(page_title="Spor Toto AI Pro v10.0 Ultimate Syndicate", page_icon="🏆", layout="wide")
 
-# --- KOMPAKT VE MODERN ARAYÜZ CSS ---
+# --- KOMPAKT VE MODERN ARAYÜZ CSS (ÜST SEKME KESİLMESİ KESİN OLARAK DÜZELTİLDİ) ---
 st.markdown("""
     <style>
         .block-container {
-            padding-top: 1.2rem !important;
+            padding-top: 3.6rem !important; /* Üstteki 3 sekmenin tam görünmesini sağlar */
             padding-bottom: 1rem !important;
             padding-left: 1.5rem !important;
             padding-right: 1.5rem !important;
+        }
+        button[data-baseweb="tab"] {
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
         }
         div[data-testid="stMetric"] {
             background-color: #f8fafc;
@@ -35,6 +41,118 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
+# --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
+KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Spor Toto AI Pro v10.0 - Tek Sayfa Kullanım Kılavuzu</title>
+<style>
+    @page { size: A4 portrait; margin: 12mm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.38; font-size: 12px; margin: 0; padding: 0; }
+    .header { background: #0f172a; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { margin: 0; font-size: 18px; }
+    .header span { font-size: 11px; color: #cbd5e1; }
+    .alert { background: #eff6ff; border-left: 4px solid #2563eb; padding: 8px 12px; margin-bottom: 10px; border-radius: 4px; }
+    .section { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; background: #ffffff; }
+    .section h2 { margin: 0 0 6px 0; font-size: 14px; color: #1e3a8a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11.5px; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+    th { background: #f1f5f9; font-weight: 700; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10.5px; background: #dcfce7; color: #166534; }
+    .print-btn { background: #dc2626; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; }
+    @media print { .no-print { display: none !important; } }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🏆 Spor Toto AI Pro v10.0 — Sol Menü Kullanım Kılavuzu</h1>
+            <span>Profesyonel Sendika & EV Optimizasyon Motoru (Tek Sayfa Başvuru Rehberi)</span>
+        </div>
+        <button class="print-btn no-print" onclick="window.print()">🖨️ PDF Olarak Kaydet / Yazdır (CTRL+P)</button>
+    </div>
+
+    <div class="alert">
+        <strong>🧭 Sol Menüye Müdahale Etmeli miyim?</strong><br>
+        <strong>%90 Oranında HAYIR!</strong> Sistem açıldığında tüm ayarlar <em>Otonom (Tam Otomatik)</em> moddadır. 15 maçı seçip <strong>"Analizi Başlat"</strong> dediğinizde yapay zeka bültenin zorluğunu ölçer ve tüm sınırları kendisi ayarlar. Sadece <strong>bütçenizi sınırlamak</strong> veya <strong>özel sürpriz taktiği yapmak</strong> istediğinizde aşağıdaki ayarlara dokunun.
+    </div>
+
+    <div class="section">
+        <h2>🎯 1. Garanti & Maliyet Optimizasyonu (Bütçe Kontrolü)</h2>
+        <table>
+            <tr>
+                <th width="28%">Parametre</th>
+                <th width="18%">İdeal Ayar</th>
+                <th>Açıklama ve Müdahale Rehberi</th>
+            </tr>
+            <tr>
+                <td><strong>Matematiksel Garanti Hedefi</strong></td>
+                <td><span class="badge">14 Garanti</span></td>
+                <td>Şablonunuz 15'i yakaladığında en az 14 bilmeyi garanti eder ve <strong>%80 maliyet tasarrufu</strong> sağlar. Bütçeniz çok yüksekse <em>15 Garanti</em>, çok kısıtlıysa <em>13 Garanti</em> seçin.</td>
+            </tr>
+            <tr>
+                <td><strong>Maksimum Bütçe / Kolon Sınırı</strong></td>
+                <td><span class="badge">İhtiyaç Halinde</span></td>
+                <td>Sistem örneğin 300 kolon üretti ama sizin bütçeniz <strong>50 kolon (500 TL)</strong> ise bu şalteri açıp <strong>50</strong> yazın. Sistem en yüksek kazanma potansiyelli ilk 50 kuponu süzer.</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>🧠 2. Sendika & Çift Kademeli Şart Motoru (Oyun Karakteri)</h2>
+        <table>
+            <tr>
+                <th width="28%">Parametre</th>
+                <th width="18%">İdeal Ayar</th>
+                <th>Açıklama ve Müdahale Rehberi</th>
+            </tr>
+            <tr>
+                <td><strong>Yapay Zeka Oyun Stili</strong></td>
+                <td><span class="badge">⚖️ Dengeli</span></td>
+                <td>Normal haftalarda değiştirmeyin. Çok kolay bültenlerde <em>Favori Ağırlıklı</em>, derbilerin bol olduğu zor haftalarda <em>İkramiye Avcısı</em> seçin.</td>
+            </tr>
+            <tr>
+                <td><strong>İkramiye Çarpanı (Anti-Public)</strong></td>
+                <td><span class="badge">0.35</span></td>
+                <td>Halkın aşırı yüklendiği balon favorilerden kaçınma gücüdür. "15 bilirsem ikramiyeyi kimseyle bölüşmeyeyim" diyorsanız <strong>0.55 - 0.75</strong> arasına çekin.</td>
+            </tr>
+            <tr>
+                <td><strong>🌟 G1 (Ağır Favoriler) Hata</strong></td>
+                <td><span class="badge">0 - 1 Hata</span></td>
+                <td>Tabloda <strong>🌟 G1</strong> işaretli sağlam favorilerden <strong>en fazla 1 tanesinin</strong> yatabileceğini şart koşar. Tüm favorilerin aynı anda yattığı çöp kuponları siler.</td>
+            </tr>
+            <tr>
+                <td><strong>🔥 G2 (Plase/Ortada) Sürpriz</strong></td>
+                <td><span class="badge">1 - 3 Sürpriz</span></td>
+                <td>Tabloda <strong>🔥 G2</strong> işaretli ortada geçen maçlardan <strong>en az 1, en fazla 3 tanesinde</strong> favorinin puan kaybedeceğini şart koşar.</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>🔬 3. İleri Düzey Yapısal Filtreler (Tam Otomatik Koruma)</h2>
+        <table>
+            <tr>
+                <th width="28%">Parametre</th>
+                <th width="18%">İdeal Ayar</th>
+                <th>Açıklama ve Müdahale Rehberi</th>
+            </tr>
+            <tr>
+                <td><strong>5 Ana Yapısal Şalter</strong></td>
+                <td><span class="badge">Tümü Açık (True)</span></td>
+                <td><em>Set-Cover Kümeleme, Alt/Üst Bülten Homojenliği, Simetrik Dizilim Elemesi, Halk Tuzağı Koruması ve Otonom İstatistik</em> şalterlerinin tamamı <strong>AÇIK</strong> kalmalıdır.</td>
+            </tr>
+            <tr>
+                <td><strong>Kuponlar Arası Min. Fark</strong></td>
+                <td><span class="badge">1 veya 2 Maç</span></td>
+                <td>Kupon sayısını ve maliyeti <strong>anında yarı yarıya düşürmek</strong> isterseniz bu kaydırıcıyı <strong>1'den 2'ye</strong> çekin (Her kupon diğerinden en az 2 maç farklı olur).</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -70,6 +188,16 @@ DESTEKLENEN_LIGLER = {
 with st.sidebar:
     st.markdown("## 🏆 Spor Toto AI v10.0")
     st.caption("Ultimate Syndicate & EV Optimizasyon Motoru")
+
+    st.download_button(
+        label="📄 Kullanım Kılavuzunu İndir (Tek Sayfa PDF)",
+        data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
+        file_name="Spor_Toto_AI_v10_Tek_Sayfa_Kullanim_Kilavuzu.html",
+        mime="text/html",
+        use_container_width=True,
+        help="İndirdikten sonra dosyayı açıp 'PDF Olarak Kaydet / Yazdır' butonuna basarak tek sayfa PDF alabilirsiniz."
+    )
+
     api_key = st.text_input("🔑 API-Football Anahtarı:", type="password")
     if api_key:
         st.caption(f"📊 Kalan Günlük API Kotası: **{st.session_state.kalan_kota}**")
@@ -110,16 +238,15 @@ with st.sidebar:
     ev_katsayisi = st.slider(
         "💰 İkramiye Çarpanı (Anti-Public) Ağırlığı:",
         min_value=0.0, max_value=1.0, value=0.35, step=0.05,
-        help="0.0: Sadece gelme ihtimali en yüksek kuponları seçer (Halkla pişti olma riski). 1.0: Halkın aşırı yüklendiği balon favorilerden kaçıp ikramiyeyi tek başına alacak kuponları öne çeker."
+        help="0.0: Sadece gelme ihtimali en yüksek kuponları seçer. 1.0: Halkın aşırı yüklendiği balon favorilerden kaçıp ikramiyeyi tek başına alacak kuponları öne çeker."
     )
 
-    # ÇİFT KADEMELİ GÜVENCE SİSTEMİ (G1 ve G2)
     grup_guvence_aktif = st.toggle("🌟 Çift Kademeli Güvence (G1 & G2) Filtresi", value=True)
     if grup_guvence_aktif:
         g1_aralik = st.slider(
             "🌟 G1 (Ağır Favoriler) Min-Maks Hata:",
             0, 6, (0, 1),
-            help="Tabloda '🌟 G1' işaretlediğiniz ağır favorilerden kaç tanesinin puan kaybedebileceğini sınırlar. (Örn: 0-1 seçerseniz en fazla 1 tanesi patlayabilir)."
+            help="Tabloda '🌟 G1' işaretlediğiniz ağır favorilerden kaç tanesinin puan kaybedebileceğini sınırlar."
         )
         g2_aralik = st.slider(
             "🔥 G2 (Plase/Ortada) Min-Maks Sürpriz:",
@@ -133,7 +260,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔬 3. İleri Düzey Yapısal Filtreler")
     akilli_merkez = st.toggle("🧮 EV Ağırlıklı Set-Cover Kümeleme", value=True)
-    homojen_bulten = st.toggle("⚖️ Alt/Üst Bülten Homojenlik Filtresi", value=True, help="Tüm sürprizlerin veya tüm 1'lerin sadece ilk 7 maça ya da son 8 maça yığılmasını engeller.")
+    homojen_bulten = st.toggle("⚖️ Alt/Üst Bülten Homojenlik Filtresi", value=True)
     entropi_filtresi = st.toggle("🌀 Yapay/Simetrik Dizilim Elemesi", value=True)
     tuzak_koruma = st.toggle("🚨 Halk Tuzaklarını Otomatik Çifteye Al", value=True)
     benzerlik_elemesi = st.select_slider("🔍 Kuponlar Arası Min. Farklı Maç (Hamming):", options=[1, 2, 3, 4], value=1)
@@ -228,10 +355,6 @@ def olasilik_yumusat(p1, px_val, p2):
 
 
 def halk_egilimi_simule_et(p1, px_val, p2):
-    """
-    Spor Toto oyuncularının psikolojik yönelimi:
-    Halk favorilere aşırı yüklenir (üs 1.60), beraberlikten ve sürprizden kaçar.
-    """
     w1, wx, w2 = (p1 ** 1.62), (px_val ** 1.12), (p2 ** 1.58)
     t = w1 + wx + w2
     h1 = max(1, int(round(w1 * 100 / t)))
@@ -271,7 +394,6 @@ def tek_mac_analiz_cek(f_id, api_key):
     except Exception:
         pass
 
-    # Bahis bürosu oranları gerçek olasılığı %72, AI modeli %28 temsil eder
     ham_1 = ((odds_1 * 0.72) + (ai_1 * 0.28)) if odds_1 is not None else ai_1
     ham_x = ((odds_x * 0.72) + (ai_x * 0.28)) if odds_x is not None else ai_x
     ham_2 = ((odds_2 * 0.72) + (ai_2 * 0.28)) if odds_2 is not None else ai_2
@@ -476,7 +598,6 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai"):
                 secim = ["1", "X", "2"]
                 g1, g2 = False, True
         else:
-            # AI Önerisi
             if en_b_oran >= limitler["banko_siniri"]:
                 if tuzak_aktif and v.get("tuzak_farki", 0) >= 11 and en_b_oran < 68:
                     secim = [en_b_secim, ikinci_secim]
@@ -525,7 +646,6 @@ def vektorel_filtrele(
     grids = np.meshgrid(*[[harita[s] for s in m] for m in sablon], indexing="ij")
     matris = np.stack(grids, axis=-1).reshape(-1, 15).astype(np.int8)
 
-    # 1. Toplam 1-X-2 Adet Filtresi
     c1 = np.sum(matris == 0, axis=1)
     cx = np.sum(matris == 1, axis=1)
     c2 = np.sum(matris == 2, axis=1)
@@ -542,7 +662,6 @@ def vektorel_filtrele(
     halk_mat = np.array([[v["h1"], v["hX"], v["h2"]] for v in mac_verileri], dtype=np.float32)
     favori_indeksleri = np.argmax(oran_mat, axis=1)
 
-    # 2. ÇİFT KADEMELİ GÜVENCE FİLTRESİ (G1: Ağır Favoriler, G2: Plase/Ortada Maçlar)
     if len(g1_indeksleri) > 0:
         g1_idx = np.array(g1_indeksleri, dtype=int)
         g1_hatalar = np.sum(matris[:, g1_idx] != favori_indeksleri[g1_idx], axis=1)
@@ -557,7 +676,6 @@ def vektorel_filtrele(
         if len(matris) == 0:
             return np.empty((0, 15), dtype="<U1"), np.array([]), np.array([])
 
-    # 3. Gerçek Çarpımsal Log-Olasılık + Anti-Public (EV) Skoru
     secilen_oranlar = oran_mat[np.arange(15), matris]
     secilen_halk = halk_mat[np.arange(15), matris]
 
@@ -565,7 +683,6 @@ def vektorel_filtrele(
     log_gercek = np.sum(np.log(np.maximum(secilen_oranlar, 1.0) / 100.0), axis=1)
     log_halk = np.sum(np.log(np.maximum(secilen_halk, 1.0) / 100.0), axis=1)
 
-    # EV Skoru: Gerçek olasılığı yüksek AMA halkın az oynadığı kuponları ödüllendirir
     kompozit_skor = log_gercek - (ev_agirligi * 0.45 * log_halk)
     surpriz_sayisi = np.sum(secilen_oranlar < 28, axis=1)
 
@@ -579,7 +696,6 @@ def vektorel_filtrele(
     if len(matris) == 0:
         return np.empty((0, 15), dtype="<U1"), np.array([]), np.array([])
 
-    # 4. Ardışık Tekrar Filtresi
     for deger, anahtar in [(0, "ardisik_1"), (1, "ardisik_x"), (2, "ardisik_2")]:
         max_ard = int(limitler[anahtar])
         if 1 <= max_ard < 15 and len(matris) > 0:
@@ -589,7 +705,6 @@ def vektorel_filtrele(
             puanlar = puanlar[~ardisik_ihlal]
             kompozit_skor = kompozit_skor[~ardisik_ihlal]
 
-    # 5. Alt / Üst Yarı (İlk 7 vs Son 8 Maç) Homojenlik Filtresi
     if homojen_aktif and len(matris) > 0:
         sec_oran_aktif = oran_mat[np.arange(15), matris]
         ilk_yari_surpriz = np.sum(sec_oran_aktif[:, :7] < 28, axis=1)
@@ -600,7 +715,6 @@ def vektorel_filtrele(
             puanlar = puanlar[homojen_maske]
             kompozit_skor = kompozit_skor[homojen_maske]
 
-    # 6. Entropi & Yapay Simetri Filtresi
     if entropi_aktif and len(matris) > 0:
         gecis_sayisi = np.sum(matris[:, 1:] != matris[:, :-1], axis=1)
         periyot_3 = np.sum(matris[:, 3:] == matris[:, :-3], axis=1)
@@ -675,7 +789,7 @@ def gelismis_garanti_ve_budama_uygula(kolonlar, puanlar, kompozit_skor, hedef, m
 
 def monte_carlo_simule_et(kuponlar, veriler):
     if len(kuponlar) == 0:
-        return {"15_oran": 0.0, "14_arti_oran": 0.0, "12_arti_oran": 0.0, "ev_ikramiye_zorlugu": 0.0}
+        return {"15_oran": 0.0, "14_arti_oran": 0.0, "12_arti_oran": 0.0, "ikramiye_endeksi": 0.0}
     k_num = np.zeros(kuponlar.shape, dtype=np.int8)
     k_num[kuponlar == "X"] = 1
     k_num[kuponlar == "2"] = 2
@@ -687,7 +801,6 @@ def monte_carlo_simule_et(kuponlar, veriler):
         sim[:, idx] = rng.choice([0, 1, 2], size=3000, p=o / o.sum())
     dereceler = np.max(np.sum(sim[:, None, :] == k_num[None, :, :], axis=2), axis=1)
 
-    # Kuponların ortalama halk zorluğu (Ne kadar düşükse ikramiye o kadar az kişiyle bölünür)
     halk_mat = np.array([[v["h1"], v["hX"], v["h2"]] for v in veriler], dtype=float)
     secilen_halk_ort = np.mean(halk_mat[np.arange(15), k_num])
     ikramiye_endeksi = max(10.0, min(99.0, 100.0 - secilen_halk_ort))
@@ -1026,7 +1139,6 @@ with tab_takip:
                 k3.metric("🥉 13'e Giden", f"{int(np.sum(maks_h == 13)):,}")
                 k4.metric("🎯 12'ye Giden", f"{int(np.sum(maks_h == 12)):,}")
 
-                # YENİ: KALAN MAÇLAR İÇİN SİGORTA (HEDGE) VE KIRILMA ANALİZİ
                 en_yuksek_derece = int(np.max(maks_h))
                 hedef_kuponlar = aktif_k[maks_h == en_yuksek_derece]
                 bekleyen_indeksler = np.where(~mask)[0]
@@ -1034,7 +1146,6 @@ with tab_takip:
                 if len(bekleyen_indeksler) > 0 and len(hedef_kuponlar) > 0:
                     with st.expander(f"🛟 Kalan {len(bekleyen_indeksler)} Maç İçin '{en_yuksek_derece} Bilen' Sigorta (Hedge) Tablosu", expanded=True):
                         hedge_satirlar = []
-                        toplam_hedef = len(hedef_kuponlar)
                         for b_idx in bekleyen_indeksler:
                             sutun_b = hedef_kuponlar[:, b_idx]
                             k_1 = int(np.sum(sutun_b == "1"))
@@ -1105,7 +1216,6 @@ with tab_otomasyon:
             js_kodu = f"""// 1. Bahis sitesinde Spor Toto sayfasını açıp F12 -> Console sekmesine yapıştırın:
 const kuponPaketi = {json.dumps(aktif_paket)};
 console.log("✅ Paket yüklendi! Toplam Kolon:", kuponPaketi.length);
-// Tek kolon test fonksiyonu (Sitedeki buton yapısına göre otomatik tetikler):
 window.kolonBas = function(kolonIndex) {{
     const secimler = kuponPaketi[kolonIndex];
     console.log((kolonIndex + 1) + ". Kolon İşaretleniyor:", secimler.join("-"));
