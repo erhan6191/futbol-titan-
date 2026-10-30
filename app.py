@@ -807,11 +807,6 @@ def gelismis_garanti_ve_budama_uygula(
     kolonlar, puanlar, kompozit_skor, hedef,
     max_k=None, akilli_merkez=True, min_fark=1, hedef_kapsama=88.0
 ):
-    """
-    v10.6 SMART-ECO PARETO SET-COVER MOTORU:
-    - Hamming mesafesini (min_fark) kümeleme esnasında uygulayarak matematiksel garantiyi korur.
-    - 50.000 kolonluk genişletilmiş vektör uzayı ile gerçek olasılık kütlesini eksiksiz tarar.
-    """
     if len(kolonlar) == 0:
         return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0
 
@@ -937,12 +932,18 @@ def kupon_dosyasi_coz(dosya):
         return None
     try:
         satirlar = dosya.getvalue().decode("utf-8-sig").strip().splitlines()
-        k = [
-            ["X" if h == "0" else h.upper() for h in s.replace(",", " ").replace(";", " ").split() if h.upper() in ["1", "X", "2", "0"]]
-            for s in satirlar
-        ]
-        k_15 = [s[:15] for s in k if len(s) >= 15]
-        return np.array(k_15) if k_15 else None
+        k = []
+        for s in satirlar:
+            temiz = s.strip().upper()
+            if not temiz or "KUPON" in temiz or "MAC" in temiz:
+                continue
+            if len(temiz) == 15 and all(c in ["1", "X", "2", "0"] for c in temiz):
+                k.append(["X" if c == "0" else c for c in temiz])
+            else:
+                parcalar = ["X" if h == "0" else h for h in temiz.replace(",", " ").replace(";", " ").split() if h in ["1", "X", "2", "0"]]
+                if len(parcalar) >= 15:
+                    k.append(parcalar[:15])
+        return np.array(k) if k else None
     except Exception:
         return None
 
@@ -1178,7 +1179,6 @@ with tab_uretim:
                     "Lütfen yukarıdaki **'🌱 Süper Ekonomik'** veya **'🤖 AI Dengeli'** butonuna basın."
                 )
 
-            # Tüm şablon, oran, G1/G2 ve filtre durumlarını kapsayan tam kriptografik imza
             imza_ham = json.dumps({
                 "sablon": g_sablon,
                 "oranlar": [(v["1"], v["X"], v["2"]) for v in s_veriler],
@@ -1272,6 +1272,7 @@ with tab_uretim:
                         "📥 Kuponları İndir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
                         f"spor_toto_v10_6_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        mime="text/plain",
                         type="primary",
                         use_container_width=True
                     )
@@ -1401,29 +1402,66 @@ with tab_takip:
             st.info("👈 Takip başlatmak için önce kupon üretin veya kupon dosyası yükleyin.")
 
 # ------------------------------------------------------------------------------
-# SEKME 3: OTOMATİK YATIRMA VE DIŞA AKTARIM
+# SEKME 3: OTOMATİK YATIRMA VE DIŞA AKTARIM (HEDEF15 & EXTRA1X2 TAM UYUMLU)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.markdown("### 🤖 Otomatik Kupon Yatırma (Tarayıcı F12 Botu & Excel/CSV)")
+    st.markdown("### 🤖 Otomatik Kupon Yatırma (SporTotoHedef15 / Extra1X2 & Tarayıcı Botu)")
     if st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0:
         k_oto = st.session_state.uretilen_kuponlar.tolist()
-        c_o1, c_o2 = st.columns([1, 2.5])
+        c_o1, c_o2 = st.columns([1.2, 2.3])
         with c_o1:
-            boyut = st.number_input("Paket Başına Kolon:", 10, 500, 50, step=10)
-            sec_p = st.selectbox("Paket Seç:", [f"Paket {i+1}" for i in range(math.ceil(len(k_oto) / boyut))])
-            p_id = int(sec_p.split()[1]) - 1
-            sifir_kullan = st.toggle("Beraberliği '0' Olarak Kodla", value=True)
+            st.markdown("#### 📥 Siteye Yükleme Formatı Ayarları")
+            sifir_kullan = st.toggle(
+                "Beraberliği '0' Olarak Kodla (1-0-2)",
+                value=False,
+                help="Extra1X2 TXT modülü genellikle X kullanır, bazı Excel botları ise 0 ister."
+            )
+            ayirici_secim = st.selectbox(
+                "TXT Kolon Ayırıcı Formatı:",
+                [
+                    "Bitişik - Boşluksuz (Örn: 1X211X... - Extra1X2 Standart)",
+                    "Boşluklu (Örn: 1 X 2 1 1 X...)",
+                    "Virgüllü (Örn: 1,X,2,1,1,X...)"
+                ]
+            )
+            if "Bitişik" in ayirici_secim:
+                sep_char = ""
+            elif "Boşluklu" in ayirici_secim:
+                sep_char = " "
+            else:
+                sep_char = ","
 
-            csv_icerik = "Kupon_No," + ",".join([f"Mac_{i}" for i in range(1, 16)]) + "\n"
-            for idx_k, kl in enumerate(k_oto, 1):
-                csv_icerik += f"{idx_k}," + ",".join(kl) + "\n"
+            formatli_kolonlar = [
+                sep_char.join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
+                for kl in k_oto
+            ]
+            txt_icerik = "\n".join(formatli_kolonlar)
+
             st.download_button(
-                "📊 Tüm Kuponları Excel/CSV İndir",
-                csv_icerik,
-                f"spor_toto_v10_6_excel_{len(k_oto)}kolon.csv",
+                "📄 Hedef15 / Extra1X2 İçin İndir (.TXT)",
+                data=txt_icerik.encode("utf-8"),
+                file_name=f"extra1x2_kuponlar_{len(k_oto)}kolon.txt",
+                mime="text/plain",
+                type="primary",
+                use_container_width=True
+            )
+
+            saf_csv_icerik = "\n".join([
+                ",".join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
+                for kl in k_oto
+            ])
+            st.download_button(
+                "📊 Başlıksız Saf Excel/CSV İndir (.CSV)",
+                data=saf_csv_icerik.encode("utf-8"),
+                file_name=f"saf_kuponlar_{len(k_oto)}kolon.csv",
                 mime="text/csv",
                 use_container_width=True
             )
+
+            st.markdown("---")
+            boyut = st.number_input("Paket Başına Kolon:", 10, 500, 50, step=10)
+            sec_p = st.selectbox("Paket Seç:", [f"Paket {i+1}" for i in range(math.ceil(len(k_oto) / boyut))])
+            p_id = int(sec_p.split()[1]) - 1
 
         with c_o2:
             aktif_paket = [
@@ -1456,6 +1494,6 @@ window.kolonBas = function(kolonIndex) {{
 }};
 window.kolonBas(0);"""
             st.code(js_kodu, language="javascript")
-            st.text_area("Hızlı Kopyala-Yapıştır Dizilimi:", value="\n".join(["".join(k) for k in aktif_paket]), height=200)
+            st.text_area("Hızlı Kopyala-Yapıştır Dizilimi:", value="\n".join([sep_char.join(k) for k in aktif_paket]), height=200)
     else:
         st.info("👈 Önce 1. Sekmeden kupon üretin.")
