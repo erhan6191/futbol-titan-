@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v10.6 Smart-Eco Syndicate",
+    page_title="Spor Toto AI Pro v11.0 Ultimate Syndicate",
     page_icon="🏆",
     layout="wide"
 )
@@ -21,7 +21,7 @@ st.set_page_config(
 st.markdown("""
     <style>
         .block-container {
-            padding-top: 3.2rem !important;
+            padding-top: 3.0rem !important;
             padding-bottom: 1rem !important;
             padding-left: 1.5rem !important;
             padding-right: 1.5rem !important;
@@ -40,7 +40,7 @@ st.markdown("""
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
         div[data-testid="stMetricValue"] {
-            font-size: 1.2rem !important;
+            font-size: 1.18rem !important;
             font-weight: 700 !important;
             color: #0f172a;
         }
@@ -52,10 +52,10 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Spor Toto AI Pro v10.6 - Tek Sayfa Kullanım Kılavuzu</title>
+<title>Spor Toto AI Pro v11.0 - Saha Operasyon Kılavuzu</title>
 <style>
     @page { size: A4 portrait; margin: 12mm; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.38; font-size: 12px; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.4; font-size: 12px; margin: 0; padding: 0; }
     .header { background: #0f172a; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     .header h1 { margin: 0; font-size: 18px; }
     .header span { font-size: 11px; color: #cbd5e1; }
@@ -72,17 +72,27 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>🏆 Spor Toto AI Pro v10.6 — Saha Operasyon & Tasarruf Kılavuzu</h1>
-            <span>Smart-Eco Pareto Kümeleme & Piyasa Konsensüs Motoru</span>
+            <h1>🏆 Spor Toto AI Pro v11.0 — Ultimate Syndicate Saha Kılavuzu</h1>
+            <span>Power-Odds Kalibrasyonu, Geriye Dönük Budama & Finansal Hedge Motoru</span>
         </div>
         <button class="print-btn no-print" onclick="window.print()">🖨️ PDF Olarak Kaydet / Yazdır (CTRL+P)</button>
     </div>
     <div class="alert">
-        <strong>🌱 Saha Kullanımı İçin 4 Altın Kural:</strong><br>
-        1. Sol menüdeki <strong>"🌱 Akıllı Tasarruf Modu (Pareto Kapsama)"</strong> ayarı varsayılan olarak <strong>%88 (Ekonomik)</strong> seçilidir. Bu ayar düşük olasılıklı kuyruk kuponlarını keserek <strong>%45 ekstra tasarruf</strong> sağlar.<br>
-        2. Tablonun üstündeki <strong>"🌱 Süper Ekonomik (5B-6Ç-4K)"</strong> şablon butonunu kullanırsanız maliyet yarı yarıya düşer.<br>
+        <strong>🌱 Saha Kullanımı İçin 5 Altın Kural:</strong><br>
+        1. Sol menüdeki <strong>"🌱 Akıllı Tasarruf Modu (Pareto Kapsama)"</strong> ayarı varsayılan olarak <strong>%88 (Ekonomik)</strong> seçilidir. v11.0'daki <em>Geriye Dönük Gereksiz Kolon Budaması</em> ile birlikte <strong>%50'ye varan net tasarruf</strong> sağlar.<br>
+        2. Tablodaki <strong>"Halk (%)"</strong> sütunu artık düzenlenebilir! Nesine/Hedef15 üzerindeki gerçek oynanma yüzdelerini gördüğünüzde kritik maçların halk yüzdesini elle güncelleyebilirsiniz.<br>
         3. Net bir bütçeniz varsa sol menüden <strong>"💰 Maksimum Bütçe / Kolon Sınırı"</strong> şalterini açıp hedef kolon adedini yazmanız yeterlidir.<br>
-        4. Cuma günü kuponları ürettikten sonra sol menünün en altından <strong>"💾 Haftalık Oturumu İndir (.JSON)"</strong> butonuna basın. Cumartesi/Pazar günü bu dosyayı yükleyerek tek tıkla canlı skor ve sigorta (hedge) takibi yapabilirsiniz.
+        4. Cuma günü kuponları ürettikten sonra sol menünün en altından <strong>"📥 Haftalık Oturumu Kaydet (.JSON)"</strong> butonuna basın.<br>
+        5. Pazar günü son maçlara 14 veya 15 adayı ile girdiğinizde <strong>2. Sekmedeki Finansal Sigorta (Hedge) Hesaplayıcısını</strong> kullanarak canlı bahisten garantili net nakit kâr kilitleyin.
+    </div>
+    <div class="section">
+        <h2>📊 Şablon ve Güvence Grubu (G1 / G2) Stratejisi</h2>
+        <table>
+            <tr><th>Terim</th><th>Anlamı</th><th>Tavsiye Edilen Kullanım</th></tr>
+            <tr><td><strong>🌟 G1 (Ağır Favoriler)</strong></td><td>Oranı %45-%58 arası olan ve yanına sigorta (çifte) atılan favoriler.</td><td>Bu gruptaki maçların tamamının aynı anda patlaması beklenmez (Maks 1-2 hata).</td></tr>
+            <tr><td><strong>🔥 G2 (Plase / Kapalı)</strong></td><td>Ortada geçen veya 1-X-2 kapatılan cadı kazanı maçlar.</td><td>İkramiye çarpanını yükselten sürprizler bu gruptan yakalanır.</td></tr>
+            <tr><td><strong>🚨 Halk Tuzağı</strong></td><td>Gerçek olasılığı %44-55 iken halkın %60+ yüklendiği kırılgan maçlar.</td><td>Tek geçilmemeli; mutlaka çifte şans ile yıkımı hedeflenmelidir.</td></tr>
+        </table>
     </div>
 </body>
 </html>"""
@@ -101,17 +111,17 @@ varsayilan_state = {
     "canli_sonuclar": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
-    "sema_versiyonu": "10.6"
+    "sema_versiyonu": "11.0"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "10.6":
+if st.session_state.get("sema_versiyonu") != "11.0":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
-    st.session_state.sema_versiyonu = "10.6"
+    st.session_state.sema_versiyonu = "11.0"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -124,17 +134,23 @@ DESTEKLENEN_LIGLER = {
     71: "🇧🇷 Série A", 128: "🇦🇷 Liga Prof.", 253: "🇺🇸 MLS", 307: "🇸🇦 Pro League"
 }
 
+POPULER_TAKIM_ANAHTARLARI = [
+    "galatasaray", "fenerbahce", "besiktas", "trabzonspor",
+    "real madrid", "barcelona", "manchester city", "arsenal", "liverpool",
+    "bayern", "inter", "juventus", "milan", "psg", "paris saint"
+]
+
 # ==============================================================================
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v10.6")
-    st.caption("Smart-Eco & Precision Syndicate Motoru")
+    st.markdown("## 🏆 Spor Toto AI v11.0")
+    st.caption("Ultimate Syndicate & Precision Motoru")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (PDF/HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v10_6_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v11_0_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -196,8 +212,8 @@ with st.sidebar:
 
     ev_katsayisi = st.slider(
         "💰 İkramiye Çarpanı (Anti-Public) Ağırlığı:",
-        min_value=0.0, max_value=1.0, value=0.20, step=0.05,
-        help="0.15 - 0.25 arası gerçek olasılıkları korurken balon favorilerden dengeli şekilde kaçınır."
+        min_value=0.0, max_value=1.0, value=0.22, step=0.05,
+        help="0.15 - 0.30 arası gerçek olasılıkları korurken balon favorilerden dengeli şekilde kaçınır."
     )
 
     grup_guvence_aktif = st.toggle("🌟 Çift Kademeli Güvence (G1 & G2) Filtresi", value=True)
@@ -217,7 +233,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🔬 3. İleri Düzey Yapısal Filtreler")
-    akilli_merkez = st.toggle("🧮 Olasılık Sadakatli Set-Cover Kümeleme", value=True)
+    akilli_merkez = st.toggle("🧮 Olasılık Sadakatli Set-Cover + Ters Budama", value=True)
     homojen_bulten = st.toggle("⚖️ Alt/Üst Bülten Homojenlik Filtresi", value=True)
     entropi_filtresi = st.toggle("🌀 Yapay/Simetrik Dizilim Elemesi", value=True)
     tuzak_koruma = st.toggle("🚨 Kırılgan Halk Tuzaklarını Çifteye Al", value=True)
@@ -241,7 +257,7 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "10.6",
+            "versiyon": "11.0",
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
@@ -271,6 +287,7 @@ with st.sidebar:
                     st.session_state.uretilen_kuponlar = np.array(veri_json["uretilen_kuponlar"])
                 st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
                 st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
+                st.session_state.son_param_imzasi = None
                 st.toast("✅ Haftalık bülten ve kuponlar başarıyla geri yüklendi!")
                 st.rerun()
             except Exception as e:
@@ -278,7 +295,7 @@ with st.sidebar:
 
 
 # ==============================================================================
-# API VE METİN EŞLEŞTİRME MOTORU
+# API, POWER-ODDS KALİBRASYONU VE METİN EŞLEŞTİRME MOTORU
 # ==============================================================================
 def api_istegi_at(url, api_key, timeout=8):
     headers = {"x-apisports-key": api_key}
@@ -351,8 +368,31 @@ def olasilik_yumusat(p1, px_val, p2):
     return y1, yx, y2
 
 
-def halk_egilimi_simule_et(p1, px_val, p2):
-    w1, wx, w2 = (p1 ** 1.38), (px_val ** 1.08), (p2 ** 1.35)
+def power_marj_arindir(odd_1, odd_x, odd_2):
+    """Favorite-Longshot Bias etkisini arındıran üstel (Power) marj temizleme."""
+    inv = np.array([1.0 / max(1.01, odd_1), 1.0 / max(1.01, odd_x), 1.0 / max(1.01, odd_2)], dtype=float)
+    overround = float(np.sum(inv))
+    if overround <= 1.0:
+        return (inv / overround) * 100.0
+    # Üstel düzeltme katsayısı: sürprizlerdeki yüksek büro marjını daha sert kırpar
+    k_power = 1.0 + 0.85 * (overround - 1.0)
+    duzeltilmis = np.power(inv, k_power)
+    return (duzeltilmis / np.sum(duzeltilmis)) * 100.0
+
+
+def halk_egilimi_simule_et(p1, px_val, p2, mac_adi=""):
+    """Gerçek olasılık + popüler kulüp fanatizm sapmasına göre halk eğilimi tahmini."""
+    w1, wx, w2 = (p1 ** 1.38), (px_val ** 1.06), (p2 ** 1.35)
+    if mac_adi and "-" in mac_adi:
+        parcalar = mac_adi.lower().split("-")
+        ev_ad = parcalar[0].strip()
+        dep_ad = parcalar[1].strip() if len(parcalar) > 1 else ""
+        ev_pop = any(t in ev_ad for t in POPULER_TAKIM_ANAHTARLARI)
+        dep_pop = any(t in dep_ad for t in POPULER_TAKIM_ANAHTARLARI)
+        if ev_pop and not dep_pop and p1 >= 42:
+            w1 *= 1.22
+        elif dep_pop and not ev_pop and p2 >= 42:
+            w2 *= 1.22
     return olasilik_yumusat(w1, wx, w2)
 
 
@@ -378,24 +418,23 @@ def tek_mac_analiz_cek(f_id, api_key):
                     if bahis.get("id") == 1 or bahis.get("name") == "Match Winner":
                         degerler = {v["value"]: float(v["odd"]) for v in bahis.get("values", []) if float(v.get("odd", 0)) > 1.0}
                         if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
-                            inv_1, inv_x, inv_2 = 1.0 / degerler["Home"], 1.0 / degerler["Draw"], 1.0 / degerler["Away"]
-                            inv_top = inv_1 + inv_x + inv_2
-                            odds_list_1.append((inv_1 / inv_top) * 100.0)
-                            odds_list_x.append((inv_x / inv_top) * 100.0)
-                            odds_list_2.append((inv_2 / inv_top) * 100.0)
+                            p1_c, px_c, p2_c = power_marj_arindir(degerler["Home"], degerler["Draw"], degerler["Away"])
+                            odds_list_1.append(p1_c)
+                            odds_list_x.append(px_c)
+                            odds_list_2.append(p2_c)
                         break
-                if len(odds_list_1) >= 5:
+                if len(odds_list_1) >= 6:
                     break
     except Exception:
         pass
 
     if odds_list_1:
-        odds_1 = float(np.mean(odds_list_1))
-        odds_x = float(np.mean(odds_list_x))
-        odds_2 = float(np.mean(odds_list_2))
-        ham_1 = (odds_1 * 0.74) + (ai_1 * 0.26)
-        ham_x = (odds_x * 0.74) + (ai_x * 0.26)
-        ham_2 = (odds_2 * 0.74) + (ai_2 * 0.26)
+        odds_1 = float(np.median(odds_list_1))
+        odds_x = float(np.median(odds_list_x))
+        odds_2 = float(np.median(odds_list_2))
+        ham_1 = (odds_1 * 0.76) + (ai_1 * 0.24)
+        ham_x = (odds_x * 0.76) + (ai_x * 0.24)
+        ham_2 = (odds_2 * 0.76) + (ai_2 * 0.24)
     else:
         ham_1, ham_x, ham_2 = ai_1, ai_x, ai_2
 
@@ -404,11 +443,11 @@ def tek_mac_analiz_cek(f_id, api_key):
 
 def hibrit_tahminleri_al(secilen_maclar, api_key):
     sonuclar = []
-    progress = st.progress(0, text="Maç analizleri ve piyasa konsensüsü hesaplanıyor...")
+    progress = st.progress(0, text="Maç analizleri, Power-Odds kalibrasyonu ve halk eğilimi hesaplanıyor...")
     for i, mac in enumerate(secilen_maclar):
         f_id = mac["id"]
         g1, gx, g2 = tek_mac_analiz_cek(f_id, api_key)
-        h1, hx, h2 = halk_egilimi_simule_et(g1, gx, g2)
+        h1, hx, h2 = halk_egilimi_simule_et(g1, gx, g2, mac["karsilasma"])
         sonuclar.append({
             "bulten_no": i + 1,
             "id": f_id,
@@ -514,7 +553,7 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 
 
 # ==============================================================================
-# v10.6 SMART-ECO FİLTRE VE PARETO SET-COVER KÜMELEME MOTORU
+# v11.0 ULTIMATE FİLTRE VE TERS BUDAMALI (REVERSE PRUNING) SET-COVER MOTORU
 # ==============================================================================
 def akilli_cifte_sec(v):
     s = sorted([(v["1"], "1"), (v["X"], "X"), (v["2"], "2")], reverse=True)
@@ -625,7 +664,7 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai"):
         cifte_secim = akilli_cifte_sec(v)
         sira_idx = tum_sirali.index(v["id"])
 
-        kirilgan_tuzak_mi = (44 <= en_b_oran <= 56) and (v.get("tuzak_farki", 0) >= 10)
+        kirilgan_tuzak_mi = (43 <= en_b_oran <= 57) and (v.get("tuzak_farki", 0) >= 9)
 
         if mod == "15_banko":
             secim = [en_b_secim]
@@ -707,7 +746,7 @@ def vektorel_filtrele(
     sablon, mac_verileri, limitler,
     g1_indeksleri, g1_aralik,
     g2_indeksleri, g2_aralik,
-    ev_agirligi=0.20,
+    ev_agirligi=0.22,
     entropi_aktif=True,
     homojen_aktif=True
 ):
@@ -797,7 +836,7 @@ def vektorel_filtrele(
 
     log_gercek = np.sum(np.log(np.maximum(secilen_oranlar, 1.0) / 100.0), axis=1)
     log_halk = np.sum(np.log(np.maximum(secilen_halk, 1.0) / 100.0), axis=1)
-    kompozit_skor = log_gercek - (ev_agirligi * 0.22 * log_halk)
+    kompozit_skor = log_gercek - (ev_agirligi * 0.24 * log_halk)
 
     idx = np.argsort(kompozit_skor)[::-1]
     return ters[matris[idx]], puanlar[idx], kompozit_skor[idx], esnetilenler
@@ -807,8 +846,11 @@ def gelismis_garanti_ve_budama_uygula(
     kolonlar, puanlar, kompozit_skor, hedef,
     max_k=None, akilli_merkez=True, min_fark=1, hedef_kapsama=88.0
 ):
+    """
+    v11.0 Düzeltilmiş Pareto Set-Cover + Hamming Ayrıştırması + Geriye Dönük Gereksiz Kolon Budaması.
+    """
     if len(kolonlar) == 0:
-        return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0
+        return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0, 0
 
     N_tam = len(kolonlar)
     MAX_HAVUZ = 50000
@@ -822,12 +864,6 @@ def gelismis_garanti_ve_budama_uygula(
     mat[kolonlar == "X"] = 1
     mat[kolonlar == "2"] = 2
 
-    if hedef == 15 and min_fark <= 1:
-        nihai = list(range(N))
-        if max_k and len(nihai) > max_k:
-            nihai = nihai[:max_k]
-        return kolonlar[nihai], puanlar[nihai], 100.0
-
     one_hot = np.zeros((N, 45), dtype=np.float32)
     satir_idx = np.arange(N)[:, None]
     sutun_ofset = np.arange(15)[None, :] * 3
@@ -837,49 +873,82 @@ def gelismis_garanti_ve_budama_uygula(
     toplam_agirlik = float(np.sum(agirlik))
     esik_eslesme = float(hedef)
 
-    mask = np.ones(N, dtype=bool)
+    # kapsanmamis_maske: Henüz garanti şemsiyesi altına girmemiş kombinasyonlar
+    # aday_maske: Merkez kupon olarak seçilmeye uygun (Hamming şartını sağlayan) kombinasyonlar
+    kapsanmamis_maske = np.ones(N, dtype=bool)
+    aday_maske = np.ones(N, dtype=bool)
     nihai = []
     kapsama_orani = 0.0
 
-    while np.any(mask):
+    while np.any(kapsanmamis_maske) and np.any(aday_maske):
         if max_k and len(nihai) >= max_k:
             break
         if kapsama_orani >= hedef_kapsama:
             break
 
-        aktif_indeksler = np.where(mask)[0]
-
-        if min_fark > 1 and len(nihai) > 0:
-            son_eklenen = mat[nihai[-1]]
-            uzak_maske = np.sum(mat[aktif_indeksler] != son_eklenen, axis=1) >= min_fark
-            mask[aktif_indeksler[~uzak_maske]] = False
-            aktif_indeksler = np.where(mask)[0]
-            if len(aktif_indeksler) == 0:
+        uygun_adaylar = np.where(aday_maske & kapsanmamis_maske)[0]
+        if len(uygun_adaylar) == 0:
+            uygun_adaylar = np.where(aday_maske)[0]
+            if len(uygun_adaylar) == 0:
                 break
 
-        if akilli_merkez and len(aktif_indeksler) > 1 and hedef < 15:
-            aday_say = min(60, len(aktif_indeksler))
-            ornek_say = min(1200, len(aktif_indeksler))
+        kapsanmamis_indeksler = np.where(kapsanmamis_maske)[0]
 
-            aday_idx = aktif_indeksler[:aday_say]
-            ornek_idx = aktif_indeksler[:ornek_say]
+        if akilli_merkez and len(kapsanmamis_indeksler) > 1 and hedef < 15:
+            aday_say = min(65, len(uygun_adaylar))
+            ornek_say = min(1400, len(kapsanmamis_indeksler))
+
+            aday_idx = uygun_adaylar[:aday_say]
+            ornek_idx = kapsanmamis_indeksler[:ornek_say]
 
             eslesme_mat = one_hot[aday_idx] @ one_hot[ornek_idx].T
             kapsama_mat = (eslesme_mat >= esik_eslesme).astype(np.float32)
             kapsanan_kutle = (kapsama_mat @ agirlik[ornek_idx]) * (agirlik[aday_idx] ** 0.65)
             m_idx = int(aday_idx[int(np.argmax(kapsanan_kutle))])
         else:
-            m_idx = int(aktif_indeksler[0])
+            m_idx = int(uygun_adaylar[0])
 
         nihai.append(m_idx)
-        eslesmeler = one_hot[aktif_indeksler] @ one_hot[m_idx]
-        mask[aktif_indeksler[eslesmeler >= esik_eslesme]] = False
-        kapsama_orani = float(np.sum(agirlik[~mask]) / toplam_agirlik * 100.0)
+        aday_maske[m_idx] = False
+
+        # 1) Gerçek garanti kapsamını güncelle
+        eslesmeler = one_hot[kapsanmamis_indeksler] @ one_hot[m_idx]
+        yeni_kapsananlar = kapsanmamis_indeksler[eslesmeler >= esik_eslesme]
+        kapsanmamis_maske[yeni_kapsananlar] = False
+        aday_maske[yeni_kapsananlar] = False
+
+        # 2) Hamming (min_fark) kısıtını SADECE aday_maske üzerinde uygula (kapsama oranını bozmaz)
+        if min_fark > 1:
+            kalan_adaylar = np.where(aday_maske)[0]
+            if len(kalan_adaylar) > 0:
+                fark_sayisi = np.sum(mat[kalan_adaylar] != mat[m_idx], axis=1)
+                aday_maske[kalan_adaylar[fark_sayisi < min_fark]] = False
+
+        kapsama_orani = float(np.sum(agirlik[~kapsanmamis_maske]) / toplam_agirlik * 100.0)
+
+    # 3) GERİYE DÖNÜK GEREKSİZ KOLON BUDAMASI (Reverse Redundancy Pruning)
+    budanan_adet = 0
+    if akilli_merkez and hedef < 15 and 2 < len(nihai) <= 1500 and (not max_k or len(nihai) < max_k):
+        kapsanan_evren = np.where(~kapsanmamis_maske)[0]
+        if len(kapsanan_evren) <= 25000:
+            secilen_oh = one_hot[nihai]
+            evren_oh = one_hot[kapsanan_evren]
+            örtme_mat = (secilen_oh @ evren_oh.T) >= esik_eslesme
+            örtme_sayaci = np.sum(örtme_mat, axis=0)
+
+            aktif_tut = np.ones(len(nihai), dtype=bool)
+            # En düşük öncelikli (sondaki) kuponlardan başlayarak %100 yedeklenenleri çıkar
+            for i in range(len(nihai) - 1, -1, -1):
+                if np.all(örtme_sayaci[örtme_mat[i]] >= 2):
+                    aktif_tut[i] = False
+                    örtme_sayaci -= örtme_mat[i].astype(int)
+                    budanan_adet += 1
+            nihai = [nihai[i] for i in range(len(nihai)) if aktif_tut[i]]
 
     if max_k and len(nihai) > max_k:
         nihai = nihai[:max_k]
 
-    return kolonlar[nihai], puanlar[nihai], kapsama_orani
+    return kolonlar[nihai], puanlar[nihai], kapsama_orani, budanan_adet
 
 
 def monte_carlo_simule_et(kuponlar, veriler, sablon):
@@ -953,7 +1022,7 @@ def kupon_dosyasi_coz(dosya):
 # ==============================================================================
 tab_uretim, tab_takip, tab_otomasyon = st.tabs([
     "🎛️ 1. Profesyonel Sendika Masası & Kupon Üretimi",
-    "📡 2. Canlı Kupon, Kırılma & Sigorta (Hedge) Takibi",
+    "📡 2. Canlı Kupon, Kırılma & Finansal Sigorta (Hedge) Takibi",
     "🤖 3. Otomatik Kupon Yatırma & Dışa Aktarım"
 ])
 
@@ -1046,7 +1115,7 @@ with tab_uretim:
                             st.rerun()
 
         # ======================================================================
-        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v10.6 SMART-ECO)
+        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v11.0 ULTIMATE)
         # ======================================================================
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
@@ -1093,7 +1162,11 @@ with tab_uretim:
                     "1 (%)": st.column_config.NumberColumn("Ev %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
                     "X (%)": st.column_config.NumberColumn("Ber %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
                     "2 (%)": st.column_config.NumberColumn("Dep %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
-                    "Halk (%)": st.column_config.ProgressColumn("Halk Yük.", format="%%%d", min_value=0, max_value=100, width="small"),
+                    "Halk (%)": st.column_config.NumberColumn(
+                        "Halk Favori %",
+                        min_value=1, max_value=99, step=1, format="%%%d", width="small",
+                        help="Nesine/Hedef15 üzerindeki gerçek favori oynanma yüzdesini buraya elle de girebilirsiniz."
+                    ),
                     "Analiz": st.column_config.TextColumn("Teşhis", width="small"),
                     "1": st.column_config.CheckboxColumn("1", width="small"),
                     "X": st.column_config.CheckboxColumn("X", width="small"),
@@ -1101,7 +1174,7 @@ with tab_uretim:
                     "🌟 G1": st.column_config.CheckboxColumn("🌟 G1", help="Ağır Favori Güvencesi", width="small"),
                     "🔥 G2": st.column_config.CheckboxColumn("🔥 G2", help="Plase/Sürpriz Grubu", width="small")
                 },
-                disabled=["Lig", "Karşılaşma", "Halk (%)", "Analiz"],
+                disabled=["Lig", "Karşılaşma", "Analiz"],
                 hide_index=True,
                 use_container_width=True,
                 height=560
@@ -1132,7 +1205,18 @@ with tab_uretim:
                     g2_indeksleri.append(idx_r)
 
                 y1, yx, y2 = olasilik_yumusat(r["1 (%)"], r["X (%)"], r["2 (%)"])
-                h1, hx, h2 = halk_egilimi_simule_et(y1, yx, y2)
+                h1, hx, h2 = halk_egilimi_simule_et(y1, yx, y2, r["Karşılaşma"])
+
+                # Kullanıcı "Halk (%)" sütununu elle değiştirdiyse favori halk yüzdesini ona kalibre et
+                kullanici_halk_fav = int(r["Halk (%)"])
+                oto_halk_fav = max(h1, hx, h2)
+                if abs(kullanici_halk_fav - oto_halk_fav) >= 2:
+                    if h1 >= hx and h1 >= h2:
+                        h1, hx, h2 = olasilik_yumusat(kullanici_halk_fav, (100 - kullanici_halk_fav) * (hx / max(1, hx + h2)), (100 - kullanici_halk_fav) * (h2 / max(1, hx + h2)))
+                    elif h2 >= h1 and h2 >= hx:
+                        h1, hx, h2 = olasilik_yumusat((100 - kullanici_halk_fav) * (h1 / max(1, h1 + hx)), (100 - kullanici_halk_fav) * (hx / max(1, h1 + hx)), kullanici_halk_fav)
+                    else:
+                        h1, hx, h2 = olasilik_yumusat((100 - kullanici_halk_fav) * (h1 / max(1, h1 + h2)), kullanici_halk_fav, (100 - kullanici_halk_fav) * (h2 / max(1, h1 + h2)))
 
                 g_sablon.append(sec if sec else ["1"])
                 s_veriler.append({
@@ -1181,7 +1265,7 @@ with tab_uretim:
 
             imza_ham = json.dumps({
                 "sablon": g_sablon,
-                "oranlar": [(v["1"], v["X"], v["2"]) for v in s_veriler],
+                "oranlar": [(v["1"], v["X"], v["2"], v["h1"], v["hX"], v["h2"]) for v in s_veriler],
                 "g1_idx": g1_indeksleri,
                 "g2_idx": g2_indeksleri,
                 "g1_aralik": g1_aralik,
@@ -1228,7 +1312,7 @@ with tab_uretim:
                     homojen_aktif=homojen_bulten
                 )
                 if len(mat) > 0:
-                    garanti, g_puan, kapsama = gelismis_garanti_ve_budama_uygula(
+                    garanti, g_puan, kapsama, budanan_adet = gelismis_garanti_ve_budama_uygula(
                         mat, puanlar, kompozit_skor, garanti_derecesi,
                         max_k=max_kolon_limiti,
                         akilli_merkez=akilli_merkez,
@@ -1242,6 +1326,7 @@ with tab_uretim:
                         "ham_adet": ham_kolon_sayisi,
                         "garanti_derecesi": garanti_derecesi,
                         "kapsama": kapsama,
+                        "budanan_adet": budanan_adet,
                         "mc": mc,
                         "s_veriler": s_veriler,
                         "g_sablon": g_sablon,
@@ -1259,6 +1344,8 @@ with tab_uretim:
 
                 if ozet.get("esnetilenler"):
                     st.caption(f"ℹ️ **Otonom Koruma:** Sıfır kupon çıkmaması için şu dar filtreler otomatik esnetildi: `{', '.join(ozet['esnetilenler'])}`")
+                if ozet.get("budanan_adet", 0) > 0:
+                    st.caption(f"✂️ **Ters Budama (Reverse Pruning):** %100 çakışan **{ozet['budanan_adet']}** yedek kolon garanti gücü bozulmadan temizlendi.")
 
                 m1, m2, m3, m4, m5, m6 = st.columns([1, 1.1, 1.1, 1.1, 1.1, 1.1])
                 m1.metric("Ham -> Filtreli", f"{ozet['filtreli_adet']:,}", f"-%{100 - (ozet['filtreli_adet']*100/ham_k):.0f} Eleme")
@@ -1271,7 +1358,7 @@ with tab_uretim:
                     st.download_button(
                         "📥 Kuponları İndir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v10_6_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        f"spor_toto_v11_0_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
                         mime="text/plain",
                         type="primary",
                         use_container_width=True
@@ -1294,7 +1381,7 @@ with tab_uretim:
                     st.dataframe(pd.DataFrame(dagilim_satirlari), hide_index=True, use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# SEKME 2: CANLI KUPON TAKİBİ & SİGORTA (HEDGE) ANALİZİ
+# SEKME 2: CANLI KUPON TAKİBİ & FİNANSAL SİGORTA (HEDGE / DUTCHING) ANALİZİ
 # ------------------------------------------------------------------------------
 with tab_takip:
     col_t1, col_t2 = st.columns([1.15, 1.65])
@@ -1358,7 +1445,7 @@ with tab_takip:
                 bekleyen_indeksler = np.where(~mask)[0]
 
                 if len(bekleyen_indeksler) > 0 and len(hedef_kuponlar) > 0:
-                    with st.expander(f"🛟 Kalan {len(bekleyen_indeksler)} Maç İçin '{en_yuksek_derece} Bilen' Sigorta (Hedge) Tablosu", expanded=True):
+                    with st.expander(f"🛟 Kalan {len(bekleyen_indeksler)} Maç İçin '{en_yuksek_derece} Bilen' Sigorta (Hedge) & Finansal Hesaplayıcı", expanded=True):
                         hedge_satirlar = []
                         toplam_aday = len(hedef_kuponlar)
                         for b_idx in bekleyen_indeksler:
@@ -1383,6 +1470,37 @@ with tab_takip:
                             })
                         st.dataframe(pd.DataFrame(hedge_satirlar), hide_index=True, use_container_width=True)
 
+                        # FİNANSAL DUTCHING / HEDGE HESAPLAYICISI (Son 1-2 maç kala aktif kullanım için)
+                        st.markdown("##### 💵 Canlı Bahis Garantili Nakit Kâr (Dutching / Arbitraj) Hesaplayıcısı")
+                        hc1, hc2, hc3, hc4 = st.columns([1.4, 1, 1, 1])
+                        with hc1:
+                            beklenen_ikramiye = st.number_input("Beklenen İkramiye Tutarı (TL):", min_value=1000.0, value=50000.0, step=5000.0)
+                        with hc2:
+                            canli_oran_1 = st.number_input("Canlı Oran (1) - Yoksa 0:", min_value=0.0, value=0.0, step=0.10)
+                        with hc3:
+                            canli_oran_x = st.number_input("Canlı Oran (X) - Yoksa 0:", min_value=0.0, value=3.40, step=0.10)
+                        with hc4:
+                            canli_oran_2 = st.number_input("Canlı Oran (2) - Yoksa 0:", min_value=0.0, value=4.20, step=0.10)
+
+                        secili_oranlar = [(etiket, oran) for etiket, oran in [("1", canli_oran_1), ("X", canli_oran_x), ("2", canli_oran_2)] if oran > 1.0]
+                        if secili_oranlar:
+                            ters_toplam = sum(1.0 / o for _, o in secili_oranlar)
+                            if ters_toplam < 1.0:
+                                garantili_brut = beklenen_ikramiye * (1.0 - ters_toplam)
+                                kupon_maliyeti = len(aktif_k) * kolon_fiyati
+                                net_garanti_kar = garantili_brut - kupon_maliyeti
+                                dagilim_metni = " | ".join([
+                                    f"**MS {etk}** için **{beklenen_ikramiye / orn:,.0f} TL** (Oran: {orn:.2f})"
+                                    for etk, orn in secili_oranlar
+                                ])
+                                st.success(
+                                    f"✅ **Sigorta Planı:** {dagilim_metni}\n\n"
+                                    f"💰 **Sonuç Ne Olursa Olsun Garantili Brüt Tahsilat:** `{garantili_brut:,.0f} TL` | "
+                                    f"**Kupon Maliyeti Düşülmüş Net Kâr:** `{net_garanti_kar:,.0f} TL`"
+                                )
+                            else:
+                                st.warning("⚠️ Girdiğiniz canlı oranların ters toplamı 1.0'ı aşıyor; sadece en riskli açık sonuca kısmi koruma yapmanız önerilir.")
+
                 sirali_idx = np.argsort(maks_h)[::-1][:200]
                 st.dataframe(
                     pd.DataFrame([{
@@ -1397,7 +1515,7 @@ with tab_takip:
                     height=340
                 )
             else:
-                st.info("👈 Sol tablodan maç sonuçlarını seçtiğiniz anda canlı ikramiye potası ve sigorta analizi hesaplanır.")
+                st.info("👈 Sol tablodan maç sonuçlarını seçtiğiniz anda canlı ikramiye potası ve finansal sigorta analizi hesaplanır.")
         else:
             st.info("👈 Takip başlatmak için önce kupon üretin veya kupon dosyası yükleyin.")
 
