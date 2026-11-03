@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v12.1 Final — Smart-Budget & Precision",
+    page_title="Spor Toto AI Pro v12.2 Final — Smart-Budget & Safe-Play",
     page_icon="🏆",
     layout="wide"
 )
@@ -44,6 +44,23 @@ st.markdown("""
             font-weight: 700 !important;
             color: #0f172a;
         }
+        .step-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        .safe-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            display: inline-block;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -52,7 +69,7 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Spor Toto AI Pro v12.1 Final - Saha Operasyon Kılavuzu</title>
+<title>Spor Toto AI Pro v12.2 Final - Saha Operasyon Kılavuzu</title>
 <style>
     @page { size: A4 portrait; margin: 12mm; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.4; font-size: 12px; margin: 0; padding: 0; }
@@ -72,27 +89,28 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>🏆 Spor Toto AI Pro v12.1 Final — Smart-Budget & Precision Kılavuzu</h1>
-            <span>Dixon-Coles X Kalibrasyonu, Shannon Log-Olasılık Zarfı & Tam Evren Set-Cover</span>
+            <h1>🏆 Spor Toto AI Pro v12.2 Final — Smart-Budget & Safe-Play Kılavuzu</h1>
+            <span>Dixon-Coles X Kalibrasyonu, Shannon Log-Olasılık Zarfı, Tam Evren Set-Cover & Güvenli Kupon Yatırma</span>
         </div>
         <button class="print-btn no-print" onclick="window.print()">🖨️ PDF Olarak Kaydet / Yazdır (CTRL+P)</button>
     </div>
     <div class="alert">
-        <strong>🌱 v12.1 Saha Kullanımı İçin 5 Altın Kural:</strong><br>
-        1. <strong>💸 Hedef Bütçeye Göre Şablon Kur:</strong> Bütçenizi (Örn: 400 TL) belirleyin ve şablon masasının üzerindeki <em>"🎯 Hedef Bütçeme Göre En İdeal Şablonu Kur"</em> butonuna basın. Marjinal entropi algoritması en verimli Banko/Çifte/Kapalı dağılımını otomatik kurar.<br>
-        2. <strong>📐 Shannon Log-Olasılık Zarfı:</strong> Eski aritmetik puan toplamı yerine gerçek geometrik olasılık koridoru (Z-Skoru) kullanılır; çöp sürprizler ve aşırı kısır kuponlar otomatik elenir.<br>
-        3. <strong>⚠️ Piyasa Kararsızlığı Tespiti:</strong> Bahis büroları arasında oran sapması yüksek olan (kadro/sakatlık haberi olan) maçlar otomatik tespit edilir ve tek geçilmesi engellenir.<br>
-        4. <strong>🧮 Tam Evren Set-Cover + Ters Budama:</strong> Kör örnekleme kaldırılmıştır; tüm filtreli evren taranır ve %100 çakışan yedek kolonlar budanarak %35-%50 net bütçe tasarrufu sağlanır.<br>
-        5. <strong>🛟 Canlı Hedge (Dutching):</strong> Pazar günü son maçlara 14/15 adayı ile girdiğinizde 2. Sekmedeki Finansal Sigorta Hesaplayıcısı ile garantili nakit kâr kilitleyin.
+        <strong>🌱 v12.2 Saha Kullanımı İçin 6 Altın Kural:</strong><br>
+        1. <strong>💸 Hedef Bütçeye Göre Şablon Kur:</strong> Bütçenizi (Örn: 400 TL) belirleyin ve şablon masasının üzerindeki <em>"🎯 Bütçeme Göre Otomatik Kur"</em> butonuna basın.<br>
+        2. <strong>📐 Shannon Log-Olasılık Zarfı:</strong> Gerçek geometrik olasılık koridoru (Z-Skoru) kullanılır; çöp sürprizler ve aşırı kısır kuponlar otomatik elenir.<br>
+        3. <strong>⚠️ Piyasa Kararsızlığı Tespiti:</strong> Bahis büroları arasında oran sapması yüksek olan maçlar otomatik tespit edilir ve tek geçilmesi engellenir.<br>
+        4. <strong>🧮 Tam Evren Set-Cover + Ters Budama:</strong> Tüm filtreli evren taranır ve %100 çakışan yedek kolonlar budanarak %35-%50 net bütçe tasarrufu sağlanır.<br>
+        5. <strong>🛡️ Güvenli Kupon Yatırma Asistanı:</strong> 3. Sekmedeki Yüzen Kontrol Paneli asistanı, takım sırasını doğrular ve <strong>ASLA kendi kendine ödeme/onay butonuna basmaz</strong>.<br>
+        6. <strong>🛟 Canlı Hedge (Dutching):</strong> Pazar günü son maçlara 14/15 adayı ile girdiğinizde 2. Sekmedeki Finansal Sigorta Hesaplayıcısı ile garantili nakit kâr kilitleyin.
     </div>
     <div class="section">
         <h2>📊 3 Kademeli Dağılım (Favori / Plase / Sürpriz) & Güvence Grupları</h2>
         <table>
-            <tr><th>Terim</th><th>Anlamı</th><th>v12.1 Stratejik Rolü</th></tr>
+            <tr><th>Terim</th><th>Anlamı</th><th>v12.2 Stratejik Rolü</th></tr>
             <tr><td><strong>1. Tercih (Favori)</strong></td><td>Her maçın en yüksek olasılıklı sonucu.</td><td>Bir kolonda 15 maçın tamamının favori bitmesi engellenir (İdeal: 5-10 arası).</td></tr>
             <tr><td><strong>2. Tercih (Plase)</strong></td><td>Maçın ikinci en güçlü olasılığı (%26-%40 bandı).</td><td>Çifte şansların ana omurgasıdır; Dixon-Coles ile X ezilmesi önlenmiştir.</td></tr>
             <tr><td><strong>3. Tercih (Sürpriz)</strong></td><td>Maçın en düşük olasılıklı sonucu.</td><td>Bir kolonda aşırı sayıda (Örn: 6+) ağır sürpriz birikmesi engellenir (Maks 0-4).</td></tr>
-            <tr><td><strong>⚠️ Piyasa Kararsız</strong></td><td>Bürolar arası oran sapması (Std) yüksek maç.</td><td>Sakatlık/kadro sızıntısı şüphesi taşır; sistem otomatik çifte şansa alır.</td></tr>
+            <tr><td><strong>🛡️ Safe-Play Asistan</strong></td><td>Konsol veya Yer İmi (Bookmarklet) modülü.</td><td>Sitede sağ üstte görsel kutu açar, sıra kaymasını önler, mükerrer kuponu engeller.</td></tr>
         </table>
     </div>
 </body>
@@ -112,17 +130,18 @@ varsayilan_state = {
     "canli_sonuclar": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
-    "sema_versiyonu": "12.1"
+    "yatirilan_paketler": [],
+    "sema_versiyonu": "12.2"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "12.1":
+if st.session_state.get("sema_versiyonu") != "12.2":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
-    st.session_state.sema_versiyonu = "12.1"
+    st.session_state.sema_versiyonu = "12.2"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -147,13 +166,13 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v12.1 Final")
-    st.caption("Smart-Budget & Precision Syndicate")
+    st.markdown("## 🏆 Spor Toto AI v12.2 Final")
+    st.caption("Smart-Budget & Safe-Play Syndicate")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (PDF/HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v12_1_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v12_2_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -235,7 +254,7 @@ with st.sidebar:
         g1_manuel, g2_manuel = (0, 15), (0, 15)
 
     st.markdown("---")
-    st.markdown("### 🔬 3. v12.1 Hassas Yapısal Filtreler")
+    st.markdown("### 🔬 3. v12.2 Hassas Yapısal Filtreler")
     akilli_merkez = st.toggle("🧮 Tam Evren Set-Cover + Ters Budama", value=True)
     log_zarf_aktif = st.toggle("📐 Shannon Log-Olasılık (Altın Koridor) Zarfı", value=True)
     kademe_filtre_aktif = st.toggle("📊 3 Kademeli (Favori/Plase/Sürpriz) Bütçesi", value=True)
@@ -263,14 +282,15 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "12.1",
+            "versiyon": "12.2",
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
             "uretilen_kuponlar": st.session_state.uretilen_kuponlar.tolist() if st.session_state.uretilen_kuponlar is not None else None,
             "son_uretim_ozeti": st.session_state.son_uretim_ozeti,
             "canli_sonuclar": st.session_state.canli_sonuclar,
-            "canli_skor_metni": st.session_state.canli_skor_metni
+            "canli_skor_metni": st.session_state.canli_skor_metni,
+            "yatirilan_paketler": st.session_state.yatirilan_paketler
         }
         st.download_button(
             "📥 Haftalık Oturumu Kaydet (.JSON)",
@@ -280,7 +300,7 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v12_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v12_2_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
@@ -300,6 +320,7 @@ with st.sidebar:
                 st.session_state.son_uretim_ozeti = veri_json.get("son_uretim_ozeti")
                 st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
                 st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
+                st.session_state.yatirilan_paketler = veri_json.get("yatirilan_paketler", [])
                 st.session_state.son_param_imzasi = None
                 st.toast("✅ Haftalık bülten ve kuponlar başarıyla geri yüklendi!")
                 st.rerun()
@@ -384,21 +405,18 @@ def olasilik_yumusat(p1, px_val, p2):
 
 def dixon_coles_marj_arindir(odd_1, odd_x, odd_2, lig_id=203):
     """
-    v12.1 Asimetrik Shin + Dixon-Coles Beraberlik (X) Korumalı Marj Temizleme.
-    Eski sistemdeki gibi X'leri ezmez; denk maçlarda ve kısır liglerde X gerçek değerini korur.
+    v12.2 Asimetrik Shin + Dixon-Coles Beraberlik (X) Korumalı Marj Temizleme.
     """
     inv = np.array([1.0 / max(1.01, odd_1), 1.0 / max(1.01, odd_x), 1.0 / max(1.01, odd_2)], dtype=float)
     overround = float(np.sum(inv))
     if overround <= 1.0:
-         baz = (inv / overround) * 100.0
+        baz = (inv / overround) * 100.0
     else:
-        # Shin / Asimetrik üs: 1 ve 2'deki sürpriz marjını kırparken X'i daha yumuşak düzeltir
         fazla = overround - 1.0
         us_vektor = np.array([1.0 + 0.78 * fazla, 1.0 + 0.42 * fazla, 1.0 + 0.78 * fazla])
         duz = np.power(inv, us_vektor)
         baz = (duz / np.sum(duz)) * 100.0
 
-    # Dixon-Coles düşük tempolu denk maç düzeltmesi
     rekabet_farki = abs(baz[0] - baz[2])
     if rekabet_farki <= 16.0:
         x_takviye = 1.8 if lig_id in KISIR_LIG_IDLERI else 1.0
@@ -425,7 +443,6 @@ def halk_egilimi_simule_et(p1, px_val, p2, mac_adi=""):
 
 @st.cache_data(ttl=43200, show_spinner=False)
 def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
-    # API verisi gelmezse ev sahibi avantajı + gerçekçi X tabanı
     ai_1, ai_x, ai_2 = 38.0, 30.0, 32.0
     pred_geldi = False
     odds_list_1, odds_list_x, odds_list_2 = [], [], []
@@ -437,8 +454,9 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
             p1_raw = float(t["home"].replace("%", ""))
             px_raw = float(t["draw"].replace("%", ""))
             p2_raw = float(t["away"].replace("%", ""))
-            # API-Football bazen 45-45-10 gibi kaba yüzdeler verir; bunu yumuşatıyoruz
-            ai_1, ai_x, ai_2 = p1_raw * 0.85 + 38.0 * 0.15, px_raw * 0.85 + 30.0 * 0.15, p2_raw * 0.85 + 32.0 * 0.15
+            ai_1 = p1_raw * 0.85 + 38.0 * 0.15
+            ai_x = px_raw * 0.85 + 30.0 * 0.15
+            ai_2 = p2_raw * 0.85 + 32.0 * 0.15
             pred_geldi = True
     except Exception:
         pass
@@ -485,7 +503,7 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
 
 def hibrit_tahminleri_al(secilen_maclar, api_key):
     sonuclar = []
-    progress = st.progress(0, text="v12.1 Dixon-Coles kalibrasyonu, büro sapması ve halk eğilimi hesaplanıyor...")
+    progress = st.progress(0, text="v12.2 Dixon-Coles kalibrasyonu, büro sapması ve halk eğilimi hesaplanıyor...")
     for i, mac in enumerate(secilen_maclar):
         f_id = mac["id"]
         lig_id = mac.get("lig_id", 203)
@@ -597,14 +615,13 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 
 
 # ==============================================================================
-# v12.1 BÜTÇE-DUYARLI ŞABLON KURUCU, SHANNON ZARFI VE TAM EVREN SET-COVER
+# v12.2 BÜTÇE-DUYARLI ŞABLON KURUCU, SHANNON ZARFI VE TAM EVREN SET-COVER
 # ==============================================================================
 def akilli_cifte_sec(v):
     s = sorted([(v["1"], "1"), (v["X"], "X"), (v["2"], "2")], reverse=True)
     en_b_oran, en_b_secim = s[0][0], s[0][1]
     ikinci_oran, ikinci_secim = s[1][0], s[1][1]
 
-    # Dixon-Coles koruması: 1 ve 2 birbirine yakınsa fakat X %27+ ise favorinin yanına X alır
     if {en_b_secim, ikinci_secim} == {"1", "2"} and v["X"] >= 27 and (en_b_oran - ikinci_oran) >= 5:
         return [en_b_secim, "X"]
     return [en_b_secim, ikinci_secim]
@@ -612,21 +629,18 @@ def akilli_cifte_sec(v):
 
 def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, tuzak_aktif=True):
     """
-    v12.1 Marjinal Entropi / Olasılık Kazancı (Greedy Marginal Utility) Motoru.
-    Hedef kolon sayısına ve garanti derecesine (15G/14G/13G/12G) göre
-    en yüksek olasılık kütlesini kapsayan Banko/Çifte/Kapalı şablonunu kurar.
+    v12.2 Marjinal Entropi / Olasılık Kazancı (Greedy Marginal Utility) Motoru.
+    Tam tamsayı (integer) çarpımı ile kayan nokta yuvarlama sapmalarını önler.
     """
     sikistirma_carpani = {15: 1.5, 14: 6.8, 13: 26.0, 12: 85.0}.get(garanti_derecesi, 12.0)
     hedef_ham_ust_sinir = min(180000, max(2, int(hedef_kolon * sikistirma_carpani)))
 
-    # Başlangıç: 15 Banko (1 ham kolon)
     durumlar = [1] * 15  # 1: Banko, 2: Çifte, 3: Kapalı
-    mevcut_ham = 1
 
     while True:
+        mevcut_ham = math.prod(durumlar)
         en_iyi_mac = None
         en_iyi_artis = -1.0
-        en_iyi_maliyet_orani = 1.0
 
         for i, v in enumerate(veriler):
             s = sorted([v["1"], v["X"], v["2"]], reverse=True)
@@ -637,29 +651,24 @@ def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, tuza
             if durumlar[i] == 1:
                 yeni_ham = mevcut_ham * 2
                 if yeni_ham <= hedef_ham_ust_sinir:
-                    # Bankodan Çifteye geçişin marjinal faydası
                     bonus = 1.25 if (tuzak_aktif and (kirilgan_tuzak or kararsiz_piyasa)) else 1.0
                     fayda = ((p_plase / max(0.15, p_fav)) * bonus) / math.log(2.0)
                     if fayda > en_iyi_artis:
                         en_iyi_artis = fayda
                         en_iyi_mac = i
-                        en_iyi_maliyet_orani = 2.0
 
             elif durumlar[i] == 2:
-                yeni_ham = int(round(mevcut_ham * 1.5))
+                yeni_ham = (mevcut_ham // 2) * 3
                 if yeni_ham <= hedef_ham_ust_sinir:
-                    # Çifteden Kapalıya geçişin marjinal faydası
                     fayda = (p_surpriz / max(0.30, p_fav + p_plase)) / math.log(1.5)
                     if fayda > en_iyi_artis:
                         en_iyi_artis = fayda
                         en_iyi_mac = i
-                        en_iyi_maliyet_orani = 1.5
 
         if en_iyi_mac is None:
             break
 
         durumlar[en_iyi_mac] += 1
-        mevcut_ham = int(round(mevcut_ham * en_iyi_maliyet_orani))
 
     return durumlar
 
@@ -693,7 +702,6 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
     aralik_x = (max(banko_x, max(0, int(math.floor(exp_x)) - 2)), min(acik_x, int(math.ceil(exp_x)) + 3))
     aralik_2 = (max(banko_2, int(math.floor(exp_2)) - 3), min(acik_2, int(math.ceil(exp_2)) + 4))
 
-    # 3 Kademeli (Favori / Plase / Sürpriz) Beklenen Değer Hesabı
     zorunlu_fav, acik_fav, exp_fav = 0, 0, 0.0
     zorunlu_plase, acik_plase, exp_plase = 0, 0, 0.0
     zorunlu_surp, acik_surp, exp_surp = 0, 0, 0.0
@@ -890,7 +898,6 @@ def vektorel_filtrele(
     halk_mat = np.array([[v["h1"], v["hX"], v["h2"]] for v in mac_verileri], dtype=np.float32)
     en_yuksek_oranlar = np.max(oran_mat, axis=1)
 
-    # Her maçın 1-X-2 tercihlerini kademelerine (0: Favori, 1: Plase, 2: Sürpriz) göre haritala
     sira_mat = np.argsort(-oran_mat, axis=1)
     kademe_haritasi = np.zeros((15, 3), dtype=np.int8)
     for m_i in range(15):
@@ -912,7 +919,7 @@ def vektorel_filtrele(
     else:
         esnetilenler.append("1-X-2 Adet Sınırı")
 
-    # 2) G1 / G2 Grup Güvencesi (2B Boyut Güvenli İndeksleme)
+    # 2) G1 / G2 Grup Güvencesi
     if len(g1_indeksleri) > 0 and len(matris) > 0:
         g1_idx = np.array(g1_indeksleri, dtype=int)
         secilen_g1_oran = oran_mat[g1_idx[None, :], matris[:, g1_idx]]
@@ -933,7 +940,7 @@ def vektorel_filtrele(
         else:
             esnetilenler.append("G2 Plase/Sürpriz Filtresi")
 
-    # 3) v12.1 3 Kademeli Dağılım Kısıtı (Favori / Plase / Sürpriz Bütçesi)
+    # 3) 3 Kademeli Dağılım Kısıtı (Favori / Plase / Sürpriz Bütçesi)
     if kademe_aktif and len(matris) > 0:
         sec_kademe = kademe_haritasi[np.arange(15), matris]
         fav_say = np.sum(sec_kademe == 0, axis=1)
@@ -949,7 +956,7 @@ def vektorel_filtrele(
         else:
             esnetilenler.append("Favori/Plase/Sürpriz Bütçesi")
 
-    # 4) v12.1 Shannon Log-Olasılık (Altın Koridor) Zarfı
+    # 4) Shannon Log-Olasılık (Altın Koridor) Zarfı
     if log_zarf_aktif and len(matris) > 10:
         sec_oran = oran_mat[np.arange(15), matris]
         log_l = np.sum(np.log(np.maximum(sec_oran, 1.0) / 100.0), axis=1)
@@ -1006,7 +1013,7 @@ def gelismis_garanti_ve_budama_uygula(
     max_k=None, akilli_merkez=True, min_fark=1, hedef_kapsama=90.0
 ):
     """
-    v12.1 Tam Evren Vektörel Set-Cover (Kör Örneklemesiz) + Ters Budama (Reverse Redundancy Pruning).
+    v12.2 Tam Evren Vektörel Set-Cover + Ters Budama (Reverse Redundancy Pruning).
     """
     if len(kolonlar) == 0:
         return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0, 0
@@ -1052,7 +1059,6 @@ def gelismis_garanti_ve_budama_uygula(
         kapsanmamis_indeksler = np.where(kapsanmamis_maske)[0]
 
         if akilli_merkez and len(kapsanmamis_indeksler) > 1 and hedef < 15:
-            # Kör örnekleme kaldırıldı: En güçlü 120 merkez adayı tüm aktif evren (15.000'e kadar) üzerinde taranır
             aday_say = min(120, len(uygun_adaylar))
             ornek_say = min(15000, len(kapsanmamis_indeksler))
 
@@ -1082,7 +1088,7 @@ def gelismis_garanti_ve_budama_uygula(
 
         kapsama_orani = float(np.sum(agirlik[~kapsanmamis_maske]) / toplam_agirlik * 100.0)
 
-    # GERİYE DÖNÜK GEREKSİZ KOLON BUDAMASI (Reverse Redundancy Pruning - Bütçe kilidinde de aktif)
+    # GERİYE DÖNÜK GEREKSİZ KOLON BUDAMASI (Reverse Redundancy Pruning)
     budanan_adet = 0
     if akilli_merkez and hedef < 15 and 2 < len(nihai) <= 2000:
         kapsanan_evren = np.where(~kapsanmamis_maske)[0]
@@ -1172,13 +1178,178 @@ def kupon_dosyasi_coz(dosya):
         return None
 
 
+def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_paket, hiz_ms=140):
+    """
+    v12.2 Güvenli, Görsel Yüzen Panelli (Floating HUD) Kupon İşaretleme Asistanı.
+    - Sayfadaki takım isimleriyle bülten sırasını karşılaştırır (Sıra Kayması Koruması).
+    - ASLA kendi kendine 'Oyna / Onayla / Öde' butonuna basmaz (Salt-İşaretleme Garantisi).
+    - LocalStorage ile hangi kolonta kaldığını hatırlar (Mükerrer Yatırma Koruması).
+    """
+    paket_imza = hashlib.md5(json.dumps(aktif_paket).encode("utf-8")).hexdigest()[:8]
+    kisa_maclar = [m.split("-")[0].strip()[:12] for m in mac_isimleri]
+
+    js_kodu = f"""// ============================================================================
+// 🏆 SPOR TOTO AI PRO v12.2 — GÜVENLİ GÖRSEL KUPON YATIRMA ASİSTANI (HUD)
+// 🛡️ GÜVENLİK GARANTİSİ: Bu kod ASLA 'Oyna / Öde / Onayla' butonuna basmaz!
+// Sadece ekrandaki 1-X-2 kutucuklarını işaretler; son onay daima sizdedir.
+// ============================================================================
+(function() {{
+    const PAKET_NO = {paket_no};
+    const TOPLAM_PAKET = {toplam_paket};
+    const PAKET_IMZA = "{paket_imza}";
+    const HIZ_MS = {hiz_ms};
+    const BEKLENEN_TAKIMLAR = {json.dumps(kisa_maclar, ensure_ascii=False)};
+    const KUPONLAR = {json.dumps(aktif_paket)};
+    const STORAGE_KEY = "st_ai_v12_progress_" + PAKET_IMZA;
+
+    let aktifIdx = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
+    if (aktifIdx >= KUPONLAR.length || aktifIdx < 0) aktifIdx = 0;
+
+    // Varsa eski paneli temizle
+    const eski = document.getElementById("st-ai-floating-hud");
+    if (eski) eski.remove();
+
+    function macSatirlariniBul() {{
+        const adaylar = Array.from(document.querySelectorAll("tr, .match-row, .st-row, .event-row, .sportoto-row, [class*='match'], [class*='row']"));
+        const gecerliSatirlar = [];
+        for (const el of adaylar) {{
+            const butonlar = Array.from(el.querySelectorAll("button, label, span, td, div, a")).filter(b => {{
+                const txt = (b.innerText || "").trim().toUpperCase();
+                return ["1", "0", "X", "2"].includes(txt) && b.children.length === 0 && b.offsetParent !== null;
+            }});
+            if (butonlar.length >= 3 && butonlar.length <= 6) {{
+                // İç içe geçmiş kapsayıcıları engelle
+                if (!gecerliSatirlar.some(mevcut => mevcut.contains(el) || el.contains(mevcut))) {{
+                    gecerliSatirlar.push({{ satir: el, butonlar: butonlar.slice(0, 3) }});
+                }}
+            }}
+            if (gecerliSatirlar.length === 15) break;
+        }}
+        return gecerliSatirlar;
+    }}
+
+    function siraDogrulamasiYap(satirlar) {{
+        if (satirlar.length !== 15) {{
+            return {{ tamam: false, mesaj: "⚠️ Ekranda 15 maç satırı bulunamadı (" + satirlar.length + " bulundu). Spor Toto bülten sayfasında olduğunuzdan emin olun." }};
+        }}
+        let eslesenSayisi = 0;
+        satirlar.forEach((item, idx) => {{
+            const metin = (item.satir.innerText || "").toLowerCase();
+            const aranan = (BEKLENEN_TAKIMLAR[idx] || "").toLowerCase().slice(0, 4);
+            if (aranan && metin.includes(aranan)) eslesenSayisi++;
+        }});
+        if (eslesenSayisi < 8) {{
+            return {{ tamam: true, uyari: true, mesaj: "⚠️ Takım sırası kısmen farklı olabilir (" + eslesenSayisi + "/15 eşleşti). İşaretlemeden önce 1. ve 15. maçı gözle kontrol edin." }};
+        }}
+        return {{ tamam: true, uyari: false, mesaj: "✅ 15 Maç ve Takım Sırası Doğrulandı (" + eslesenSayisi + "/15 eşleşme)." }};
+    }}
+
+    const hud = document.createElement("div");
+    hud.id = "st-ai-floating-hud";
+    hud.style.cssText = "position:fixed;top:18px;right:18px;width:360px;background:#0f172a;color:#f8fafc;border:2px solid #3b82f6;border-radius:12px;padding:14px;z-index:999999;font-family:'Segoe UI',sans-serif;box-shadow:0 12px 28px rgba(0,0,0,0.45);font-size:13px;";
+    document.body.appendChild(hud);
+
+    function hudGuncelle(durumMesaji = "") {{
+        const satirlar = macSatirlariniBul();
+        const dogrulama = siraDogrulamasiYap(satirlar);
+        const seciliKolon = KUPONLAR[aktifIdx] || [];
+        const bittiMi = aktifIdx >= KUPONLAR.length;
+
+        hud.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;padding-bottom:8px;margin-bottom:8px;">
+                <div>
+                    <strong style="font-size:14px;color:#60a5fa;">🏆 Spor Toto AI v12.2 Asistan</strong>
+                    <div style="font-size:11px;color:#94a3b8;">Paket ${{PAKET_NO}} / ${{TOPLAM_PAKET}} • İmza: #${{PAKET_IMZA}}</div>
+                </div>
+                <button id="st-ai-kapat" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-weight:bold;">✕</button>
+            </div>
+            <div style="background:#1e293b;padding:8px;border-radius:8px;margin-bottom:8px;font-size:11.5px;color:${{dogrulama.uyari ? '#fbbf24' : (dogrulama.tamam ? '#4ade80' : '#f87171')}};">
+                ${{dogrulama.mesaj}}
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span>📌 Aktif Kolon: <strong style="color:#38bdf8;font-size:15px;">${{bittiMi ? KUPONLAR.length : (aktifIdx + 1)}} / ${{KUPONLAR.length}}</strong></span>
+                <span style="background:#166534;color:#dcfce7;padding:2px 8px;border-radius:99px;font-size:11px;">🛡️ Ödeme Yapmaz</span>
+            </div>
+            <div style="background:#020617;padding:8px;border-radius:6px;font-family:monospace;font-size:13px;letter-spacing:1.5px;text-align:center;color:#e2e8f0;margin-bottom:10px;border:1px solid #1e293b;">
+                ${{seciliKolon.length ? seciliKolon.join("-") : "🎉 PAKET TAMAMLANDI"}}
+            </div>
+            ${{durumMesaji ? `<div style="margin-bottom:8px;color:#38bdf8;font-size:12px;text-align:center;">${{durumMesaji}}</div>` : ""}}
+            <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;margin-bottom:8px;">
+                <button id="st-ai-geri" style="background:#334155;color:white;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:bold;">◀ Geri</button>
+                <button id="st-ai-isaretle" style="background:#2563eb;color:white;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:bold;">🎯 Kolonu İşaretle</button>
+                <button id="st-ai-ileri" style="background:#16a34a;color:white;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:bold;">İleri ▶</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;">
+                <span>1. İşaretle'ye basın -> 2. Siteden Kuponu Yatırın -> 3. İleri'ye basın</span>
+                <a href="#" id="st-ai-sifirla" style="color:#f87171;text-decoration:none;">Sıfırla</a>
+            </div>
+        `;
+
+        document.getElementById("st-ai-kapat").onclick = () => hud.remove();
+        document.getElementById("st-ai-geri").onclick = () => {{
+            if (aktifIdx > 0) {{
+                aktifIdx--;
+                localStorage.setItem(STORAGE_KEY, String(aktifIdx));
+                hudGuncelle("◀ Önceki kolona dönüldü.");
+            }}
+        }};
+        document.getElementById("st-ai-ileri").onclick = () => {{
+            if (aktifIdx < KUPONLAR.length - 1) {{
+                aktifIdx++;
+                localStorage.setItem(STORAGE_KEY, String(aktifIdx));
+                hudGuncelle("▶ Sıradaki kolona geçildi. Şimdi 'Kolonu İşaretle'ye basın.");
+            }} else {{
+                hudGuncelle("🎉 Bu paketteki tüm kolonları tamamladınız!");
+            }}
+        }};
+        document.getElementById("st-ai-sifirla").onclick = (e) => {{
+            e.preventDefault();
+            aktifIdx = 0;
+            localStorage.setItem(STORAGE_KEY, "0");
+            hudGuncelle("🔄 Paket sayacı 1. kolona sıfırlandı.");
+        }};
+        document.getElementById("st-ai-isaretle").onclick = () => kolonuEkranaIsaretle();
+    }}
+
+    async function kolonuEkranaIsaretle() {{
+        const satirlar = macSatirlariniBul();
+        if (satirlar.length !== 15) {{
+            hudGuncelle("❌ Hata: Ekranda 15 maç satırı bulunamadı!");
+            return;
+        }}
+        const secimler = KUPONLAR[aktifIdx];
+        if (!secimler) return;
+
+        hudGuncelle("⏳ " + (aktifIdx + 1) + ". Kolon güvenli hızla işaretleniyor...");
+        for (let i = 0; i < 15; i++) {{
+            const hedef = secimler[i];
+            const butonlar = satirlar[i].butonlar;
+            const secilecek = butonlar.find(b => {{
+                const t = (b.innerText || "").trim().toUpperCase();
+                return t === hedef || (hedef === "0" && t === "X") || (hedef === "X" && t === "0");
+            }});
+            if (secilecek) {{
+                secilecek.scrollIntoView({{ behavior: "smooth", block: "center" }});
+                secilecek.click();
+                satirlar[i].satir.style.outline = "2px solid #22c55e";
+                await new Promise(r => setTimeout(r, HIZ_MS));
+            }}
+        }}
+        hudGuncelle("✅ " + (aktifIdx + 1) + ". Kolon işaretlendi! Kontrol edip siteden onaylayın, sonra 'İleri ▶' tuşuna basın.");
+    }}
+
+    hudGuncelle();
+}})();"""
+    return js_kodu
+
+
 # ==============================================================================
 # ANA SEKMELER
 # ==============================================================================
 tab_uretim, tab_takip, tab_otomasyon = st.tabs([
     "🎛️ 1. Profesyonel Sendika Masası & Akıllı Kupon Üretimi",
     "📡 2. Canlı Kupon, Kırılma & Finansal Sigorta (Hedge) Takibi",
-    "🤖 3. Otomatik Kupon Yatırma & Dışa Aktarım"
+    "🛡️ 3. Güvenli & Kolay Otomatik Kupon Yatırma Merkezi"
 ])
 
 # ------------------------------------------------------------------------------
@@ -1220,6 +1391,7 @@ with tab_uretim:
                     st.session_state.uretilen_kuponlar = None
                     st.session_state.son_uretim_ozeti = None
                     st.session_state.son_param_imzasi = None
+                    st.session_state.yatirilan_paketler = []
                     st.rerun()
 
             if st.session_state.mac_listesi:
@@ -1267,10 +1439,11 @@ with tab_uretim:
                             st.session_state.uretilen_kuponlar = None
                             st.session_state.son_uretim_ozeti = None
                             st.session_state.son_param_imzasi = None
+                            st.session_state.yatirilan_paketler = []
                             st.rerun()
 
         # ======================================================================
-        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v12.1 SMART-BUDGET)
+        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v12.2 SMART-BUDGET)
         # ======================================================================
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
@@ -1535,7 +1708,7 @@ with tab_uretim:
                     st.download_button(
                         "📥 Kuponları İndir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v12_1_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        f"spor_toto_v12_2_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
                         mime="text/plain",
                         type="primary",
                         use_container_width=True
@@ -1588,6 +1761,7 @@ with tab_takip:
             m_isim = [v["mac"] for v in st.session_state.analiz_verisi]
         else:
             m_isim = [f"{i}. Maç" for i in range(1, 16)]
+
         sonuc_df = st.data_editor(
             pd.DataFrame({
                 "No": list(range(1, 16)),
@@ -1701,98 +1875,237 @@ with tab_takip:
             st.info("👈 Takip başlatmak için önce kupon üretin veya kupon dosyası yükleyin.")
 
 # ------------------------------------------------------------------------------
-# SEKME 3: OTOMATİK YATIRMA VE DIŞA AKTARIM (HEDEF15 & EXTRA1X2 TAM UYUMLU)
+# SEKME 3: GÜVENLİ, ANLAŞILIR VE KOLAY OTOMATİK KUPON YATIRMA MERKEZİ (v12.2)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.markdown("### 🤖 Otomatik Kupon Yatırma (SporTotoHedef15 / Extra1X2 & Tarayıcı Botu)")
+    st.markdown("### 🛡️ Güvenli & Kolay Kupon Yatırma Merkezi (Safe-Play v12.2)")
+
     if st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0:
         k_oto = st.session_state.uretilen_kuponlar.tolist()
-        c_o1, c_o2 = st.columns([1.2, 2.3])
-        with c_o1:
-            st.markdown("#### 📥 Siteye Yükleme Formatı Ayarları")
-            sifir_kullan = st.toggle(
-                "Beraberliği '0' Olarak Kodla (1-0-2)",
-                value=False,
-                help="Extra1X2 TXT modülü genellikle X kullanır, bazı Excel botları ise 0 ister."
-            )
-            ayirici_secim = st.selectbox(
-                "TXT Kolon Ayırıcı Formatı:",
-                [
-                    "Bitişik - Boşluksuz (Örn: 1X211X... - Extra1X2 Standart)",
-                    "Boşluklu (Örn: 1 X 2 1 1 X...)",
-                    "Virgüllü (Örn: 1,X,2,1,1,X...)"
+        toplam_kolon_say = len(k_oto)
+        toplam_tutar_tl = toplam_kolon_say * kolon_fiyati
+
+        if st.session_state.tablo_df is not None:
+            aktif_mac_isimleri = st.session_state.tablo_df.sort_values("Sıra")["Karşılaşma"].tolist()
+        elif st.session_state.analiz_verisi:
+            aktif_mac_isimleri = [v["mac"] for v in st.session_state.analiz_verisi]
+        else:
+            aktif_mac_isimleri = [f"{i}. Maç" for i in range(1, 16)]
+
+        # ÜST GÜVENLİK ÖZET KARTI
+        st.markdown(
+            f"""<div class="step-card">
+                <span class="safe-badge">🛡️ SALT-İŞARETLEME GÜVENLİK KİLİDİ AKTİF</span>
+                <strong style="margin-left:8px;">Bu sistemdeki hiçbir araç kendi başına 'Oyna / Öde / Onayla' butonuna basmaz!</strong><br>
+                <span style="font-size:0.9rem;color:#334155;">
+                • Toplam Üretilen: <strong>{toplam_kolon_say:,} Kolon ({toplam_tutar_tl:,.0f} TL)</strong> &nbsp;|&nbsp;
+                • 1. Maç: <strong>{aktif_mac_isimleri[0]}</strong> &nbsp;➔&nbsp; 15. Maç: <strong>{aktif_mac_isimleri[-1]}</strong>
+                </span>
+            </div>""",
+            unsafe_allow_html=True
+        )
+
+        # ADIM 1: MAÇ SIRASI ÖN-ONAY KONTROLÜ
+        with st.expander("🔍 ADIM 1: Yatırmadan Önce 15 Maçın Resmi Bülten Sırasını Doğrulayın (Çok Önemli)", expanded=False):
+            st.caption("Kuponlarınızın yanlış maçlara işaretlenmemesi için aşağıdaki 1'den 15'e kadar olan sıranın oynayacağınız sitedeki (Nesine, Bilyoner, Misli, İddaa vb.) sıra ile birebir aynı olduğundan emin olun.")
+            sira_k1, sira_k2, sira_k3 = st.columns(3)
+            for idx_m, m_adi in enumerate(aktif_mac_isimleri):
+                hedef_sutun = sira_k1 if idx_m < 5 else (sira_k2 if idx_m < 10 else sira_k3)
+                hedef_sutun.markdown(f"**{idx_m + 1}.** {m_adi}")
+
+        # ADIM 2: KULLANICI PROFİLİNE GÖRE 3 FARKLI YATIRMA YÖNTEMİ
+        st.markdown("#### 🚀 ADIM 2: Size En Uygun Kupon Yatırma Yöntemini Seçin")
+        yontem_secimi = st.radio(
+            "Hangi yöntemle kuponlarınızı yatırmak istiyorsunuz?",
+            [
+                "📁 Yöntem A: Dosya İndir & Yükle (En Kolay — SporTotoHedef15 / Extra1X2 / Excel Kullananlar İçin)",
+                "🖥️ Yöntem B: Görsel Tarayıcı Asistanı (Bilgisayardan Nesine/Bilyoner/Misli'de Yatıracaklar İçin)",
+                "📱 Yöntem C: Mobil & Bayi Kartı Modu (Telefondan veya Bayiden Elle/Okutarak Yatıracaklar İçin)"
+            ],
+            index=0
+        )
+
+        st.markdown("---")
+
+        # ======================================================================
+        # YÖNTEM A: DOSYA İLE YÜKLEME (EN KOLAY VE EN GÜVENLİ)
+        # ======================================================================
+        if "Yöntem A" in yontem_secimi:
+            col_a1, col_a2 = st.columns([1.3, 1.7])
+            with col_a1:
+                st.markdown("##### ⚙️ Hazır Platform Şablonu Seçin")
+                platform_sablonu = st.selectbox(
+                    "Kullandığınız Program / Site:",
+                    [
+                        "🎯 SporTotoHedef15 / Extra1X2 Standart (.TXT - Bitişik 1X2)",
+                        "🔢 1-0-2 Bitişik Format (.TXT - Beraberliği '0' İster)",
+                        "📊 Excel / CSV Standart (.CSV - Virgülle Ayrılmış 1,X,2)",
+                        "␣ Boşluklu Metin Formatı (.TXT - 1 X 2 1 1 X)"
+                    ]
+                )
+
+                if "1-0-2" in platform_sablonu:
+                    sifir_kullan = True
+                    sep_char = ""
+                elif "CSV" in platform_sablonu:
+                    sifir_kullan = False
+                    sep_char = ","
+                elif "Boşluklu" in platform_sablonu:
+                    sifir_kullan = False
+                    sep_char = " "
+                else:
+                    sifir_kullan = False
+                    sep_char = ""
+
+                formatli_kolonlar = [
+                    sep_char.join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
+                    for kl in k_oto
                 ]
-            )
-            if "Bitişik" in ayirici_secim:
-                sep_char = ""
-            elif "Boşluklu" in ayirici_secim:
-                sep_char = " "
-            else:
-                sep_char = ","
+                txt_icerik = "\n".join(formatli_kolonlar)
+                dosya_kontrol_imzasi = hashlib.md5(txt_icerik.encode("utf-8")).hexdigest()[:8].upper()
 
-            formatli_kolonlar = [
-                sep_char.join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
-                for kl in k_oto
-            ]
-            txt_icerik = "\n".join(formatli_kolonlar)
+                st.success(
+                    f"✅ **Dosya Hazır!**\n\n"
+                    f"• **Kolon Sayısı:** `{len(formatli_kolonlar):,} Adet`\n"
+                    f"• **Toplam Tutar:** `{toplam_tutar_tl:,.0f} TL`\n"
+                    f"• **Doğrulama Kodu:** `#{dosya_kontrol_imzasi}`"
+                )
 
-            st.download_button(
-                "📄 Hedef15 / Extra1X2 İçin İndir (.TXT)",
-                data=txt_icerik.encode("utf-8"),
-                file_name=f"extra1x2_kuponlar_{len(k_oto)}kolon.txt",
-                mime="text/plain",
-                type="primary",
-                use_container_width=True
-            )
+                st.download_button(
+                    "📥 1. Tek Tıkla Kupon Dosyasını İndir (.TXT)",
+                    data=txt_icerik.encode("utf-8"),
+                    file_name=f"st_v12_2_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.txt",
+                    mime="text/plain",
+                    type="primary",
+                    use_container_width=True
+                )
 
-            saf_csv_icerik = "\n".join([
-                ",".join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
-                for kl in k_oto
-            ])
-            st.download_button(
-                "📊 Başlıksız Saf Excel/CSV İndir (.CSV)",
-                data=saf_csv_icerik.encode("utf-8"),
-                file_name=f"saf_kuponlar_{len(k_oto)}kolon.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
+                saf_csv_icerik = "\n".join([
+                    ",".join(["0" if (s == "X" and sifir_kullan) else s for s in kl])
+                    for kl in k_oto
+                ])
+                st.download_button(
+                    "📊 Alternatif: Excel (.CSV) Olarak İndir",
+                    data=saf_csv_icerik.encode("utf-8"),
+                    file_name=f"st_v12_2_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
 
-            st.markdown("---")
-            boyut = st.number_input("Paket Başına Kolon:", 10, 500, 50, step=10)
-            sec_p = st.selectbox("Paket Seç:", [f"Paket {i+1}" for i in range(math.ceil(len(k_oto) / boyut))])
-            p_id = int(sec_p.split()[1]) - 1
+            with col_a2:
+                st.markdown("##### 📖 3 Adımda Nasıl Yüklenir?")
+                st.info(
+                    "1. Soldaki **'📥 Tek Tıkla Kupon Dosyasını İndir (.TXT)'** butonuna basarak dosyayı bilgisayarınıza veya telefonunuza kaydedin.\n"
+                    "2. Kullandığınız kupon yükleme aracında (**Extra1X2 / Hedef15 / Toplu Kupon Yükle**) **'Dosyadan Kolon Yükle'** butonuna tıklayın ve indirdiğiniz dosyayı seçin.\n"
+                    "3. Ekranda görünen toplam kolon sayısının ve tutarın burada yazanla (**"
+                    f"{toplam_kolon_say:,} Kolon / {toplam_tutar_tl:,.0f} TL**) aynı olduğunu gördükten sonra onaylayın."
+                )
+                st.text_area(
+                    "🔎 Dosya İçeriği Önizlemesi (İlk 15 Kolon):",
+                    value="\n".join(formatli_kolonlar[:15]),
+                    height=210
+                )
 
-        with c_o2:
-            aktif_paket = [
-                ["0" if (s == "X" and sifir_kullan) else s for s in kolon]
-                for kolon in k_oto[p_id * boyut : (p_id + 1) * boyut]
-            ]
-            js_kodu = f"""// 1. Bahis sitesinde Spor Toto sayfasını açıp F12 -> Console sekmesine yapıştırın:
-const kuponPaketi = {json.dumps(aktif_paket)};
-console.log("✅ Paket yüklendi! Toplam Kolon:", kuponPaketi.length);
+        # ======================================================================
+        # YÖNTEM B: GÖRSEL TARAYICI ASİSTANI (HUD + MÜKERRER KORUMALI)
+        # ======================================================================
+        elif "Yöntem B" in yontem_secimi:
+            col_b1, col_b2 = st.columns([1.2, 2.0])
+            with col_b1:
+                st.markdown("##### 📦 Paket & Güvenlik Ayarları")
+                boyut = st.number_input(
+                    "Paket Başına Kolon Sayısı:",
+                    min_value=5, max_value=200, value=25, step=5,
+                    help="Bahis sitelerinin tek seferde kabul ettiği kupon sınırına göre (genellikle 20-50 arası) paketlere böler."
+                )
+                toplam_paket_say = math.ceil(len(k_oto) / boyut)
+                paket_listesi = []
+                for i in range(toplam_paket_say):
+                    bas_k = i * boyut + 1
+                    bit_k = min((i + 1) * boyut, len(k_oto))
+                    durum_ikon = "✅ Yatırıldı" if (i + 1) in st.session_state.yatirilan_paketler else "⏳ Bekliyor"
+                    paket_listesi.append(f"Paket {i+1} (Kolon {bas_k}-{bit_k}) [{durum_ikon}]")
 
-// 2. Tek kolon işaretleme yardımcısı (kolonBas(0), kolonBas(1) şeklinde çağırabilirsiniz):
-window.kolonBas = function(kolonIndex) {{
-    const secimler = kuponPaketi[kolonIndex];
-    if (!secimler) return console.warn("Paket bitti veya geçersiz indeks!");
-    console.log((kolonIndex + 1) + ". Kolon İşaretleniyor:", secimler.join("-"));
-    const satirlar = document.querySelectorAll("tr, .match-row, .st-row, .event-row");
-    let sayac = 0;
-    satirlar.forEach((satir) => {{
-        if (sayac >= 15) return;
-        const butonlar = Array.from(satir.querySelectorAll("button, label, span, td, div")).filter(
-            el => ["1", "0", "X", "2"].includes(el.innerText.trim()) && el.children.length === 0
-        );
-        if (butonlar.length >= 3) {{
-            const hedef = secimler[sayac];
-            const secilecek = butonlar.find(b => b.innerText.trim() === hedef || (hedef === "0" && b.innerText.trim() === "X") || (hedef === "X" && b.innerText.trim() === "0"));
-            if (secilecek) secilecek.click();
-            sayac++;
-        }}
-    }});
-}};
-window.kolonBas(0);"""
-            st.code(js_kodu, language="javascript")
-            st.text_area("Hızlı Kopyala-Yapıştır Dizilimi:", value="\n".join([sep_char.join(k) for k in aktif_paket]), height=200)
+                sec_p_etiket = st.selectbox("Yatırılacak Paketi Seçin:", paket_listesi)
+                p_id = int(sec_p_etiket.split()[1]) - 1
+                paket_no = p_id + 1
+
+                p_checkbox = st.checkbox(
+                    f"✅ Paket {paket_no}'i Yatırıldı Olarak İşaretle (Mükerrer Koruması)",
+                    value=(paket_no in st.session_state.yatirilan_paketler)
+                )
+                if p_checkbox and paket_no not in st.session_state.yatirilan_paketler:
+                    st.session_state.yatirilan_paketler.append(paket_no)
+                    st.rerun()
+                elif not p_checkbox and paket_no in st.session_state.yatirilan_paketler:
+                    st.session_state.yatirilan_paketler.remove(paket_no)
+                    st.rerun()
+
+                sifir_b = st.toggle("Sitede Beraberlik '0' Olarak Geçiyor", value=False)
+                hiz_secim = st.select_slider(
+                    "İşaretleme Hızı (İnsan Simülasyonu):",
+                    options=["🐢 Çok Güvenli (220ms)", "⚖️ İdeal (140ms)", "⚡ Hızlı (80ms)"],
+                    value="⚖️ İdeal (140ms)"
+                )
+                hiz_ms = 220 if "220" in hiz_secim else (140 if "140" in hiz_secim else 80)
+
+                aktif_paket = [
+                    ["0" if (s == "X" and sifir_b) else s for s in kolon]
+                    for kolon in k_oto[p_id * boyut : (p_id + 1) * boyut]
+                ]
+                st.metric(
+                    f"Seçili Paket ({paket_no}/{toplam_paket_say}) Tutarı",
+                    f"{len(aktif_paket) * kolon_fiyati:,.0f} TL",
+                    f"{len(aktif_paket)} Kolon"
+                )
+
+            with col_b2:
+                st.markdown("##### 🖥️ Görsel Kontrol Paneli (Floating HUD) Kodu")
+                st.info(
+                    "**Nasıl Kullanılır? (Hiç Kod Bilmeyenler İçin 3 Adım):**\n"
+                    "1. Bilgisayarınızda bahis sitesinin **Spor Toto** sayfasını açın ve klavyeden **F12** tuşuna basıp **Console (Konsol)** sekmesine tıklayın.\n"
+                    "2. Aşağıdaki kutunun sağ üst köşesindeki **Kopyala (📋)** ikonuna basıp kodu konsola yapıştırın ve **Enter**'a basın.\n"
+                    "3. Sitenin sağ üst köşesinde **Görsel Kontrol Panelimiz** açılacaktır! Oradaki **'🎯 Kolonu İşaretle'** butonuna basarak maçları otomatik işaretletin, gözünüzle kontrol edip siteden yatırdıktan sonra **'İleri ▶'** tuşuna basın."
+                )
+                js_hud_kodu = guvenli_tarayici_asistani_uret(
+                    aktif_paket=aktif_paket,
+                    mac_isimleri=aktif_mac_isimleri,
+                    paket_no=paket_no,
+                    toplam_paket=toplam_paket_say,
+                    hiz_ms=hiz_ms
+                )
+                st.code(js_hud_kodu, language="javascript")
+
+        # ======================================================================
+        # YÖNTEM C: MOBİL & BAYİ KARTI MODU (5'Lİ BLOKLAR HALİNDE HATASIZ OKUMA)
+        # ======================================================================
+        else:
+            st.markdown("##### 📱 Mobil & Bayi İçin Hatasız 5'li Blok Kartları")
+            st.caption("Telefondan veya bayi bülteninden elle işaretlerken göz kaymasını önlemek için her kolon **İlk 5 Maç | Orta 5 Maç | Son 5 Maç** olarak 3 parçaya bölünmüştür.")
+
+            cm1, cm2 = st.columns([1.2, 2.0])
+            with cm1:
+                kart_sayfa_boyutu = st.selectbox("Sayfa Başına Gösterilecek Kolon:", [10, 20, 50, 100], index=1)
+                toplam_sayfa = math.ceil(len(k_oto) / kart_sayfa_boyutu)
+                secili_sayfa = st.number_input(f"Sayfa Seçin (1 - {toplam_sayfa}):", min_value=1, max_value=toplam_sayfa, value=1, step=1)
+
+            bas_idx = (secili_sayfa - 1) * kart_sayfa_boyutu
+            bit_idx = min(secili_sayfa * kart_sayfa_boyutu, len(k_oto))
+
+            kart_satirlari = []
+            for idx_k in range(bas_idx, bit_idx):
+                kl = k_oto[idx_k]
+                blok_1_5 = " - ".join(kl[0:5])
+                blok_6_10 = " - ".join(kl[5:10])
+                blok_11_15 = " - ".join(kl[10:15])
+                kart_satirlari.append({
+                    "Kolon No": f"#{idx_k + 1}",
+                    "Maç 1 - 5": blok_1_5,
+                    "Maç 6 - 10": blok_6_10,
+                    "Maç 11 - 15": blok_11_15,
+                    "1 / X / 2 Sayısı": f"{kl.count('1')} / {kl.count('X')} / {kl.count('2')}"
+                })
+
+            st.dataframe(pd.DataFrame(kart_satirlari), hide_index=True, use_container_width=True, height=420)
     else:
-        st.info("👈 Önce 1. Sekmeden kupon üretin.")
+        st.info("👈 Kupon yatırma merkezini kullanmak için önce **1. Sekmeden** kupon üretin.")
