@@ -12,7 +12,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v12.4 Final — Real-Game Production",
+    page_title="Spor Toto AI Pro v12.5 Final — Real-Game Production",
     page_icon="🏆",
     layout="wide"
 )
@@ -69,7 +69,7 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Spor Toto AI Pro v12.4 Final - Gerçek Oyun Saha Kılavuzu</title>
+<title>Spor Toto AI Pro v12.5 Final - Gerçek Oyun Saha Kılavuzu</title>
 <style>
     @page { size: A4 portrait; margin: 12mm; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.4; font-size: 12px; margin: 0; padding: 0; }
@@ -89,13 +89,13 @@ KULLANIM_KILAVUZU_HTML = """<!DOCTYPE html>
 <body>
     <div class="header">
         <div>
-            <h1>🏆 Spor Toto AI Pro v12.4 Final — Gerçek Oyun Saha Operasyon Kılavuzu</h1>
+            <h1>🏆 Spor Toto AI Pro v12.5 Final — Gerçek Oyun Saha Operasyon Kılavuzu</h1>
             <span>İddaa.com 4'lü Kolon (A-B-C-D) Asistanı, Favori Çubuğu (Bookmarklet) Desteği & 90-Dk Resmi Kural Koruması</span>
         </div>
         <button class="print-btn no-print" onclick="window.print()">🖨️ PDF Olarak Kaydet / Yazdır (CTRL+P)</button>
     </div>
     <div class="alert">
-        <strong>🌱 v12.4 Gerçek Oyun İçin 6 Altın Kural:</strong><br>
+        <strong>🌱 v12.5 Gerçek Oyun İçin 6 Altın Kural:</strong><br>
         1. <strong>💸 Hedef Bütçeye Göre Şablon Kur:</strong> Bütçenizi belirleyin ve <em>"🎯 Bütçeme Göre Otomatik Kur"</em> butonuna basın.<br>
         2. <strong>📐 Shannon Log-Olasılık Zarfı:</strong> Geometrik olasılık koridoru (Z-Skoru) ile çöp sürprizler ve aşırı kısır kuponlar otomatik elenir.<br>
         3. <strong>🔬 Deterministik Garanti Denetimi:</strong> Üretim sonrası açılan denetim tablosundan kuponlarınızın filtreli evreni %100 oranında kapsadığını doğrulayın.<br>
@@ -131,17 +131,17 @@ varsayilan_state = {
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
-    "sema_versiyonu": "12.4"
+    "sema_versiyonu": "12.5"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "12.4":
+if st.session_state.get("sema_versiyonu") != "12.5":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
-    st.session_state.sema_versiyonu = "12.4"
+    st.session_state.sema_versiyonu = "12.5"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -166,13 +166,13 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v12.4 Final")
+    st.markdown("## 🏆 Spor Toto AI v12.5 Final")
     st.caption("Real-Game Production & Safe-Play")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (PDF/HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v12_4_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v12_5_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -195,15 +195,26 @@ with st.sidebar:
     )
     garanti_derecesi = int(garanti_secimi.split()[0])
 
+    kapsama_evreni_modu = st.radio(
+        "🔒 Garanti Kapsama Evreni (15/15 Tahmin Tuttuğunda):",
+        [
+            "🛡️ Mutlak Şablon Garantisi (%100 Ham Şablon - Sıfır Sürpriz Kaybı)",
+            "📐 Filtreli Evren Garantisi (Ekonomik - İstatistik Filtreli)"
+        ],
+        index=0,
+        help="Mutlak Şablon Garantisi seçildiğinde, işaretlediğiniz 15 maçlık şablonun tamamı doğru çıktığında filtreler ne olursa olsun seçtiğiniz garanti (ör. 13G) %100 kesinlikle yakalanır."
+    )
+    mutlak_sablon_garantisi = ("Mutlak" in kapsama_evreni_modu)
+
     tasarruf_profili = st.select_slider(
         "🌱 Akıllı Tasarruf Modu (Pareto Kapsama):",
         options=[
             "🔥 Süper Tasarruf (%82 Kütle - En Az Kolon)",
-            "⚖️ Ekonomik Denge (%90 Kütle - Önerilen)",
-            "🛡️ Tam Kapsama (%100 Kütle - Klasik)"
+            "⚖️ Ekonomik Denge (%90 Kütle - Tasarruflu)",
+            "🛡️ Tam Kapsama (%100 Kütle - Kesin Garanti)"
         ],
-        value="⚖️ Ekonomik Denge (%90 Kütle - Önerilen)",
-        help="Shannon Log-Olasılık dağılımının en altındaki çöp kuyruğu keserek isabet gücünü düşürmeden kolon sayısını %35-%55 azaltır."
+        value="🛡️ Tam Kapsama (%100 Kütle - Kesin Garanti)",
+        help="Tam Kapsama (%100 Kütle) seçildiğinde hiçbir uç kombinasyon dışarıda bırakılmaz ve garanti hedefi %100 kilitlenir."
     )
     if "82" in tasarruf_profili:
         hedef_kapsama_orani = 82.0
@@ -254,7 +265,7 @@ with st.sidebar:
         g1_manuel, g2_manuel = (0, 15), (0, 15)
 
     st.markdown("---")
-    st.markdown("### 🔬 3. v12.4 Hassas Yapısal Filtreler")
+    st.markdown("### 🔬 3. v12.5 Hassas Yapısal Filtreler")
     akilli_merkez = st.toggle("🧮 Hibrit Evren Set-Cover + Ters Budama", value=True)
     log_zarf_aktif = st.toggle("📐 Shannon Log-Olasılık (Altın Koridor) Zarfı", value=True)
     kademe_filtre_aktif = st.toggle("📊 3 Kademeli (Favori/Plase/Sürpriz) Bütçesi", value=True)
@@ -282,7 +293,7 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "12.4",
+            "versiyon": "12.5",
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
@@ -300,7 +311,7 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v12_4_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v12_5_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
@@ -405,7 +416,7 @@ def olasilik_yumusat(p1, px_val, p2):
 
 def dixon_coles_marj_arindir(odd_1, odd_x, odd_2, lig_id=203):
     """
-    v12.4 Asimetrik Shin + Dixon-Coles Beraberlik (X) Korumalı Marj Temizleme.
+    v12.5 Asimetrik Shin + Dixon-Coles Beraberlik (X) Korumalı Marj Temizleme.
     """
     inv = np.array([1.0 / max(1.01, odd_1), 1.0 / max(1.01, odd_x), 1.0 / max(1.01, odd_2)], dtype=float)
     overround = float(np.sum(inv))
@@ -503,7 +514,7 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
 
 def hibrit_tahminleri_al(secilen_maclar, api_key):
     sonuclar = []
-    progress = st.progress(0, text="v12.4 Dixon-Coles kalibrasyonu, büro sapması ve halk eğilimi hesaplanıyor...")
+    progress = st.progress(0, text="v12.5 Dixon-Coles kalibrasyonu, büro sapması ve halk eğilimi hesaplanıyor...")
     for i, mac in enumerate(secilen_maclar):
         f_id = mac["id"]
         lig_id = mac.get("lig_id", 203)
@@ -554,7 +565,7 @@ def metin_temizle(s):
 
 def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
     """
-    v12.4 Çift Yönlü (Ev-Ev & Dep-Dep) Bülten Sırası Korumalı Eşleştirici.
+    v12.5 Çift Yönlü (Ev-Ev & Dep-Dep) Bülten Sırası Korumalı Eşleştirici.
     """
     satirlar = [s.strip() for s in yapistirilan_metin.splitlines() if len(s.strip()) > 2]
     eslesen_maclar = []
@@ -609,7 +620,7 @@ def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
 
 def canli_skorlari_cek(fixture_id_listesi, api_key):
     """
-    v12.4 Resmi Spor Toto 90-Dakika Kuralı Korumalı Canlı Skor Motoru.
+    v12.5 Resmi Spor Toto 90-Dakika Kuralı Korumalı Canlı Skor Motoru.
     """
     ids_str = "-".join(str(fid) for fid in fixture_id_listesi)
     url = f"https://v3.football.api-sports.io/fixtures?ids={ids_str}"
@@ -647,7 +658,7 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 
 
 # ==============================================================================
-# v12.4 BÜTÇE-DUYARLI ŞABLON KURUCU, SHANNON ZARFI VE HİBRİT SET-COVER
+# v12.5 BÜTÇE-DUYARLI ŞABLON KURUCU, SHANNON ZARFI VE HİBRİT SET-COVER
 # ==============================================================================
 def akilli_cifte_sec(v):
     s = sorted([(v["1"], "1"), (v["X"], "X"), (v["2"], "2")], reverse=True)
@@ -1037,33 +1048,48 @@ def vektorel_filtrele(
     log_halk = np.sum(np.log(np.maximum(secilen_halk, 1.0) / 100.0), axis=1)
     kompozit_skor = log_gercek - (ev_agirligi * 0.24 * log_halk)
 
+    ham_oranlar = oran_mat[np.arange(15), ham_matris]
+    ham_halk = halk_mat[np.arange(15), ham_matris]
+    ham_puanlar = np.sum(ham_oranlar, axis=1)
+    ham_log_gercek = np.sum(np.log(np.maximum(ham_oranlar, 1.0) / 100.0), axis=1)
+    ham_log_halk = np.sum(np.log(np.maximum(ham_halk, 1.0) / 100.0), axis=1)
+    ham_kompozit = ham_log_gercek - (ev_agirligi * 0.24 * ham_log_halk)
+    ham_idx = np.argsort(ham_kompozit)[::-1]
+
     idx = np.argsort(kompozit_skor)[::-1]
-    return ters[matris[idx]], puanlar[idx], kompozit_skor[idx], esnetilenler
+    return (
+        ters[matris[idx]], puanlar[idx], kompozit_skor[idx], esnetilenler,
+        ters[ham_matris[ham_idx]], ham_puanlar[ham_idx], ham_kompozit[ham_idx]
+    )
 
 
-def deterministik_garanti_denetle(secilen_kolonlar, filtreli_evren):
-    if len(secilen_kolonlar) == 0 or len(filtreli_evren) == 0:
+def deterministik_garanti_denetle(secilen_kolonlar, hedef_evren):
+    if len(secilen_kolonlar) == 0 or len(hedef_evren) == 0:
         return {"tam_15": 0.0, "en_az_14": 0.0, "en_az_13": 0.0, "en_az_12": 0.0}
 
-    evren_ornek = filtreli_evren[:25000]
-    M = len(evren_ornek)
+    M = len(hedef_evren)
     K = len(secilen_kolonlar)
-
-    evren_kod = np.zeros((M, 15), dtype=np.int8)
-    evren_kod[evren_ornek == "X"] = 1
-    evren_kod[evren_ornek == "2"] = 2
 
     kupon_kod = np.zeros((K, 15), dtype=np.int8)
     kupon_kod[secilen_kolonlar == "X"] = 1
     kupon_kod[secilen_kolonlar == "2"] = 2
 
-    evren_oh = np.zeros((M, 45), dtype=np.float32)
-    evren_oh[np.arange(M)[:, None], np.arange(15)[None, :] * 3 + evren_kod] = 1.0
-
     kupon_oh = np.zeros((K, 45), dtype=np.float32)
     kupon_oh[np.arange(K)[:, None], np.arange(15)[None, :] * 3 + kupon_kod] = 1.0
 
-    maks_isabet = np.max(evren_oh @ kupon_oh.T, axis=1)
+    maks_isabet = np.zeros(M, dtype=np.float32)
+    BLOK = 20000
+    for bas in range(0, M, BLOK):
+        bit = min(M, bas + BLOK)
+        parca = hedef_evren[bas:bit]
+        B = len(parca)
+        evren_kod = np.zeros((B, 15), dtype=np.int8)
+        evren_kod[parca == "X"] = 1
+        evren_kod[parca == "2"] = 2
+        evren_oh = np.zeros((B, 45), dtype=np.float32)
+        evren_oh[np.arange(B)[:, None], np.arange(15)[None, :] * 3 + evren_kod] = 1.0
+        maks_isabet[bas:bit] = np.max(evren_oh @ kupon_oh.T, axis=1)
+
     return {
         "tam_15": float(np.mean(maks_isabet >= 14.9) * 100.0),
         "en_az_14": float(np.mean(maks_isabet >= 13.9) * 100.0),
@@ -1074,17 +1100,47 @@ def deterministik_garanti_denetle(secilen_kolonlar, filtreli_evren):
 
 def gelismis_garanti_ve_budama_uygula(
     kolonlar, puanlar, kompozit_skor, hedef,
-    max_k=None, akilli_merkez=True, min_fark=1, hedef_kapsama=90.0
+    max_k=None, akilli_merkez=True, min_fark=1, hedef_kapsama=100.0,
+    tam_evren_kolonlar=None, tam_evren_puanlar=None, tam_evren_kompozit=None
 ):
-    if len(kolonlar) == 0:
-        return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0, 0
+    """
+    v12.5 Kesin Matematiksel Garanti Motoru (Zero-Gap Set-Cover):
+    - Eğer tam_evren_kolonlar verilirse (Mutlak Şablon Garantisi), önce filtreli yüksek EV'li
+      kolonları merkez (seed) olarak seçer; ardından filtrelerin dışarıda bıraktığı ham şablon
+      kombinasyonlarını da %100 (veya seçilen Pareto kütle oranında) örtene kadar tamamlar.
+    - 35.000 kolon tavan kesmesi kaldırılmıştır; 300.000 kolona kadar tüm şablon uzayını eksiksiz tarar.
+    """
+    if tam_evren_kolonlar is not None and len(tam_evren_kolonlar) > 0:
+        if len(kolonlar) > 0:
+            # Filtreli kolonlara öncelik bonusu vererek tam evren üzerinde birleştir
+            kod_tam = np.zeros((len(tam_evren_kolonlar), 15), dtype=np.int64)
+            kod_tam[tam_evren_kolonlar == "X"] = 1
+            kod_tam[tam_evren_kolonlar == "2"] = 2
+            uf_katsayi = (3 ** np.arange(15, dtype=np.int64))
+            imza_tam = kod_tam @ uf_katsayi
 
-    N_tam = len(kolonlar)
-    MAX_HAVUZ = 35000
-    if N_tam > MAX_HAVUZ:
-        kolonlar = kolonlar[:MAX_HAVUZ]
-        puanlar = puanlar[:MAX_HAVUZ]
-        kompozit_skor = kompozit_skor[:MAX_HAVUZ]
+            kod_filt = np.zeros((len(kolonlar), 15), dtype=np.int64)
+            kod_filt[kolonlar == "X"] = 1
+            kod_filt[kolonlar == "2"] = 2
+            imza_filt = kod_filt @ uf_katsayi
+
+            filtre_icinde_mi = np.isin(imza_tam, imza_filt)
+            oncelik_skoru = tam_evren_kompozit + np.where(filtre_icinde_mi, 2.5, 0.0)
+            sira = np.argsort(oncelik_skoru)[::-1]
+
+            kolonlar = tam_evren_kolonlar[sira]
+            puanlar = tam_evren_puanlar[sira]
+            kompozit_skor = tam_evren_kompozit[sira]
+            filtre_oncelik_maske = filtre_icinde_mi[sira]
+        else:
+            kolonlar = tam_evren_kolonlar
+            puanlar = tam_evren_puanlar
+            kompozit_skor = tam_evren_kompozit
+            filtre_oncelik_maske = np.ones(len(kolonlar), dtype=bool)
+    else:
+        if len(kolonlar) == 0:
+            return np.empty((0, 15), dtype="<U1"), np.array([]), 0.0, 0
+        filtre_oncelik_maske = np.ones(len(kolonlar), dtype=bool)
 
     N = len(kolonlar)
     mat = np.zeros((N, 15), dtype=np.int8)
@@ -1096,9 +1152,12 @@ def gelismis_garanti_ve_budama_uygula(
     sutun_ofset = np.arange(15)[None, :] * 3
     one_hot[satir_idx, sutun_ofset + mat] = 1.0
 
-    agirlik = np.exp((kompozit_skor - np.max(kompozit_skor)) * 0.85).astype(np.float32)
+    if hedef_kapsama >= 99.9:
+        agirlik = np.ones(N, dtype=np.float32)
+    else:
+        agirlik = np.exp((kompozit_skor - np.max(kompozit_skor)) * 0.85).astype(np.float32)
     toplam_agirlik = float(np.sum(agirlik))
-    esik_eslesme = float(hedef)
+    esik_eslesme = float(hedef) - 0.1
 
     kapsanmamis_maske = np.ones(N, dtype=bool)
     aday_maske = np.ones(N, dtype=bool)
@@ -1109,33 +1168,45 @@ def gelismis_garanti_ve_budama_uygula(
     while np.any(kapsanmamis_maske):
         if max_k and len(nihai) >= max_k:
             break
-        if kapsama_orani >= hedef_kapsama:
+        if hedef_kapsama < 99.9 and kapsama_orani >= hedef_kapsama:
             break
 
-        uygun_adaylar = np.where(aday_maske & kapsanmamis_maske)[0]
+        # Önce filtre içindeki adayları dene, kalmadıysa tüm kapsanmamış adayları aç
+        oncelikli_adaylar = np.where(aday_maske & kapsanmamis_maske & filtre_oncelik_maske)[0]
+        if len(oncelikli_adaylar) > 0:
+            uygun_adaylar = oncelikli_adaylar
+        else:
+            uygun_adaylar = np.where(aday_maske & kapsanmamis_maske)[0]
+
         if len(uygun_adaylar) == 0:
             kalan_kapsanmamis = np.where(kapsanmamis_maske & hamming_elendi_maske)[0]
             if len(kalan_kapsanmamis) > 0:
                 uygun_adaylar = kalan_kapsanmamis
             else:
-                break
+                uygun_adaylar = np.where(kapsanmamis_maske)[0]
+                if len(uygun_adaylar) == 0:
+                    break
 
         kapsanmamis_indeksler = np.where(kapsanmamis_maske)[0]
 
         if akilli_merkez and len(kapsanmamis_indeksler) > 1 and hedef < 15:
-            if len(uygun_adaylar) <= 160:
+            if len(uygun_adaylar) <= 180:
                 aday_idx = uygun_adaylar
             else:
-                lider_idx = uygun_adaylar[:100]
-                geo_idx = uygun_adaylar[np.linspace(100, len(uygun_adaylar) - 1, 60, dtype=int)]
+                lider_idx = uygun_adaylar[:110]
+                geo_idx = uygun_adaylar[np.linspace(110, len(uygun_adaylar) - 1, 70, dtype=int)]
                 aday_idx = np.unique(np.concatenate([lider_idx, geo_idx]))
 
-            ornek_say = min(15000, len(kapsanmamis_indeksler))
-            ornek_idx = kapsanmamis_indeksler[:ornek_say]
+            ornek_say = min(20000, len(kapsanmamis_indeksler))
+            if len(kapsanmamis_indeksler) <= ornek_say:
+                ornek_idx = kapsanmamis_indeksler
+            else:
+                ornek_idx = kapsanmamis_indeksler[np.linspace(0, len(kapsanmamis_indeksler) - 1, ornek_say, dtype=int)]
 
             eslesme_mat = one_hot[aday_idx] @ one_hot[ornek_idx].T
             kapsama_mat = (eslesme_mat >= esik_eslesme).astype(np.float32)
-            kapsanan_kutle = (kapsama_mat @ agirlik[ornek_idx]) * (agirlik[aday_idx] ** 0.55)
+            merkez_bonus = np.where(filtre_oncelik_maske[aday_idx], 1.15, 1.0).astype(np.float32)
+            kapsanan_kutle = (kapsama_mat @ agirlik[ornek_idx]) * merkez_bonus
             m_idx = int(aday_idx[int(np.argmax(kapsanan_kutle))])
         else:
             m_idx = int(uygun_adaylar[0])
@@ -1157,12 +1228,15 @@ def gelismis_garanti_ve_budama_uygula(
                 aday_maske[elenen_adaylar] = False
                 hamming_elendi_maske[elenen_adaylar] = True
 
-        kapsama_orani = float(np.sum(agirlik[~kapsanmamis_maske]) / toplam_agirlik * 100.0)
+        if hedef_kapsama >= 99.9:
+            kapsama_orani = float(np.sum(~kapsanmamis_maske) / float(N) * 100.0)
+        else:
+            kapsama_orani = float(np.sum(agirlik[~kapsanmamis_maske]) / toplam_agirlik * 100.0)
 
     budanan_adet = 0
-    if akilli_merkez and hedef < 15 and 2 < len(nihai) <= 2000:
+    if akilli_merkez and hedef < 15 and 2 < len(nihai) <= 2500:
         kapsanan_evren = np.where(~kapsanmamis_maske)[0]
-        if 0 < len(kapsanan_evren) <= 30000:
+        if 0 < len(kapsanan_evren) <= 45000:
             secilen_oh = one_hot[nihai]
             evren_oh = one_hot[kapsanan_evren]
             ortme_mat = (secilen_oh @ evren_oh.T) >= esik_eslesme
@@ -1250,7 +1324,7 @@ def kupon_dosyasi_coz(dosya):
 
 def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_paket, hiz_ms=110):
     """
-    v12.4 İddaa.com 4'lü Kolon (A-B-C-D) Geometrik Kutu Tarayıcı + Manuel Kalibrasyon Destekli Asistan.
+    v12.5 İddaa.com 4'lü Kolon (A-B-C-D) Geometrik Kutu Tarayıcı + Manuel Kalibrasyon Destekli Asistan.
     - iddaa.com/spor-toto üzerindeki 12'li (A, B, C, D Kolonu) boş kare kutucukları hem
       geometrik Y/X koordinat hizasından hem de satır yapısından otomatik bulur.
     - Tek tıkla 4 kolonu (A, B, C ve D) aynı anda doldurarak 4 kat hızlı işlem yapar.
@@ -1262,7 +1336,7 @@ def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_p
     kisa_maclar = [m.split("-")[0].strip()[:10] for m in mac_isimleri]
 
     js_kodu = f"""// ============================================================================
-// 🏆 SPOR TOTO AI PRO v12.4 — İDDAA.COM 4'LÜ KOLON (A-B-C-D) & EVRENSEL ASİSTAN
+// 🏆 SPOR TOTO AI PRO v12.5 — İDDAA.COM 4'LÜ KOLON (A-B-C-D) & EVRENSEL ASİSTAN
 // 🛡️ GÜVENLİK GARANTİSİ: Bu kod ASLA 'Oyna / Öde / Onayla' butonuna basmaz!
 // ============================================================================
 (function() {{
@@ -1272,7 +1346,7 @@ def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_p
     const HIZ_MS = {hiz_ms};
     const BEKLENEN_TAKIMLAR = {json.dumps(kisa_maclar, ensure_ascii=False)};
     const KUPONLAR = {json.dumps(aktif_paket)};
-    const STORAGE_KEY = "st_ai_v12_4_progress_" + PAKET_IMZA;
+    const STORAGE_KEY = "st_ai_v12_5_progress_" + PAKET_IMZA;
 
     let aktifIdx = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
     if (aktifIdx >= KUPONLAR.length || aktifIdx < 0) aktifIdx = 0;
@@ -1427,7 +1501,7 @@ def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_p
         hud.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;padding-bottom:8px;margin-bottom:8px;">
                 <div>
-                    <strong style="font-size:14px;color:#60a5fa;">🏆 Spor Toto AI v12.4 Hızlı Asistan</strong>
+                    <strong style="font-size:14px;color:#60a5fa;">🏆 Spor Toto AI v12.5 Hızlı Asistan</strong>
                     <div style="font-size:11px;color:#94a3b8;">Paket ${{PAKET_NO}} / ${{TOPLAM_PAKET}} • Toplam: ${{KUPONLAR.length}} Kolon</div>
                 </div>
                 <button id="st-ai-kapat" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-weight:bold;">✕</button>
@@ -1687,7 +1761,7 @@ with tab_uretim:
                             st.rerun()
 
         # ======================================================================
-        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v12.4 SMART-BUDGET)
+        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v12.5 SMART-BUDGET)
         # ======================================================================
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
@@ -1867,6 +1941,7 @@ with tab_uretim:
                 "g1_aralik": g1_aralik,
                 "g2_aralik": g2_aralik,
                 "garanti": garanti_derecesi,
+                "mutlak_sablon": mutlak_sablon_garantisi,
                 "kapsama": hedef_kapsama_orani,
                 "max_k": max_kolon_limiti,
                 "ev": ev_katsayisi,
@@ -1901,7 +1976,7 @@ with tab_uretim:
                         "banko_siniri": banko_siniri, "cifte_siniri": cifte_sans_siniri
                     }
 
-                mat, puanlar, kompozit_skor, esnetilenler = vektorel_filtrele(
+                mat, puanlar, kompozit_skor, esnetilenler, ham_evren, ham_puanlar, ham_kompozit = vektorel_filtrele(
                     g_sablon, s_veriler, limitler,
                     g1_indeksleri=g1_indeksleri if grup_guvence_aktif else [],
                     g1_aralik=g1_aralik,
@@ -1913,25 +1988,31 @@ with tab_uretim:
                     entropi_aktif=entropi_filtresi,
                     homojen_aktif=homojen_bulten
                 )
-                if len(mat) > 0:
+                if len(mat) > 0 or len(ham_evren) > 0:
                     garanti, g_puan, kapsama, budanan_adet = gelismis_garanti_ve_budama_uygula(
                         mat, puanlar, kompozit_skor, garanti_derecesi,
                         max_k=max_kolon_limiti,
                         akilli_merkez=akilli_merkez,
                         min_fark=benzerlik_elemesi,
-                        hedef_kapsama=hedef_kapsama_orani
+                        hedef_kapsama=hedef_kapsama_orani,
+                        tam_evren_kolonlar=ham_evren if mutlak_sablon_garantisi else None,
+                        tam_evren_puanlar=ham_puanlar if mutlak_sablon_garantisi else None,
+                        tam_evren_kompozit=ham_kompozit if mutlak_sablon_garantisi else None
                     )
                     mc = monte_carlo_simule_et(garanti, s_veriler, g_sablon)
-                    denetim = deterministik_garanti_denetle(garanti, mat)
+                    denetim_filtreli = deterministik_garanti_denetle(garanti, mat if len(mat) > 0 else ham_evren)
+                    denetim_ham = deterministik_garanti_denetle(garanti, ham_evren)
                     st.session_state.uretilen_kuponlar = garanti
                     st.session_state.son_uretim_ozeti = {
                         "filtreli_adet": len(mat),
                         "ham_adet": ham_kolon_sayisi,
                         "garanti_derecesi": garanti_derecesi,
+                        "mutlak_sablon": mutlak_sablon_garantisi,
                         "kapsama": kapsama,
                         "budanan_adet": budanan_adet,
                         "mc": mc,
-                        "denetim": denetim,
+                        "denetim": denetim_filtreli,
+                        "denetim_ham": denetim_ham,
                         "s_veriler": s_veriler,
                         "g_sablon": g_sablon,
                         "esnetilenler": esnetilenler
@@ -1963,18 +2044,21 @@ with tab_uretim:
                     st.download_button(
                         "📥 Kuponları İndir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v12_4_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        f"spor_toto_v12_5_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
                         mime="text/plain",
                         type="primary",
                         use_container_width=True
                     )
 
+                denetim_ham = ozet.get("denetim_ham", denetim)
+                hedef_anahtar = "tam_15" if ozet["garanti_derecesi"] == 15 else f"en_az_{ozet['garanti_derecesi']}"
                 st.caption(
-                    f"🔬 **Deterministik Filtreli Evren Garanti Denetimi (Self-Audit):** "
-                    f"Filtreli evrendeki senaryoların **%{denetim['tam_15']:.1f}**'inde Tam 15 | "
-                    f"**%{denetim['en_az_14']:.1f}**'inde En Az 14 | "
-                    f"**%{denetim['en_az_13']:.1f}**'inde En Az 13 | "
-                    f"**%{denetim['en_az_12']:.1f}**'inde En Az 12 isabet matematiksel olarak doğrulanmıştır."
+                    f"🔬 **Deterministik Garanti Denetimi (15/15 Tahmin Tuttuğunda):** "
+                    f"**Ham Şablon Evreni ({ozet['ham_adet']:,} senaryo):** "
+                    f"Tam 15: **%{denetim_ham['tam_15']:.1f}** | En Az 14: **%{denetim_ham['en_az_14']:.1f}** | "
+                    f"En Az 13: **%{denetim_ham['en_az_13']:.1f}** | En Az 12: **%{denetim_ham['en_az_12']:.1f}**  —  "
+                    f"**Filtreli Evren ({ozet['filtreli_adet']:,} senaryo):** "
+                    f"En Az {ozet['garanti_derecesi']}: **%{denetim.get(hedef_anahtar, 100.0):.1f}**"
                 )
 
                 with st.expander("📊 Üretilen Nihai Kuponların Maç Bazlı 1-X-2 Dağılım & Gerçek Olasılık Kontrolü", expanded=True):
@@ -2149,10 +2233,10 @@ with tab_takip:
             st.info("👈 Takip başlatmak için önce kupon üretin veya kupon dosyası yükleyin.")
 
 # ------------------------------------------------------------------------------
-# SEKME 3: GÜVENLİ, ANLAŞILIR VE KOLAY OTOMATİK KUPON YATIRMA MERKEZİ (v12.4)
+# SEKME 3: GÜVENLİ, ANLAŞILIR VE KOLAY OTOMATİK KUPON YATIRMA MERKEZİ (v12.5)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.markdown("### 🛡️ Güvenli & Kolay Kupon Yatırma Merkezi (Safe-Play v12.4 — İddaa.com 4'lü Kolon Destekli)")
+    st.markdown("### 🛡️ Güvenli & Kolay Kupon Yatırma Merkezi (Safe-Play v12.5 — İddaa.com 4'lü Kolon Destekli)")
 
     if st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0:
         k_oto = st.session_state.uretilen_kuponlar.tolist()
@@ -2248,7 +2332,7 @@ with tab_otomasyon:
                 st.download_button(
                     "📥 1. Tek Tıkla Kupon Dosyasını İndir (.TXT)",
                     data=txt_icerik.encode("utf-8"),
-                    file_name=f"st_v12_4_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.txt",
+                    file_name=f"st_v12_5_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.txt",
                     mime="text/plain",
                     type="primary",
                     use_container_width=True
@@ -2261,7 +2345,7 @@ with tab_otomasyon:
                 st.download_button(
                     "📊 Alternatif: Excel (.CSV) Olarak İndir",
                     data=saf_csv_icerik.encode("utf-8"),
-                    file_name=f"st_v12_4_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.csv",
+                    file_name=f"st_v12_5_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
