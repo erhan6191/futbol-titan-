@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v18.0 — ACCEPTANCE & RELIABILITY SAFE RC",
+    page_title="Spor Toto AI Pro v18.0.1 — A02/A03 DIAGNOSTIC HOTFIX",
     page_icon="🏆",
     layout="wide"
 )
@@ -144,7 +144,7 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v18.0")
+    st.markdown("## 🏆 Spor Toto AI v18.0.1")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
@@ -1886,7 +1886,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"18.0 SAFE RELEASE CANDIDATE", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"18.0.1 SAFE RELEASE CANDIDATE", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -2481,33 +2481,60 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
     except (ValueError,TypeError,KeyError) as exc:
         kaydet('A01','15 benzersiz maçın kimliği ve sırası',False,exc)
 
-    if not isinstance(kapi,dict) or not kapi.get('ok') or not signature or kapi.get('match_signature')!=signature:
-        kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',False,
-               'Güncel üçlü karşılaştırma tamamlanmadı veya farklı bültene ait.')
+    # v18.0.1: başarısız alt denetimin A02 nedenini kaybetme ve A03'e ham None ile ilerleme.
+    # A02 her durumda zorunludur; eksik kanıt varsa ASLA varsayılan PASS verme.
+    a02_issues=[]
+    if not isinstance(kapi,dict):
+        a02_issues.append('Bülten karşılaştırma kaydı yok. 1. sekmedeki üçlü kontrolü tamamlayın.')
     else:
+        if not signature or kapi.get('match_signature')!=signature:
+            a02_issues.append('Maç kimliği/sırası mevcut bültenle aynı değil.')
+        for label,key in [('CSV','csv'),('Bağımsız maç listesi','manual_list'),('API tekrar sorgusu','api')]:
+            part=kapi.get(key)
+            if not isinstance(part,dict):
+                a02_issues.append(f'{label} doğrulama kaydı eksik veya başarısız.')
+            elif signature and part.get('match_signature')!=signature:
+                a02_issues.append(f'{label} farklı maç sırasına/bültene ait.')
+        if not kapi.get('ok'):
+            a02_issues.append('Üçlü kontrol kapısı başarısız (ok=False); işlem engeli korunuyor.')
+        issues=kapi.get('issues')
+        if isinstance(issues,list) and issues:
+            a02_issues.extend(str(x) for x in issues[:8])
+        elif issues is not None and not isinstance(issues,list):
+            a02_issues.append('Üçlü kontrol hata listesi geçersiz biçimde.')
+        if kapi.get('status')!='INDEPENDENT_INPUTS_CONSISTENT_NOT_OFFICIALLY_AUTHENTICATED':
+            a02_issues.append('Üçlü karşılaştırmanın onay durumu geçerli değil.')
         try:
             tt=v17_utc(kapi['evaluated_at'])
-            proofs=[kapi[x]['match_signature'] for x in ('csv','manual_list','api')]
-            valid=(tt<=now and now-tt<=pd.Timedelta(minutes=10)
-                   and proofs==[signature]*3
-                   and kapi.get('status')=='INDEPENDENT_INPUTS_CONSISTENT_NOT_OFFICIALLY_AUTHENTICATED')
-            kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',valid,
-                   'Kullanıcı tarafından sağlanan liste ve API kayıtları uyumlu; resmî otantiklik değildir.')
-        except (KeyError,TypeError,ValueError):
-            kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',False,'Kanıt zamanı veya imzası geçersiz.')
+            if tt>now:
+                a02_issues.append('Bülten karşılaştırma tarihi gelecekte.')
+            elif now-tt>pd.Timedelta(minutes=10):
+                a02_issues.append('Bülten karşılaştırması 10 dakikadan eski; API kontrolünü yenileyin.')
+        except (KeyError,TypeError,ValueError,AttributeError):
+            a02_issues.append('Bülten karşılaştırma zamanı eksik/hatalı.')
+    kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',not a02_issues,
+           '; '.join(dict.fromkeys(a02_issues)) if a02_issues else
+           'CSV, bağımsız liste ve taze API tekrar sorgusu aynı 15 maçla uyumlu; resmî kaynak otantikliği değildir.')
 
     try:
-        if not isinstance(maclar,list) or len(maclar)!=15: raise ValueError('15 maç gereklidir.')
+        if not isinstance(maclar,list) or len(maclar)!=15:
+            raise ValueError('15 maç gereklidir.')
         kickoff=[v17_utc(f"{m['tarih']}T{m['saat']}:00+03:00") for m in maclar]
-        close=v17_utc(kapi['csv']['closes_at'])
         if min(kickoff)-now<=pd.Timedelta(minutes=5):
-            raise ValueError('Bir maç başlamış veya 5 dakikalık emniyet sınırında.')
+            raise ValueError('En erken maç başlamış veya 5 dakikalık emniyet sınırında.')
+        csv_proof=kapi.get('csv') if isinstance(kapi,dict) else None
+        if not isinstance(csv_proof,dict):
+            raise ValueError('CSV kapanış bilgisi doğrulanmadı; önce A02 bülten kontrolünü tamamlayın.')
+        close_value=csv_proof.get('closes_at')
+        if not close_value:
+            raise ValueError('CSV closes_at alanı eksik; önce A02 bülten kontrolünü tamamlayın.')
+        close=v17_utc(close_value)
         if close-now<=pd.Timedelta(minutes=5):
             raise ValueError('Kullanıcı beyanındaki bülten kapanışına 5 dakika veya daha az kaldı.')
         if close>min(kickoff):
             raise ValueError('Kapanış en erken maç saatini geçiyor.')
         kaydet('A03','Başlama ve kapanış emniyet sınırı',True,'Tüm maçlar başlamamış, beyan edilen kapanış öncesi.')
-    except (KeyError,ValueError,TypeError,AttributeError) as exc:
+    except (KeyError,ValueError,TypeError,AttributeError,OverflowError) as exc:
         kaydet('A03','Başlama ve kapanış emniyet sınırı',False,exc)
 
     try:
@@ -2617,7 +2644,7 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
                '4096 senaryodan büyük evrenlerin tam yeniden hesabı bu kabul turunda yapılmadı.',blocking=False)
     errors=[x['code']+': '+x['detail'] for x in checks if x['status']=='FAIL']
     eligible=not errors
-    result={'version':'18.0 SAFE RELEASE CANDIDATE','scope':'ANALYSIS_ONLY',
+    result={'version':'18.0.1 SAFE RELEASE CANDIDATE','scope':'ANALYSIS_ONLY',
             'checked_at_utc':now.isoformat(), 'bulletin_signature':signature,
             'manifest_sha256':hashlib.sha256(manifest_bytes).hexdigest() if isinstance(manifest_bytes,(bytes,bytearray)) else None,
             'txt_sha256':hashlib.sha256(raw).hexdigest() if isinstance(raw,(bytes,bytearray)) else None,
@@ -2696,7 +2723,7 @@ tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, 
     "📥 4. Analiz TXT + Manifest",
     "🧪 5. Backtest & Kalibrasyon",
     "🧠 6. Anti-Public & Çeşitlilik",
-    "✅ 7. v18.0 Kabul ve Güvenilirlik"
+    "✅ 7. v18.0.1 Kabul ve Güvenilirlik"
 ])
 
 # ------------------------------------------------------------------------------
@@ -3806,7 +3833,7 @@ with tab_antipublic:
 # SEKME 7: v18.0 ACCEPTANCE & RELIABILITY CENTER
 # ------------------------------------------------------------------------------
 with tab_acceptance:
-    st.subheader('✅ v18.0 — Kabul ve Güvenilirlik Merkezi')
+    st.subheader('✅ v18.0.1 — Kabul ve Güvenilirlik Merkezi')
     st.error('GERÇEK PARAYLA OTOMATİK OYNAMA / ÖDEME YETKİSİ YOK. Bu sistem yalnızca analiz paketi ve doğrulama raporu üretir.')
     st.caption('Yazılım çekirdek testleri canlı bahis sitesi veya resmî veri otantikliği testi değildir. '
                'Tek başına CSV kaynağının URL bilgisi, resmî kaynağın gerçekten doğrulandığını kanıtlamaz.')
@@ -3831,6 +3858,17 @@ with tab_acceptance:
                                       for r in v18_report['checks']]),hide_index=True,use_container_width=True)
             st.caption('PASS: yerel kontrol başarılı. FAIL: analiz paketini engeller. '
                        'NOT_VERIFIED: canlı/onaylı oyun için gereken bağımsız doğrulama henüz yapılmamış.')
+            a02a03=[r for r in v18_report['checks'] if r['code'] in ('A02','A03') and r['status']=='FAIL']
+            if a02a03:
+                st.error('🚫 Bülten kabul kilidi (A02/A03): Analiz ZIP dosyası üretilemez. Bu kontrolü atlamayın.')
+                for check in a02a03:
+                    st.warning(f"{check['code']} — {check['detail']}")
+                st.info('ÇÖZÜM: 1. sekme > Resmî bülten ve bağımsız API karşılaştırma masası: '
+                        "15 maçlık resmî liste metnini girin, bülten CSV'sini yükleyin, "
+                        'CSV source_url / obtained_at / closes_at alanlarını inceleyin ve '
+                        '“API-Football 15 maçı YENİDEN canlı kontrol et” düğmesine basın. '
+                        'API kanıtı 10 dakika sonra eskir. Ardından bu 7. sekmeye geri dönün. '
+                        'Resmî kaynak kimliği hâlâ bağımsız doğrulanmış sayılmaz.')
             st.download_button('📄 Kabul raporu JSON olarak indir',
                 json.dumps(v18_report,ensure_ascii=False,indent=2).encode('utf-8'),
                 file_name='SPOR_TOTO_V18_KABUL_RAPORU.json',mime='application/json',key='v18_report_download')
