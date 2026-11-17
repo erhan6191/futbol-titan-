@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v17.0 — SAFE ANALYSIS & AUDIT ENGINE",
+    page_title="Spor Toto AI Pro v17.1 — BULLETIN CROSS-CHECK & SAFE AUDIT",
     page_icon="🏆",
     layout="wide"
 )
@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v17.0 SAFE BETA</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç. 2. Kullanıcının haftalık bülten CSV dosyasını karşılaştır; bu resmî kaynağı doğrulamaz. 3. Kaynak kalitesini kontrol et. 4. Şablon ve bütçe belirle, analiz yap. 5. Dördüncü sekmeden tek TXT ve SHA-256 manifest paketini indir. 6. Resmî sitedeki bülteni, sırayı, tutarı ve varsa makbuzu bağımsız doğrula.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v17.1 SAFE BETA</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç. 2. Kullanıcının haftalık bülten CSV dosyasını karşılaştır; bu resmî kaynağı doğrulamaz. 3. Kaynak kalitesini kontrol et. 4. Şablon ve bütçe belirle, analiz yap. 5. Dördüncü sekmeden tek TXT ve SHA-256 manifest paketini indir. 6. Resmî sitedeki bülteni, sırayı, tutarı ve varsa makbuzu bağımsız doğrula.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -94,7 +94,8 @@ varsayilan_state = {
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
     "paket_konfig_v161": None,
-    "sema_versiyonu": "17.0",
+    "sema_versiyonu": "17.1",
+    "v171_api_proof": None,
     "v17_receipts": {},
     "v17_official_user_csv": None,
     "v17_official_hash": None
@@ -103,7 +104,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "17.0":
+if st.session_state.get("sema_versiyonu") != "17.1":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -117,7 +118,8 @@ if st.session_state.get("sema_versiyonu") != "17.0":
     st.session_state.v17_receipts = {}
     st.session_state.v17_official_user_csv = None
     st.session_state.v17_official_hash = None
-    st.session_state.sema_versiyonu = "17.0"
+    st.session_state.v171_api_proof = None
+    st.session_state.sema_versiyonu = "17.1"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -142,14 +144,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v17.0")
+    st.markdown("## 🏆 Spor Toto AI v17.1")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v16_1_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v17_1_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -255,7 +257,7 @@ with st.sidebar:
         g1_manuel, g2_manuel = (0, 15), (0, 15)
 
     st.markdown("---")
-    st.markdown("### 🔬 3. v15.1 Ekonomik Sıkıştırma & Yapısal Filtreler")
+    st.markdown("### 🔬 3. Matematiksel Optimizasyon ve Yapısal Filtreler")
     ortogonal_anahtar_aktif = st.toggle(
         "🔑 Karma örtme (GF(2)/GF(3)) + kaynak sınırlı yedek",
         value=True,
@@ -1859,7 +1861,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"17.0 SAFE BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"17.1 SAFE BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -1891,6 +1893,186 @@ def v17_paket_kontrol(txt,manifest_bytes):
     return True
 
 
+
+
+# ==============================================================================
+# v17.1: EŞLEŞTİRME, İZLENEBİLİR KAYNAK, API FİKSTÜR YENİDEN KONTROLÜ
+# Resmî kaynağın kriptografik imzası/otantikliği BU İŞLEVLERLE kanıtlanmaz.
+# ==============================================================================
+def v171_mac_imzasi(maclar):
+    if not isinstance(maclar, list) or len(maclar) != 15:
+        raise ValueError('İmza için tam 15 maç gerekli.')
+    items=[]
+    for m in maclar:
+        items.append([str(m['id']),str(m['ev']),str(m['dep']),str(m['tarih']),str(m['saat']),str(m.get('lig_id',''))])
+    if len({x[0] for x in items})!=15: raise ValueError('Mükerrer ID.')
+    payload=json.dumps(items,ensure_ascii=False,separators=(',',':')).encode('utf-8')
+    return hashlib.sha256(payload).hexdigest()
+
+
+def v171_takim_kimlik(ad):
+    """Katı, isim koruyan karşılaştırma (spor, şehir ve isim kökleri atılmaz)."""
+    t=unicodedata.normalize('NFKD',str(ad).translate(str.maketrans('çğıöşüÇĞİÖŞÜ','cgiosuCGIOSU'))).encode('ascii','ignore').decode('ascii').lower()
+    t=re.sub(r'[^a-z0-9]+',' ',t).strip()
+    t=re.sub(r'\b(?:a s|a s s|fk|fc|sk)\b',' ',t)
+    return ' '.join(t.split())
+
+
+def v171_liste_metin_denetle(metin,maclar):
+    """Kullanıcının resmî sayfadan bağımsız kopyaladığı 1..15 satırını sırasıyla karşılaştırır."""
+    if not isinstance(metin,str) or len(metin)>12000:
+        raise ValueError('Liste metni boş veya aşırı uzun.')
+    rows=[r.strip() for r in metin.splitlines() if r.strip()]
+    if len(rows)!=15 or len(maclar)!=15:
+        raise ValueError('Bağımsız maç listesi tam 15 satır olmalıdır.')
+    names=[]
+    for i,(line,m) in enumerate(zip(rows,maclar),1):
+        a=re.match(r'^\s*(\d{1,2})\s*[.)\-:]\s*(.+)$',line)
+        if not a or int(a.group(1))!=i:
+            raise ValueError(f'Satır {i}: numaralar 1..15 sıralı olmalıdır.')
+        match=re.split(r'\s+(?:-|–|—|vs\.?|VS\.?)\s+',a.group(2),maxsplit=1,flags=re.IGNORECASE)
+        if len(match)!=2 or not match[0].strip() or not match[1].strip():
+            raise ValueError(f'Satır {i}: Ev Takımı - Deplasman Takımı bekleniyor.')
+        home,away=[x.strip() for x in match]
+        if v171_takim_kimlik(home)!=v171_takim_kimlik(m['ev']) or v171_takim_kimlik(away)!=v171_takim_kimlik(m['dep']):
+            raise ValueError(f'Satır {i}: takım isimleri veya ev/deplasman sırası uyuşmuyor ({home} - {away}).')
+        names.append([home,away])
+    return {'count':15,'match_signature':v171_mac_imzasi(maclar),
+            'text_sha256':hashlib.sha256(metin.encode('utf-8')).hexdigest(),
+            'status':'USER_PASTED_LIST_MATCHES_API_NOT_SOURCE_AUTHENTICATED'}
+
+
+def v171_url_resmi_aday(url):
+    """URL, yalnızca resmî web alanı biçiminde mi? İçeriği doğrulamaz."""
+    x=urllib.parse.urlsplit(str(url).strip())
+    return bool(x.scheme=='https' and x.hostname in ('sportoto.gov.tr','www.sportoto.gov.tr')
+                and not x.username and not x.password and (x.port in (None,443)))
+
+
+def v171_bulten_csv_denetle(csv_bytes,maclar,simdi=None):
+    """Güvenilmez kullanıcı CSV'sinin 15/15 tutarlılık ve kaynak ADRESİ sınaması."""
+    if not isinstance(csv_bytes,(bytes,bytearray)) or not 50<len(csv_bytes)<200_000:
+        raise ValueError('CSV boyutu geçersiz.')
+    checked=v17_resmi_bulten_denetle(csv_bytes,maclar,simdi=simdi)
+    df=pd.read_csv(io.BytesIO(csv_bytes),dtype=str)
+    urls=[str(v).strip() for v in df.source_url]
+    if len(set(urls))!=1 or not v171_url_resmi_aday(urls[0]):
+        raise ValueError('Kaynak URL her satırda aynı ve https://www.sportoto.gov.tr/... olmalı.')
+    closes=v17_utc(checked['closes_at'])
+    now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
+    if closes-now<=pd.Timedelta(minutes=5):
+        raise ValueError('Kapanışa 5 dakika veya daha az kaldı, güvenlik kilidi etkin.')
+    obtained=[v17_utc(x) for x in df.obtained_at]
+    if max(now-v for v in obtained)>pd.Timedelta(hours=2):
+        raise ValueError('Bağımsız kaynak alım beyanı 2 saatten eski.')
+    checked['match_signature']=v171_mac_imzasi(maclar)
+    checked['verification']='USER_CSV_OFFICIAL_URL_CLAIM_ONLY_NOT_AUTHENTICATED'
+    return checked
+
+
+def v171_api_fikstur_tekrar_kontrol(api_response,maclar,simdi=None):
+    """API'den tekrar alınan fikstürü yalnız güncel kaynak tutarlılığı için denetler."""
+    now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
+    entries=api_response.get('response') if isinstance(api_response,dict) else None
+    if not isinstance(entries,list) or len(entries)!=15:
+        raise ValueError('API güncel fikstür yanıtında tam 15 karşılaşma yok.')
+    by_id={}
+    for entry in entries:
+        fid=int(entry['fixture']['id'])
+        if fid in by_id: raise ValueError('API yinelenen ID döndü.')
+        by_id[fid]=entry
+    if set(by_id)!={int(m['id']) for m in maclar}:
+        raise ValueError('API 15 maç kimliğinde farklılık var.')
+    for i,m in enumerate(maclar,1):
+        obj=by_id[int(m['id'])]
+        name_home=obj['teams']['home']['name'];name_away=obj['teams']['away']['name']
+        if v171_takim_kimlik(name_home)!=v171_takim_kimlik(m['ev']) or v171_takim_kimlik(name_away)!=v171_takim_kimlik(m['dep']):
+            raise ValueError(f'API güncellemesi: {i}. maçta takım adı/ev sahibi değişmiş.')
+        kickoff=v17_utc(obj['fixture']['date'])
+        if kickoff.tz_convert(V17_SAAT).strftime('%Y-%m-%d %H:%M') != f"{m['tarih']} {m['saat']}":
+            raise ValueError(f'API güncellemesi: {i}. maçta başlama saati değişmiş.')
+        if kickoff<=now: raise ValueError(f'{i}. maç başlamış veya başlama zamanı geçmiş.')
+        if obj['fixture']['status']['short']!='NS':
+            raise ValueError(f'{i}. maç: API durumu NS değil; otomatik güvenilir kabul edilmez.')
+        if m.get('lig_id') is not None and int(obj['league']['id'])!=int(m['lig_id']):
+            raise ValueError(f'{i}. maçın lig kimliği değişmiş.')
+    audit={'count':15,'match_signature':v171_mac_imzasi(maclar),
+           'checked_at':now.isoformat(),
+           'api_response_sha256':hashlib.sha256(json.dumps(entries,ensure_ascii=False,sort_keys=True,default=str).encode('utf-8')).hexdigest(),
+           'status':'API_FIXTURE_MATCHES_SELECTION_NOT_OFFICIAL_BULLETIN'}
+    return audit
+
+
+def v171_bagimsiz_kontrol_kapisi(csv_bytes, liste_metin, maclar, api_kontrol, tahminler, simdi=None):
+    """Ön-oyun analiz paketi kapısı. Gerçek oyun yetkisi ASLA vermez."""
+    now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
+    errors=[]; csvinfo=None; listinfo=None; signature=None
+    try:
+        signature=v171_mac_imzasi(maclar)
+    except (KeyError,ValueError,TypeError) as e: errors.append(str(e))
+    try:
+        csvinfo=v171_bulten_csv_denetle(csv_bytes,maclar,simdi=now)
+    except (KeyError,ValueError,TypeError,AttributeError) as e: errors.append('CSV: '+str(e))
+    try:
+        listinfo=v171_liste_metin_denetle(liste_metin,maclar)
+    except (KeyError,ValueError,TypeError) as e: errors.append('Bağımsız liste: '+str(e))
+    if not isinstance(api_kontrol,dict):errors.append('API tekrar kontrolü yok.')
+    else:
+        try:
+            at=v17_utc(api_kontrol['checked_at'])
+            if at>now or now-at>pd.Timedelta(minutes=10) or signature!=api_kontrol['match_signature'] or api_kontrol.get('count')!=15:
+                errors.append('API tekrar kontrolü bayat, eksik veya farklı bültene ait.')
+        except (KeyError,ValueError,TypeError):errors.append('API kontrol zaman bilgisi bozuk.')
+    if not isinstance(tahminler,list) or len(tahminler)!=15:
+        errors.append('Tam 15 analiz tahmini yok.')
+    else:
+        if [str(m.get('id')) for m in maclar]!=[str(v.get('id')) for v in tahminler]:
+            errors.append('Tahmin maç sırası / kimliği uyuşmuyor.')
+        errors.extend(v17_tahmin_kalitesi(tahminler,simdi=now))
+    return {'ok':not errors, 'issues':errors, 'csv':csvinfo,'manual_list':listinfo,
+            'api':api_kontrol if isinstance(api_kontrol,dict) else None,
+            'match_signature':signature,'evaluated_at':now.isoformat(),
+            'expected_export_rows':[{'order':i+1,'fixture_id':str(m['id']),
+                'match':f"{m['ev']} - {m['dep']}",'date':m['tarih'],'time':m['saat']}
+                for i,m in enumerate(maclar)] if signature else [],
+            'status':'INDEPENDENT_INPUTS_CONSISTENT_NOT_OFFICIALLY_AUTHENTICATED' if not errors else 'BLOCKED'}
+
+
+def v171_toto_0_txt(raw):
+    """Spor Toto'nun resmî sonuç alfabesi 1/0/2'dir; iç sistem 1/X/2 kullanır."""
+    rows=raw.decode('utf-8').splitlines()
+    if not rows or any(len(r)!=15 or set(r)-set('1X2') for r in rows):
+        raise ValueError('İç TXT biçimi geçersiz.')
+    return ('\n'.join(r.replace('X','0') for r in rows)+'\n').encode('utf-8')
+
+
+def v171_denetimli_analiz_zip(raw,manifest_bytes,kapisi):
+    """İki alfabe + giriş kanıtları. Bu bir resmî işlem dosyası değildir."""
+    if not isinstance(kapisi,dict) or not kapisi.get('ok'):
+        raise ValueError('Denetimli paket için 15/15 kontrol kapısı geçilmeli.')
+    v17_paket_kontrol(raw,manifest_bytes)
+    manifest=json.loads(manifest_bytes)
+    ids=[str(x['fixture_id']) for x in manifest['matches']]
+    if len(ids)!=15: raise ValueError('Manifest maç listesi eksik.')
+    if manifest['matches'] != kapisi.get('expected_export_rows'):
+        raise ValueError('Üretilen kolon paketindeki maç adları/saatleri resmî liste kontrollerinden farklı.')
+    if not all(isinstance(kapisi.get(k),dict) and kapisi[k].get('match_signature')==kapisi.get('match_signature')
+               for k in ('csv','manual_list','api')):
+        raise ValueError('Çapraz kontrol kanıtları aynı bültene ait değil.')
+    evidence=kapisi.copy()
+    evidence['note']='Girilen kaynak verilerinin tutarlılığı denetlendi; resmî kaynak otantikliği bağımsız kanıtlanmadı.'
+    zero=v171_toto_0_txt(raw)
+    evidence['txt_1X2_sha256']=hashlib.sha256(raw).hexdigest()
+    evidence['txt_102_sha256']=hashlib.sha256(zero).hexdigest()
+    bundle=io.BytesIO()
+    with zipfile.ZipFile(bundle,'w',compression=zipfile.ZIP_DEFLATED) as zipout:
+        zipout.writestr('KOLONLAR_ANALIZ_1X2.txt',raw)
+        zipout.writestr('KOLONLAR_SPORTOTO_102_INCELEME.txt',zero)
+        zipout.writestr('BULTEN_MANIFEST.json',manifest_bytes)
+        zipout.writestr('KONTROL_KANITLARI.json',json.dumps(evidence,ensure_ascii=False,indent=2,default=str).encode('utf-8'))
+    return bundle.getvalue()
+
+
 tab_uretim, tab_takip, tab_otomasyon, tab_txt153 = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
@@ -1903,33 +2085,48 @@ tab_uretim, tab_takip, tab_otomasyon, tab_txt153 = st.tabs([
 # ------------------------------------------------------------------------------
 guncel_uretim_imzasi = None
 with tab_uretim:
-    with st.expander('🧾 v17 — Resmî bülten karşılaştırması (kullanıcı dosyası)',expanded=True):
-        st.warning('Bu CSV resmî kaynaktan otomatik alınmaz; kullanıcı belgesindeki bilgiyle API maçlarının tutarlılığını denetler. Resmî kaynak gerçekliği bağımsız doğrulanmadığı için otomatik oynama kilitlidir.')
-        st.caption('CSV sütunları: bulletin_id,order,fixture_id,home,away,starts_at,closes_at,source_url,obtained_at (tarih/saat dilimli ISO 8601). 15 satır, sıra 1..15.')
-        user_bulten17=st.file_uploader('Bülten karşılaştırma CSV',type=['csv'],key='v17_bulletin_uploader')
+    with st.expander('🧾 v17.1 — Resmî bülten ve bağımsız API karşılaştırma masası',expanded=True):
+        st.warning('Güvenlik sınırı: Bu kontrollerin HİÇBİRİ resmî web sitesi adına işlem, makbuz onayı veya bağımsız kaynak otantikliği sağlamaz. Otomatik oynama kapalıdır.')
+        st.markdown('[Spor Toto Teşkilatının resmî haftalık maç listesi](https://www.sportoto.gov.tr/spor-toto-listeler) — önce bu sayfadan 15 maçı ve resmî kapanışı kontrol edin.')
+        st.caption('Resmî listeden elle kopyalanmış 15 satırı 1. Ev Sahibi - Deplasman şeklinde aşağıya yazın. Bu giriş, CSV/API kayıtlarından bağımsız olarak maç sırasını sınamak içindir.')
         matchlist17=st.session_state.secilen_15_mac
+        v171_manual=st.text_area('Resmî sayfadan bağımsız alınan 15 maç listesi',key='v171_official_manual',height=135,
+                                 placeholder='1. Galatasaray - Fenerbahçe\n2. Beşiktaş - Trabzonspor\n...')
+        st.caption('CSV sütunları: bulletin_id,order,fixture_id,home,away,starts_at,closes_at,source_url,obtained_at. Tüm zamanlar +03:00 veya Z içermeli.')
+        user_bulten17=st.file_uploader('Bülten karşılaştırma CSV',type=['csv'],key='v171_bulletin_uploader')
         if len(matchlist17)==15:
-            row17=[{'bulletin_id':'', 'order':i+1,'fixture_id':str(m['id']),
-                    'home':m['ev'],'away':m['dep'],
-                    'starts_at':f"{m['tarih']}T{m['saat']}:00+03:00",
-                    'closes_at':'','source_url':'','obtained_at':''} for i,m in enumerate(matchlist17)]
-            st.download_button('⬇️ Seçilen 15 maç için boş bülten kontrol CSV şablonu',
-                pd.DataFrame(row17).to_csv(index=False).encode('utf-8-sig'),
-                file_name='SPOR_TOTO_V17_BULTEN_KONTROL_SABLON.csv',mime='text/csv')
-            st.caption('Bülten kimliği, resmî kapanış, kaynak URL ve veri alım zamanı boş bırakılmıştır; gerçek kaynakla karşılaştırılarak doldurulmalıdır.')
-        if user_bulten17 is not None and len(matchlist17)==15:
-            try:
-                check17=v17_resmi_bulten_denetle(user_bulten17.getvalue(),matchlist17)
-                st.session_state.v17_official_user_csv=check17
-                st.session_state.v17_official_hash=hashlib.sha256(json.dumps([int(m['id']) for m in matchlist17]).encode()).hexdigest()
-                if check17['closed']: st.error('Bülten kapanış zamanı geçmiş. İnceleme dışında kullanım yok.')
-                else: st.success('CSV ↔ API maç/sıra/saat eşleşmesi 15/15. Bu bir RESMÎ KAYNAK DOĞRULAMASI değildir.')
-                st.caption('Kullanıcı CSV SHA-256: '+check17['file_sha256'])
-            except Exception as exc:
-                st.session_state.v17_official_user_csv=None
-                st.error(f'Bülten karşılaştırma başarısız: {exc}')
-        elif user_bulten17 is not None:
-            st.info('Önce 15 maç seçin; CSV ile kontrol o zaman yapılır.')
+            rows17=[{'bulletin_id':'', 'order':i+1,'fixture_id':str(m['id']),
+                     'home':m['ev'],'away':m['dep'],
+                     'starts_at':f"{m['tarih']}T{m['saat']}:00+03:00",
+                     'closes_at':'','source_url':'https://www.sportoto.gov.tr/spor-toto-listeler','obtained_at':''} for i,m in enumerate(matchlist17)]
+            st.download_button('⬇️ Boş karşılaştırma CSV şablonu',
+                pd.DataFrame(rows17).to_csv(index=False).encode('utf-8-sig'),
+                file_name='SPOR_TOTO_V171_BULTEN_SABLONU.csv',mime='text/csv')
+            st.caption('CSV API listesinden oluşturulur; bağımsız kanıt DEĞİLDİR. Kapanışı, tarihleri ve takım isimlerini resmî kaynaktan karşılaştırın.')
+            if api_key and st.button('🔄 API-Football 15 maçı YENİDEN canlı kontrol et',key='v171_api_revalidate'):
+                try:
+                    ids17='-'.join(str(m['id']) for m in matchlist17)
+                    resp17=api_istegi_at(f'https://v3.football.api-sports.io/fixtures?ids={ids17}',api_key,timeout=12)
+                    st.session_state.v171_api_proof=v171_api_fikstur_tekrar_kontrol(resp17,matchlist17)
+                    st.success('API tekrar sorgusu: 15/15 isim, sıra, saat, statü aynı. Bu resmî Spor Toto bültenini doğrulamaz.')
+                except Exception as exc:
+                    st.session_state.v171_api_proof=None
+                    st.error('Fikstür kontrolü başarısız: '+str(exc))
+        else:
+            st.info('Bülten çapraz kontrolü için önce 15 maç seçin.')
+        if len(matchlist17)==15:
+            _now171=pd.Timestamp.now(tz='UTC')
+            v171_current_gate=v171_bagimsiz_kontrol_kapisi(
+                user_bulten17.getvalue() if user_bulten17 else b'',v171_manual,matchlist17,
+                st.session_state.get('v171_api_proof'),st.session_state.analiz_verisi,simdi=_now171)
+            if v171_current_gate['ok']:
+                st.success('✅ Kullanıcı CSV + bağımsız metin + güncel API + tahmin kayıtları birbiriyle tutarlı. RESMÎ KAYNAĞIN OTANTİKLİĞİ DOĞRULANMADI.')
+            else:
+                st.warning(f"Denetimli analiz paketi kilitli: {len(v171_current_gate['issues'])} kontrol uyarısı.")
+                with st.expander('Kontrol ayrıntıları'):
+                    for message in v171_current_gate['issues'][:25]:st.write('• '+message)
+        else:
+            v171_current_gate={'ok':False,'issues':['15 maç seçilmedi.']}
     if not api_key and st.session_state.analiz_verisi is None:
         st.info("👈 Başlamak için sol menüden **API-Football Anahtarınızı** girin veya kayıtlı **.JSON** oturumunuzu yükleyin.")
     else:
@@ -2528,16 +2725,7 @@ with tab_uretim:
                 m5.metric("Simülasyon: 12+", f"%{mc['genel_12_arti']:.1f}", "Tahmin; gerçekleşmiş başarı değil")
                 with m6:
                     st.write("")
-                    st.download_button(
-                        "📥 Senaryo kolonlarını indir (.TXT)",
-                        "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v16_1_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
-                        mime="text/plain",
-                        disabled=(degisiklik_bekliyor or (max_kolon_limiti is not None and len(garanti)>max_kolon_limiti)
-                                  or bool(ozet.get('esnetilenler')) or not bool(meta.get('hedef_tam',False))),
-                        type="primary",
-                        use_container_width=True
-                    )
+                    st.info('TXT + imza denetimi için 4. sekmeyi kullanın.')
 
                 st.caption(
                     f"🔬 **Deterministik Senaryo Kapsama Denetimi:** "
@@ -2742,6 +2930,13 @@ with tab_otomasyon:
             st.download_button('📦 Analiz kolonları ve manifest (ZIP)',paket_zip17,
                 file_name=f"SPOR_TOTO_V17_ANALIZ_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
             st.dataframe(pd.DataFrame([{'Sıra':x['order'],'Maç':x['match'],'API ID':x['fixture_id']} for x in paket_info17['matches']]),hide_index=True,use_container_width=True)
+            if v171_current_gate.get('ok'):
+                try:
+                    audit_zip171=v171_denetimli_analiz_zip(paket_raw17,paket_m17,v171_current_gate)
+                    st.download_button('🛡️ v17.1 DENETİMLİ İNCELEME PAKETİ (1X2 + 102)',audit_zip171,
+                        file_name=f"SPOR_TOTO_V171_KONTROL_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
+                except (ValueError,TypeError,KeyError) as exc: st.error('Denetimli çıktı durdu: '+str(exc))
+            else:st.warning('Denetimli paket kapalı: resmî liste metni, CSV, güncel API ve tahmin kontrolleri tamamlanmadı.')
             st.info('Yatırma kararı veriyorsanız resmî site/işlem detaylarıyla 15 satır, her kolon, tutar ve misli manuel teyit edilmelidir. Bu uygulama işlemin kabul edildiğini iddia etmez.')
             with st.expander('🧾 Elle kaydedilen işlem referansları (doğrulanmamış)',expanded=False):
                 receipt17=st.text_input('Resmî makbuz / işlem referansı (kendi kaydınız)',key='v17_receipt_input')
@@ -2763,12 +2958,10 @@ with tab_txt153:
     st.subheader('📥 Analiz kolonları — Tek TXT + doğrulama paketi')
     st.warning('Yalnızca analiz çıktısıdır. Resmî bülten, kapanış, olasılık kalibrasyonu, site DOM ve ödeme teyidi bağımsız doğrulanmadığından canlı bahis için onaylı değildir.')
     txt17_ozet=st.session_state.son_uretim_ozeti
-    _usercsv=st.session_state.get('v17_official_user_csv')
-    _current_csv_ids=hashlib.sha256(json.dumps([int(i) for i in st.session_state.secilen_mac_idleri]).encode()).hexdigest()
-    if _usercsv and st.session_state.get('v17_official_hash')==_current_csv_ids and not _usercsv.get('closed'):
-        st.info('Kullanıcı CSV dosyası 15/15 karşılaştırıldı; resmî kaynak bağımsız doğrulanmadı. Bülten: '+_usercsv['bulletin_id'])
+    if v171_current_gate.get('ok'):
+        st.info('v17.1 çapraz kontroller geçti; yine de resmî kaynağın otantikliği bağımsız doğrulanmadı.')
     else:
-        st.warning('Kullanıcı bülten CSV dosyası eşleştirilmedi veya eski. Bu, ANALİZ çıktısı indirmeyi engellemez; gerçek kullanım yetkisi vermez.')
+        st.warning('15/15 bağımsız kontrol tamamlanmadı. Sadece ANALİZ çıktısı indirilebilir; denetimli paket kilitli.')
     try:
         raw17,manifest17,zip17,info17=v17_paket_uret(
             st.session_state.uretilen_kuponlar,txt17_ozet,guncel_uretim_imzasi,
@@ -2787,6 +2980,14 @@ with tab_txt153:
         st.download_button('📦 TXT + 15 Maç Manifesti (ZIP)',zip17,
                            file_name=f"SPOR_TOTO_V17_ANALIZ_PAKET_{info17['txt_sha256'][:10]}.zip",
                            mime='application/zip',use_container_width=True)
+        if v171_current_gate.get('ok'):
+            try:
+                z171=v171_denetimli_analiz_zip(raw17,manifest17,v171_current_gate)
+                st.download_button('🛡️ Denetimli 1X2 + resmî 102 alfabeli paket (ZIP)',z171,
+                    file_name=f"SPOR_TOTO_V171_DENETIM_{info17['txt_sha256'][:10]}.zip",
+                    mime='application/zip',use_container_width=True)
+            except (ValueError,TypeError,KeyError) as exc: st.warning('Denetimli paket üretilemedi: '+str(exc))
+
         with st.expander('İlk 20 kolon',expanded=True):
             st.code('\n'.join(raw17.decode().splitlines()[:20]),language='text')
         with st.expander('15 maç sıra ve kimlik denetimi'):
