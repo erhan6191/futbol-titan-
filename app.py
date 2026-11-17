@@ -18,7 +18,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v15.1 — SECURE AUTO PLAY INTEGRATION — ÇEVRİMDIŞI DENETİM",
+    page_title="Spor Toto AI Pro v15.2 — TEK LİSTE & GÜVENLİ SEÇİM ASİSTANI",
     page_icon="🏆",
     layout="wide"
 )
@@ -71,7 +71,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.1</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.2</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -128,7 +128,7 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v15.1 Pro")
+    st.markdown("## 🏆 Spor Toto AI v15.2 Pro")
     st.caption("SECURE AUTO PLAY INTEGRATION — ÇEVRİMDIŞI DENETİM")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
@@ -1602,20 +1602,24 @@ def monte_carlo_simule_et(kuponlar,veriler,sablon):
 
 
 def tarayici_isaretleme_kodu(kolonlar, maclar, paket_imza):
-    """Kullanıcı tetiklemeli, yalnız tanınan seçim kutuları. Ödeme/submit yok."""
+    """Tek panel, bütün liste; yalnız kullanıcı tetiklemeli seçim, asla ödeme/gönderim yok."""
     rows=np.asarray(kolonlar)
-    if not 1<=len(rows)<=4 or len(maclar)!=15:raise ValueError('1–4 kolon ve 15 maç gerekli')
+    if rows.ndim!=2 or rows.shape[1]!=15 or not 1<=len(rows)<=2000 or len(maclar)!=15:
+        raise ValueError('15 maç ve 1–2000 kolon gerekli; daha geniş listelerde çevrimdışı arşivi kullanın.')
     _kodla(rows)
+    cols=[''.join(r) for r in rows.tolist()]
+    if len(set(cols))!=len(cols): raise ValueError('Mükerrer kolon bulundu.')
     pairs=[]
     for name in maclar:
         parts=re.split(r'\s+[-–—]\s+',str(name),maxsplit=1)
         if len(parts)!=2 or not all(x.strip() for x in parts):raise ValueError('Maç adı ev - deplasman biçiminde olmalı')
         pairs.append(parts)
-    payload=json.dumps({'pairs':pairs,'cols':rows.tolist(),'id':paket_imza},ensure_ascii=True)
+    if not re.fullmatch(r'[a-f0-9]{16,64}',str(paket_imza)): raise ValueError('Geçersiz liste kimliği.')
+    payload=json.dumps({'pairs':pairs,'cols':cols,'id':paket_imza},ensure_ascii=True,separators=(',',':'))
     template=r'''(()=>{
 const P=__PAYLOAD__;
-if(location.protocol!=="https:" || !(["iddaa.com","www.iddaa.com"].includes(location.hostname)) || !location.pathname.startsWith("/spor-toto")){alert("Yalnızca iddaa.com Spor Toto sayfasında çalışır.");return;}
-const id="st142-preview";
+if(location.protocol!=="https:" || !["iddaa.com","www.iddaa.com"].includes(location.hostname) || !/^\/spor-toto(?:\/|$)/.test(location.pathname)){alert("Yalnızca iddaa.com Spor Toto sayfasında çalışır.");return;}
+const id="st152-preview";
 if(document.getElementById(id)){alert("Asistan zaten açık.");return;}
 const normalize=s=>String(s).toLocaleLowerCase("tr-TR").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/[^a-z0-9]+/g," ").trim();
 const visible=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>0&&r.height>0&&s.visibility!=="hidden"&&s.display!=="none";};
@@ -1623,7 +1627,6 @@ const selector='input[type="checkbox"],[role="checkbox"][aria-checked="true"],[r
 const valid=e=>visible(e)&&!e.disabled&&e.getAttribute("aria-disabled")!=="true"&&!e.closest("a")&&(e.tagName!=="BUTTON"||e.getAttribute("type")==="button")&&(e.tagName==="INPUT"?e.type==="checkbox":["DIV","SPAN","BUTTON","LABEL"].includes(e.tagName));
 const all=(root)=>Array.from(root.querySelectorAll(selector)).filter(valid).filter(e=>!e.querySelector(selector));
 const state=e=>e.tagName==="INPUT"?e.checked:e.getAttribute("aria-checked")==="true";
-const storage="st142-prepared-"+P.id;
 const words=(hay,needle)=>(' '+hay+' ').includes(' '+needle+' ');
 function locate(){
  const controls=all(document),used=new Set(),result=[];
@@ -1645,35 +1648,46 @@ function locate(){
  if(result.length!==15||result.some((x,i)=>i>0&&x.row.getBoundingClientRect().top<=result[i-1].row.getBoundingClientRect().top))throw Error("Maç sırası uyuşmuyor");
  return result;
 }
-const panel=document.createElement("div");panel.id=id;panel.style.cssText="position:fixed;right:16px;top:16px;z-index:2147483647;background:#fff;color:#17212b;border:2px solid #315b8a;border-radius:10px;padding:16px;width:360px;max-height:85vh;overflow:auto;font:14px Arial;box-shadow:0 5px 20px #0005";
-const title=document.createElement("strong");title.textContent="v15.1 – seçim önizleme / "+P.id;panel.append(title);
-const msg=document.createElement("p");msg.textContent="Sadece seçim kutularını işaretler. Ödeme veya kupon onayı yapmaz.";panel.append(msg);
-const preview=document.createElement("pre");preview.style.cssText="white-space:pre-wrap;font:12px monospace";preview.textContent=P.pairs.map((p,i)=>(i+1)+'. '+p.join(' - ')+' | '+P.cols.map(col=>col[i]).join(' ')).join('\n');panel.append(preview);
-const check=document.createElement("input");check.type="checkbox";const label=document.createElement("label");label.append(check,document.createTextNode(" Maç sırasını ve soldan sağa A/B/C/D, her grupta 1/X/2 sırasını doğruladım."));panel.append(label);
-const run=document.createElement("button");run.type="button";run.textContent="Bu grubu işaretle";run.style.cssText="display:block;margin:10px 0;padding:8px";panel.append(run);
-const close=document.createElement("button");close.type="button";close.textContent="Kapat";close.onclick=()=>panel.remove();panel.append(close);document.body.append(panel);
+const storage="st152-review-"+P.id;
+const panel=document.createElement("div");panel.id=id;panel.style.cssText="position:fixed;right:16px;top:16px;z-index:2147483647;background:#fff;color:#17212b;border:2px solid #315b8a;border-radius:10px;padding:16px;width:370px;max-width:90vw;max-height:85vh;overflow:auto;font:14px Arial;box-shadow:0 5px 20px #0005";
+function add(tag,t){const e=document.createElement(tag);e.textContent=t;panel.append(e);return e;}
+add("strong","Spor Toto v15.2 — Tek liste, dörtlü seçim");
+const msg=add("p","Yalnızca seçim işaretler. Gönderim ve ödeme yapmaz.");
+const meter=document.createElement("progress");meter.max=P.cols.length;meter.style.width="100%";panel.append(meter);
+const summary=add("p","");const preview=add("pre","");preview.style.cssText="white-space:pre-wrap;font:12px monospace";
+const check=document.createElement("input");check.type="checkbox";const label=document.createElement("label");label.append(check,document.createTextNode(" 15 maç sırasını ve A/B/C/D, 1/X/2 kutu sırasını kontrol ettim."));panel.append(label);
+function btn(t){const e=add("button",t);e.type="button";e.style.cssText="display:block;margin:8px 0;padding:9px;width:100%";return e;}
+const run=btn("Sıradaki grubu işaretle"), review=btn("Sitedeki sonucu kontrol ettim — sıradaki grup"), close=btn("Kapat");close.onclick=()=>panel.remove();document.body.append(panel);
+let rec=null,busy=false;
+function load(){let x;try{x=JSON.parse(localStorage.getItem(storage)||'null');}catch(e){throw Error("Yerel kayıt okunamıyor");}if(x===null)return {pos:0,status:"new"};if(!Number.isInteger(x.pos)||x.pos<0||x.pos>P.cols.length||(x.pos%4!==0&&x.pos!==P.cols.length)||!["new","started","prepared","complete"].includes(x.status)||(x.pos===P.cols.length)!==(x.status==="complete"))throw Error("Yerel kayıt geçersiz");return x;}
+function save(x){localStorage.setItem(storage,JSON.stringify(x));rec=x;}
+function refresh(){rec=load();const group=P.cols.slice(rec.pos,rec.pos+4);meter.value=rec.pos;summary.textContent=rec.pos+" / "+P.cols.length+" kolon için kullanıcı kontrol kaydı; ödeme kanıtı değildir.";preview.textContent=group.length?P.pairs.map((p,i)=>(i+1)+'. '+p.join(' - ')+' | '+group.map(col=>col[i]).join(' ')).join('\n'):"Liste tamamlandı.";run.disabled=busy||rec.status!=="new";review.disabled=busy||rec.status!=="prepared";if(rec.status==="started")msg.textContent="Önceki işaretleme belirsiz. Siteyi manuel kontrol edin; otomatik tekrar yapılmaz.";if(rec.status==="prepared")msg.textContent="Grup işaretlenmiş olarak kayıtlı. Sitedeki sonucu kendiniz kontrol edin.";if(rec.status==="complete")msg.textContent="Tüm gruplar için kullanıcı kontrol kaydı tamamlandı. Ödeme doğrulanmadı.";}
+function stop(e){msg.textContent="DURDU: "+e.message+". Siteyi manuel kontrol edin.";run.disabled=true;review.disabled=true;}
+try{refresh();}catch(e){stop(e);}
+review.onclick=()=>{if(busy)return;try{rec=load();if(rec.status!=="prepared")throw Error("Kontrol edilecek hazırlanmış grup yok");if(!confirm("Bu grubun sitedeki durumunu kendiniz kontrol ettiniz mi? Bu kayıt ödeme kanıtı değildir."))return;const pos=Math.min(rec.pos+4,P.cols.length);save({pos,status:pos===P.cols.length?"complete":"new"});check.checked=false;msg.textContent="Kontrol kaydedildi. Önceki seçimleri sitede kontrol edin.";refresh();}catch(e){stop(e);}};
 run.onclick=async()=>{
- if(!check.checked){msg.textContent="Önce sıra doğrulamasını işaretleyin.";return;}
- run.disabled=true;close.disabled=true;
+ if(busy||!check.checked){msg.textContent="Önce maç ve kutu sırasını kontrol edin.";return;}
+ busy=true;run.disabled=true;review.disabled=true;close.disabled=true;
  try{
-  if(localStorage.getItem(storage)){throw Error("Bu paket tarayıcıda daha önce hazırlanmış olarak kayıtlı. Siteyi ve manuel kayıtları kontrol edin.");}
-  const rows=locate();const desired=rows.map((r,i)=>Array.from({length:12},(_,j)=>{const k=Math.floor(j/3),v=P.cols[k]?.[i];return v!==undefined&&["1","X","2"][j%3]===v;}));
-  if(rows.some(r=>r.list.some(state)))throw Error("Sayfada önceden işaretli kutular var; manuel kontrol edin. Asistan bunları silmez.");
-  if(!confirm("15 maç ve "+P.cols.length+" kolon için yalnızca seçim kutuları işaretlensin mi? Ödeme yapılmayacaktır.")){run.disabled=false;close.disabled=false;return;}
-  localStorage.setItem(storage,"started");
+  rec=load();if(rec.status!=="new")throw Error("Grup hazır değil veya daha önce işaretlendi");
+  const group=P.cols.slice(rec.pos,rec.pos+4);if(!group.length)throw Error("Liste tamamlandı");
+  const rows=locate();const desired=rows.map((r,i)=>Array.from({length:12},(_,j)=>{const k=Math.floor(j/3),v=group[k]?.[i];return v!==undefined&&["1","X","2"][j%3]===v;}));
+  if(rows.some(r=>r.list.some(state)))throw Error("Sayfada önceden işaretli kutular var; asistan bunları silmez");
+  if(!confirm("Yalnızca "+group.length+" kolonun seçim kutuları işaretlensin mi? Ödeme yapılmaz."))return;
+  // Başlatılmış kayıt belirsiz işlemin tekrarını önler.
+  save({pos:rec.pos,status:"started"});
   for(let i=0;i<15;i++)for(let j=0;j<12;j++)if(desired[i][j]){
-   const el=rows[i].list[j];if(!el.isConnected||!valid(el)||state(el))throw Error("Sayfa değişti; elle kontrol gerekli");
+   const el=rows[i].list[j];if(!el.isConnected||!valid(el)||state(el))throw Error("Sayfa değişti");
    el.click();await new Promise(resolve=>setTimeout(resolve,120));
-   if(!el.isConnected||!state(el))throw Error("İşaretleme doğrulanamadı; devam edilmedi");
+   if(!el.isConnected||!state(el))throw Error("İşaretleme doğrulanamadı");
   }
-  const finalRows=locate();if(finalRows.some((r,i)=>r.list.some((e,j)=>state(e)!==desired[i][j])))throw Error("Son kontrol başarısız; elle kontrol edin");
-  localStorage.setItem(storage,"prepared");msg.textContent="İşaretler doğrulandı. Ödeme/kupon onayı manuel; kayıt ödeme kanıtı değildir.";
- }catch(e){msg.textContent="DURDU: "+e.message+". Otomatik tekrar yok; elle kontrol edin.";}
- finally{close.disabled=false;}
+  const finalRows=locate();if(finalRows.some((r,i)=>r.list.some((e,j)=>state(e)!==desired[i][j])))throw Error("Son seçim kontrolü başarısız");
+  save({pos:rec.pos,status:"prepared"});msg.textContent="İşaretler doğrulandı; sitedeki nihai işlem kullanıcıya aittir.";
+ }catch(e){msg.textContent="DURDU: "+e.message+". Otomatik tekrar yok.";}
+ finally{busy=false;close.disabled=false;try{refresh();}catch(e){stop(e);}}
 };
 })();'''
     return template.replace('__PAYLOAD__',payload)
-
 
 def kupon_dosyasi_coz(dosya):
     if dosya is None:
@@ -2540,8 +2554,8 @@ with tab_takip:
 # SEKME 3: AKILLI ÇEVRİMDIŞI AKTARIM VE RAPOR MERKEZİ (v15.1)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.subheader("📋 Güvenli Kupon Denetim Merkezi v15.1")
-    st.caption("Tek ekranda bütün kolonların yerel doğrulaması. Resmî hesap bağlantısı, otomatik bahis gönderimi ve ödeme bu sürümde yoktur.")
+    st.subheader("📋 Güvenli Kupon Denetim Merkezi v15.2")
+    st.caption("Tek ekranda bütün kolonların yerel doğrulaması ve tek liste seçim asistanı. Resmî hesap bağlantısı, otomatik bahis gönderimi ve ödeme yoktur.")
     o = st.session_state.son_uretim_ozeti or {}
     k = st.session_state.uretilen_kuponlar
     try:
@@ -2620,14 +2634,18 @@ with tab_otomasyon:
         st.caption(f"Paket {paket}/{plan['packets']} | Kolon {bas+1}–{bas+len(parca)} | {Decimal(plan['price'])*len(parca):,.2f} TL (tahmini)")
         st.download_button('Bu paketi indir (.TXT)','\n'.join(parca)+'\n',f"paket_{paket}_{plan['id'][:12]}.txt",mime='text/plain')
         if platform=='İddaa.com':
-            with st.expander('Eski deneysel seçim önizleme asistanı (isteğe bağlı)',expanded=False):
-                st.caption('v14.3 işaretleme önizlemesi korunmuştur; canlı siteyle uyumluluğu doğrulanmamıştır. Ödeme/gönderim yapmaz. Hata varsa manuel kontrol edin.')
+            st.markdown('### İddaa.com — tek liste seçim asistanı (deneysel)')
+            st.caption('v13.1 gibi bütün kolonlar aynı tarayıcı panelinde tutulur. Her grup en fazla dört kolon. Gerçek gönderim veya ödeme yapılmaz; her grup sonrası siteyi kendiniz kontrol edin.')
+            if not (saved_audit and saved_audit[0]==audit_key):
+                st.info('Önce TÜM KOLONLARI KONTROL ET düğmesini kullanın.')
+            else:
                 try:
-                    pid=hashlib.sha256((plan['id']+':'+str(paket)).encode()).hexdigest()[:16]
-                    js=tarayici_isaretleme_kodu(np.array([list(r) for r in parca]),plan['names'],pid)
-                    st.code('javascript:'+urllib.parse.quote(js,safe="!~*'();:@&=+$,/?[]"),language='text')
-                    st.caption('İsteğe bağlı: favori URL alanına eklenebilir; bu yalnız seçili paketin deneysel önizlemesidir.')
-                    if st.checkbox('JavaScript kaynağını göster',key='js15:'+pid): st.code(js,language='javascript')
+                    js=tarayici_isaretleme_kodu(np.array([list(r) for r in plan['rows']]),plan['names'],plan['id'])
+                    bookmark='javascript:'+urllib.parse.quote(js,safe="!~*'();:@&=+$,/?[]")
+                    st.markdown('1. Aşağıdaki kodu Chrome favorisinin URL alanına bir kez ekleyin. 2. İddaa.com Spor Toto sayfasında favoriyi açın. 3. Sıradaki grubu seçin; son işlemi sitede kendiniz kontrol edin.')
+                    st.code(bookmark,language='text')
+                    st.caption('Güncel bülten değiştiğinde eski favoriyi kullanmayın. Tarayıcı uyumu doğrulanmadı; belirsiz kutu seçicilerinde işlem durur. Tarayıcı yerel kaydı ödeme kanıtı değildir.')
+                    if st.checkbox('JavaScript kaynağını göster',key='js152:'+key): st.code(js,language='javascript')
                 except ValueError as exc: st.warning(str(exc))
         st.markdown('### 4. Manuel kontrol kaydı')
         st.caption('İşaret yalnızca manuel kontrolü kaydeder. Hiçbir hesap veya bahis işlemi başlatmaz.')
