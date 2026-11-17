@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v17.2 — BACKTEST, FRESHNESS & SAFE AUDIT",
+    page_title="Spor Toto AI Pro v18.0 — ACCEPTANCE & RELIABILITY SAFE RC",
     page_icon="🏆",
     layout="wide"
 )
@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v17.2 SAFE BETA</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç. 2. Kullanıcının haftalık bülten CSV dosyasını karşılaştır; bu resmî kaynağı doğrulamaz. 3. Kaynak kalitesini kontrol et. 4. Şablon ve bütçe belirle, analiz yap. 5. Dördüncü sekmeden tek TXT ve SHA-256 manifest paketini indir. 6. Beşinci sekmede maç öncesi geçmiş tahminleri analiz et. 7. Resmî sitedeki bülteni, sırayı, tutarı ve varsa makbuzu bağımsız doğrula.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v18.0 SAFE RELEASE CANDIDATE</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç ve bağımsız bülten karşılaştırmasını yap. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve tek doğrulanabilir analiz ZIP paketini indir. 6. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -94,7 +94,7 @@ varsayilan_state = {
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
     "paket_konfig_v161": None,
-    "sema_versiyonu": "17.2",
+    "sema_versiyonu": "18.0",
     "v171_api_proof": None,
     "v17_receipts": {},
     "v17_official_user_csv": None,
@@ -104,7 +104,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "17.2":
+if st.session_state.get("sema_versiyonu") != "18.0":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -119,7 +119,7 @@ if st.session_state.get("sema_versiyonu") != "17.2":
     st.session_state.v17_official_user_csv = None
     st.session_state.v17_official_hash = None
     st.session_state.v171_api_proof = None
-    st.session_state.sema_versiyonu = "17.2"
+    st.session_state.sema_versiyonu = "18.0"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -144,14 +144,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v17.2")
+    st.markdown("## 🏆 Spor Toto AI v18.0")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v17_2_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v18_0_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -238,8 +238,12 @@ with st.sidebar:
     )
 
     # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
-    ev_katsayisi = 0.0
-    st.caption("v17: Halk yüzdeleri yalnızca bağımsız risk analizinde kullanılır. Gerçek veri yoksa halk farkı hesaplanmaz.")
+    ev_katsayisi = 0.0  # v16 eski vekil (model == halk) puanlama devre dışı.
+    st.caption("v17.3: Halk oranları, model olasılığından AYRIDIR. Tam ve zamanında CSV yoksa etkisi sıfırdır.")
+    v173_opt_in = st.checkbox("🔍 Anti-Public deneysel puanlamayı etkinleştir (yalnız doğrulanmış biçimli halk CSV)",value=False,key='v173_enable',
+        help="Halk tercihi kullanıcının sağladığı kaynak açıklamasıdır; kaynağın otantikliği doğrulanmaz. Gerçek kazanç veya tahmin gücü garantisi yoktur.")
+    v173_weight = st.slider('Kalabalıktan ayrışma puanı ağırlığı (deneysel)',0.00,0.25,0.08,0.01,key='v173_weight',
+        help='0 = yalnız model skoru. Yalnız tam 15 maçlık güncel kullanıcı CSV dosyasıyla aktiftir. Kalibre edilmemiştir.')
     risk_banko_p = st.slider("Banko inceleme eşiği (%)", 40, 90, 65, key="banko16_p")
     risk_gap = st.slider("Halk-model farkı uyarısı (puan)", 5, 30, 15, key="banko16_gap")
     risk_spread = st.slider("Piyasa sapması uyarısı (puan)", 1.0, 10.0, 2.5, 0.5, key="banko16_spread")
@@ -312,7 +316,7 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "17.2",
+            "versiyon": "17.3",
             "secilen_15_mac": st.session_state.secilen_15_mac,
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
@@ -331,7 +335,7 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v17_2_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v17_3_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
@@ -1141,7 +1145,9 @@ def vektorel_filtrele(
     kademe_aktif=True,
     entropi_aktif=False,
     homojen_aktif=False,
-    kati_filtre=False
+    kati_filtre=False,
+    public_prob=None,
+    crowd_strength=0.0
 ):
     harita = {"1": 0, "X": 1, "2": 2}
     ters = np.array(["1", "X", "2"])
@@ -1153,7 +1159,7 @@ def vektorel_filtrele(
     min_kabul_edilebilir = 1 if kati_filtre else max(1, min(8, len(ham_matris) // 20))
 
     oran_mat = np.array([[v["1"], v["X"], v["2"]] for v in mac_verileri], dtype=np.float32)
-    halk_mat = np.array([[v["h1"], v["hX"], v["h2"]] for v in mac_verileri], dtype=np.float32)
+    # Model olasiliklarini halk tercihi sanmak yasak: bos veri = yalniz model skoru.
 
     sira_mat = np.argsort(-oran_mat, axis=1)
     kademe_haritasi = np.zeros((15, 3), dtype=np.int8)
@@ -1255,28 +1261,18 @@ def vektorel_filtrele(
         hibrit_matris = ham_matris[hibrit_maske]
 
     secilen_oranlar = oran_mat[np.arange(15), matris]
-    secilen_halk = halk_mat[np.arange(15), matris]
     puanlar = np.sum(secilen_oranlar, axis=1)
-
-    log_gercek = np.sum(np.log(np.maximum(secilen_oranlar, 1.0) / 100.0), axis=1)
-    log_halk = np.sum(np.log(np.maximum(secilen_halk, 1.0) / 100.0), axis=1)
-    kompozit_skor = log_gercek - (ev_agirligi * 0.24 * log_halk)
+    kompozit_skor = v173_skor_olustur(matris, oran_mat, public_prob, crowd_strength)
 
     ham_oranlar = oran_mat[np.arange(15), ham_matris]
-    ham_halk = halk_mat[np.arange(15), ham_matris]
     ham_puanlar = np.sum(ham_oranlar, axis=1)
-    ham_log_gercek = np.sum(np.log(np.maximum(ham_oranlar, 1.0) / 100.0), axis=1)
-    ham_log_halk = np.sum(np.log(np.maximum(ham_halk, 1.0) / 100.0), axis=1)
-    ham_kompozit = ham_log_gercek - (ev_agirligi * 0.24 * ham_log_halk)
-    ham_idx = np.argsort(ham_kompozit)[::-1]
+    ham_kompozit = v173_skor_olustur(ham_matris, oran_mat, public_prob, crowd_strength)
+    ham_idx = np.argsort(ham_kompozit,kind='stable')[::-1]
 
     hib_oranlar = oran_mat[np.arange(15), hibrit_matris]
-    hib_halk = halk_mat[np.arange(15), hibrit_matris]
     hib_puanlar = np.sum(hib_oranlar, axis=1)
-    hib_log_gercek = np.sum(np.log(np.maximum(hib_oranlar, 1.0) / 100.0), axis=1)
-    hib_log_halk = np.sum(np.log(np.maximum(hib_halk, 1.0) / 100.0), axis=1)
-    hib_kompozit = hib_log_gercek - (ev_agirligi * 0.24 * hib_log_halk)
-    hib_idx = np.argsort(hib_kompozit)[::-1]
+    hib_kompozit = v173_skor_olustur(hibrit_matris, oran_mat, public_prob, crowd_strength)
+    hib_idx = np.argsort(hib_kompozit,kind='stable')[::-1]
 
     idx = np.argsort(kompozit_skor)[::-1]
     return (
@@ -1890,7 +1886,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"17.2 SAFE BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"18.0 SAFE RELEASE CANDIDATE", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -1900,6 +1896,9 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
               "coverage_raw_universe_percent":ozet.get('denetim_ham',{}).get({15:'tam_15',14:'en_az_14',13:'en_az_13',12:'en_az_12'}.get(ozet.get('garanti_derecesi',0),'')),
               "target_correct_matches":ozet.get('garanti_derecesi'),
               "parameter_hash":str(param_imza),"matches":rows,
+              "crowd_proxy_weight":ozet.get('v173_crowd_weight',0.0),
+              "crowd_csv_sha256":ozet.get('v173_public_sha256'),
+              "crowd_proxy_not_payout_forecast":True,
               "txt_sha256":hashlib.sha256(raw).hexdigest()}
     payload=json.dumps(manifest,ensure_ascii=False,sort_keys=True,indent=2).encode('utf-8')
     out=io.BytesIO()
@@ -2293,20 +2292,421 @@ def v172_backtest_report(df,sources):
     return rows,temp,league,paired
 
 
-tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest = st.tabs([
+# ============================================================================
+# v17.3 Anti-Public PRO: user-supplied FULL verified-form 15-match CSV only.
+# "verified-form" != external authenticity; no payout/EV or win guarantees.
+# ============================================================================
+def v173_halk_dogrula(raw, fixture_ids, kickoff_times=None, now=None, max_age_hours=72):
+    """Parse fully aligned public marginal percentages; fail closed for scoring.
+
+    CSV columns: fixture_id,h1,hx,h2,source,snapshot. `source` must be an
+    HTTPS URL, but its contents and ownership are NOT verified here.
+    """
+    from urllib.parse import urlparse
+    ids=[int(x) for x in fixture_ids]
+    if len(ids)!=15 or len(set(ids))!=15:
+        raise ValueError('Anti-Public: 15 farkli mac kimligi gerekli.')
+    if not isinstance(raw,(bytes,bytearray)) or not raw or len(raw)>1_000_000:
+        raise ValueError('Anti-Public CSV bos ya da 1 MB uzerinde.')
+    df=pd.read_csv(io.BytesIO(raw),dtype={'fixture_id':'string','source':'string','snapshot':'string'})
+    needed={'fixture_id','h1','hx','h2','source','snapshot'}
+    if not needed.issubset(df.columns) or len(df)!=15:
+        raise ValueError('Anti-Public tam 15 satir ve fixture_id,h1,hx,h2,source,snapshot sutunlari ister.')
+    if df.fixture_id.isna().any() or not df.fixture_id.str.fullmatch(r'[0-9]+').fillna(False).all():
+        raise ValueError('Anti-Public: mac ID hatali.')
+    found=[int(x) for x in df.fixture_id]
+    if len(set(found))!=15 or set(found)!=set(ids):
+        raise ValueError('Anti-Public: eksik, fazla veya mukerrer mac kimligi.')
+    q=df[['h1','hx','h2']].apply(pd.to_numeric,errors='raise').to_numpy(float)
+    if not np.isfinite(q).all() or np.any(q<0) or np.any(q>100) or np.any(abs(q.sum(axis=1)-100)>0.20):
+        raise ValueError('Anti-Public: oranlar 0..100 araliginda ve yaklasik 100 toplami olmalidir.')
+    if df.source.isna().any():raise ValueError('Anti-Public: kaynak adresi bos.')
+    for v in df.source.astype(str):
+        u=urlparse(v.strip())
+        if u.scheme.lower()!='https' or not u.hostname or '.' not in u.hostname or u.username or u.password or len(v)>1000:
+            raise ValueError('Anti-Public: source alani HTTPS URL olmalidir (otantiklik kaniti degildir).')
+    if df.snapshot.isna().any() or not df.snapshot.astype(str).str.contains(r'(?:Z|[+-]\d{2}:?\d{2})$',regex=True).all():
+        raise ValueError('Anti-Public: saat dilimli snapshot gerekli.')
+    ts=pd.to_datetime(df.snapshot,utc=True,errors='raise')
+    now_ts=pd.Timestamp.now(tz='UTC') if now is None else pd.Timestamp(now)
+    if now_ts.tzinfo is None:raise ValueError('Anti-Public: simdi zaman dilimli olmali.')
+    now_ts=now_ts.tz_convert('UTC')
+    age=(now_ts-ts).dt.total_seconds()/3600
+    if (age<0).any() or (age>max_age_hours).any():
+        raise ValueError(f'Anti-Public: gelecek veya {max_age_hours} saatten eski snapshot var.')
+    kick_dict={}
+    if kickoff_times is not None:
+        if len(kickoff_times)!=15:raise ValueError('Anti-Public: 15 baslama zamani gerekli.')
+        for mid,kick in zip(ids,kickoff_times):
+            k=pd.Timestamp(kick)
+            if k.tzinfo is None:raise ValueError('Anti-Public: baslama zamani dilimsiz.')
+            kick_dict[mid]=k.tz_convert('UTC')
+    pub={}
+    for i,(mid,row) in enumerate(zip(found,q)):
+        if kick_dict and ts.iloc[i]>=kick_dict[mid]:
+            raise ValueError('Anti-Public: mac basladiktan sonra toplanmis halk oranlari reddedildi.')
+        pub[mid]={'q':(row/row.sum()).tolist(),'source':str(df.source.iloc[i]).strip(),
+                  'snapshot':ts.iloc[i].isoformat()}
+    return {'ok':True,'data':pub,'sha256':hashlib.sha256(raw).hexdigest(),
+            'max_age_hours':float(age.max()),'source_count':len({v['source'] for v in pub.values()}),
+            'provenance':'USER_SUPPLIED_UNVERIFIED','match_ids':ids}
+
+
+def v173_skor_olustur(code, model, crowd=None, crowd_strength=0.0):
+    """Bounded log-score ranking ONLY; not payout prediction or calibration."""
+    code=np.asarray(code)
+    p=np.asarray(model,dtype=float)
+    strength=float(crowd_strength)
+    if code.ndim!=2 or code.shape[1]!=15 or p.shape!=(15,3) or not np.isin(code,[0,1,2]).all():
+        raise ValueError('Anti-Public: matris boyutlari hatali.')
+    if not np.isfinite(p).all() or np.any(p<=0) or np.any(abs(p.sum(axis=1)-100)>1.5):
+        raise ValueError('Anti-Public: model yuzdeleri gecersiz.')
+    if not np.isfinite(strength) or not 0<=strength<=0.25:
+        raise ValueError('Anti-Public: agirlik 0..0.25 araliginda olmali.')
+    score=np.sum(np.log(np.maximum(p[np.arange(15),code],1)/100),axis=1)
+    if strength==0 or crowd is None:
+        if strength>0 and crowd is None:
+            raise ValueError('Anti-Public: halk CSV olmadan pozitif agirlik uygulanamaz.')
+        return score
+    q=np.asarray(crowd,float)
+    if q.shape!=(15,3) or not np.isfinite(q).all() or (q<0).any() or (q>1).any() or not np.allclose(q.sum(axis=1),1,atol=.002):
+        raise ValueError('Anti-Public: halk matrisi 15x3 normalize olasalik olmali.')
+    crowd_log=np.log(np.clip(q[np.arange(15),code],.01,1)).sum(axis=1)
+    return score-strength*crowd_log
+
+
+def v173_portfoy_raporu(kolonlar,veriler,public=None,strength=0.0,max_rows=60):
+    """Produces stable diagnostic rankings without changing coupon membership."""
+    a=np.asarray(kolonlar)
+    if a.ndim!=2 or a.shape[1]!=15 or not np.isin(a,['1','X','2']).all():
+        raise ValueError('Anti-Public: 15 kolon isareti gerekli.')
+    if not len(a) or len(a)>300000:raise ValueError('Anti-Public: kolon adedi 1..300000 olmali.')
+    if len(veriler)!=15:raise ValueError('Anti-Public: 15 tahmin gerekli.')
+    code=np.where(a=='X',1,np.where(a=='2',2,0)).astype(np.int8)
+    model=np.array([[v[k] for k in ('1','X','2')] for v in veriler],float)
+    q=None
+    if public is not None:
+        q=np.array([public[int(v['id'])]['q'] for v in veriler],float)
+    score=v173_skor_olustur(code,model,q,strength)
+    pure=v173_skor_olustur(code,model,None,0)
+    ranks=np.argsort(-score,kind='stable')[:max_rows]
+    unique=int(len(np.unique(code,axis=0)))
+    # deterministic evenly spaced sample: O(200^2 * 15), never n*n at 300k.
+    ix=np.unique(np.linspace(0,len(a)-1,min(200,len(a)),dtype=int))
+    sampled=code[ix]
+    if len(sampled)>1:
+        distances=np.sum(sampled[:,None,:]!=sampled[None,:,:],axis=2)
+        pairs=distances[np.triu_indices(len(sampled),1)]
+        distance_min=int(pairs.min()); distance_avg=float(pairs.mean())
+    else: distance_min=None;distance_avg=None
+    rows=[]
+    for ind in ranks:
+        r={'rank':len(rows)+1,'original_no':int(ind+1),'column':''.join(a[ind]),
+           'model_log_score':round(float(pure[ind]),6),
+           'crowd_proxy_score':round(float(score[ind]),6)}
+        if q is not None:
+            r['crowd_log_proxy']=round(float(np.log(np.clip(q[np.arange(15),code[ind]],.01,1)).sum()),6)
+        rows.append(r)
+    return {'count':len(a),'unique':unique,'duplicates':len(a)-unique,
+            'sample_size':len(sampled),'min_pairwise_hamming_sample':distance_min,
+            'mean_pairwise_hamming_sample':distance_avg,
+            'crowd_complete':public is not None,'weight':float(strength),
+            'top_rows':rows,'method':'MODEL_LOG_MINUS_LAMBDA_CROWD_LOG_NOT_EV',
+            'warning':'Halk marjinalleri kupon ortak-dagilimini, ikramiye paylasimini veya kar olasiligini olcmez.'}
+
+
+# ==============================================================================
+# v18.0 KABUL MERKEZİ — SADECE ANALİZ ÇIKTISI
+# Bu fonksiyonlar resmî Spor Toto sayfasının kimliğini, ödeme ve makbuzu
+# ONAYLAMAZ. SHA-256 dosya bozulmasını tespit eder, kaynak otantikliği sağlamaz.
+# ==============================================================================
+V18_DOSYALAR = (
+    'KOLONLAR_ANALIZ_1X2.txt',
+    'KOLONLAR_SPORTOTO_102_INCELEME.txt',
+    'BULTEN_MANIFEST.json',
+    'KABUL_RAPORU.json',
+)
+
+
+
+def v18_sablon_kontrol(raw, ozet, limit=4096):
+    """Şablon üyeliği; küçük ham evrende bağımsız TAM kapsama yeniden hesabı."""
+    if not isinstance(ozet,dict):raise ValueError('Şablon özeti eksik.')
+    template=ozet.get('g_sablon')
+    if not isinstance(template,list) or len(template)!=15:
+        raise ValueError('15 satırlı orijinal şablon yok.')
+    sets=[]
+    for i,row in enumerate(template,1):
+        if not isinstance(row,(list,tuple)) or not 1<=len(row)<=3 or len(set(row))!=len(row) or set(row)-set('1X2'):
+            raise ValueError(f'{i}. şablon satırında 1/X/2 hatası.')
+        sets.append(set(row))
+    total=math.prod(len(row) for row in template)
+    if not 1<=total<=300000 or int(ozet.get('ham_adet',-1))!=total:
+        raise ValueError('Orijinal şablon evren büyüklüğü tutarsız.')
+    lines=raw.decode('utf-8').splitlines()
+    for i,line in enumerate(lines,1):
+        if len(line)!=15 or any(line[j] not in sets[j] for j in range(15)):
+            raise ValueError(f'{i}. kolon orijinal şablon dışında.')
+    if total<=limit:
+        evren=np.array(list(itertools.product(*template)))
+        mevcut=np.array([list(x) for x in lines])
+        actual=deterministik_garanti_denetle(mevcut,evren)
+        saved=ozet.get('denetim_ham',{})
+        for key,value in actual.items():
+            try:
+                stated=float(saved[key])
+                if not math.isfinite(stated) or abs(value-stated)>1e-6:
+                    raise ValueError(f'Ham evren yeniden hesabı: {key} tutarsız.')
+            except (KeyError,TypeError) as exc:
+                raise ValueError('Ham evren kapsama kayıtları eksik.') from exc
+        return {'mode':'EXACT_RAW_UNIVERSE_RECOMPUTED','universe_count':total,
+                'raw_coverage_percent':actual}
+    return {'mode':'TEMPLATE_MEMBERSHIP_ONLY_LARGE_UNIVERSE','universe_count':total,
+            'raw_coverage_percent':None}
+
+def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
+                     kolon_fiyati, butce, simdi=None, ozet=None):
+    """Bütün sonuçlar deterministik ve fail-closed. Canlı oynama yetkisi ASLA üretmez."""
+    now = v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
+    checks=[]
+    def kaydet(code, title, passed, detail, blocking=True):
+        checks.append({'code':code, 'title':title,
+                       'status':'PASS' if passed else ('FAIL' if blocking else 'NOT_VERIFIED'),
+                       'blocking_for_analysis':bool(blocking), 'detail':str(detail)[:600]})
+
+    signature=None
+    try:
+        signature=v171_mac_imzasi(maclar)
+        kaydet('A01','15 benzersiz maçın kimliği ve sırası',True,'15 benzersiz ID, sıra 1–15.')
+    except (ValueError,TypeError,KeyError) as exc:
+        kaydet('A01','15 benzersiz maçın kimliği ve sırası',False,exc)
+
+    if not isinstance(kapi,dict) or not kapi.get('ok') or not signature or kapi.get('match_signature')!=signature:
+        kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',False,
+               'Güncel üçlü karşılaştırma tamamlanmadı veya farklı bültene ait.')
+    else:
+        try:
+            tt=v17_utc(kapi['evaluated_at'])
+            proofs=[kapi[x]['match_signature'] for x in ('csv','manual_list','api')]
+            valid=(tt<=now and now-tt<=pd.Timedelta(minutes=10)
+                   and proofs==[signature]*3
+                   and kapi.get('status')=='INDEPENDENT_INPUTS_CONSISTENT_NOT_OFFICIALLY_AUTHENTICATED')
+            kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',valid,
+                   'Kullanıcı tarafından sağlanan liste ve API kayıtları uyumlu; resmî otantiklik değildir.')
+        except (KeyError,TypeError,ValueError):
+            kaydet('A02','Bülten CSV/metin/API ön-kontrol kapısı',False,'Kanıt zamanı veya imzası geçersiz.')
+
+    try:
+        if not isinstance(maclar,list) or len(maclar)!=15: raise ValueError('15 maç gereklidir.')
+        kickoff=[v17_utc(f"{m['tarih']}T{m['saat']}:00+03:00") for m in maclar]
+        close=v17_utc(kapi['csv']['closes_at'])
+        if min(kickoff)-now<=pd.Timedelta(minutes=5):
+            raise ValueError('Bir maç başlamış veya 5 dakikalık emniyet sınırında.')
+        if close-now<=pd.Timedelta(minutes=5):
+            raise ValueError('Kullanıcı beyanındaki bülten kapanışına 5 dakika veya daha az kaldı.')
+        if close>min(kickoff):
+            raise ValueError('Kapanış en erken maç saatini geçiyor.')
+        kaydet('A03','Başlama ve kapanış emniyet sınırı',True,'Tüm maçlar başlamamış, beyan edilen kapanış öncesi.')
+    except (KeyError,ValueError,TypeError,AttributeError) as exc:
+        kaydet('A03','Başlama ve kapanış emniyet sınırı',False,exc)
+
+    try:
+        issues=v17_tahmin_kalitesi(tahminler,simdi=now)+v172_source_quality(tahminler,simdi=now)
+        if isinstance(tahminler,list) and isinstance(maclar,list):
+            if [str(x.get('id')) for x in tahminler]!=[str(x.get('id')) for x in maclar]:
+                issues.append('Tahmin ve bülten maç ID sırası uyuşmuyor.')
+        kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',not issues,
+               '; '.join(issues[:6]) if issues else 'Güncel API alım ve hesaplama zamanı mevcut.')
+    except (KeyError,ValueError,TypeError,AttributeError) as exc:
+        kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',False,exc)
+
+    try:
+        if not isinstance(raw,(bytes,bytearray)) or not isinstance(manifest_bytes,(bytes,bytearray)):
+            raise ValueError('TXT/manifest yok.')
+        if not (0<len(raw)<=8_000_000 and 0<len(manifest_bytes)<=200_000):
+            raise ValueError('TXT veya manifest boyutu sınır dışında.')
+        v17_paket_kontrol(raw,manifest_bytes)
+        manifest=json.loads(manifest_bytes)
+        expected=[{'order':i+1,'fixture_id':str(m['id']),
+                   'match':f"{m['ev']} - {m['dep']}",'date':m['tarih'],'time':m['saat']}
+                  for i,m in enumerate(maclar)]
+        if manifest['matches']!=expected:
+            raise ValueError('Manifest maç adları, saatleri veya sırası seçili bültenle uyuşmuyor.')
+        if manifest['parameter_hash']!=str(param_imza) or not param_imza:
+            raise ValueError('Üretim parametre imzası uyuşmuyor veya yok.')
+        if manifest.get('mode')!='ANALYSIS_ONLY_NOT_A_BET':
+            raise ValueError('Manifest güvenli analiz modunda değil.')
+        kaydet('A05','TXT/manifest/SHA-256, maç sırası ve parametre bağlama',True,
+               f"{manifest['columns']} benzersiz kolon; TXT SHA-256 ve sıra tutarlı.")
+    except (ValueError,TypeError,KeyError,UnicodeError,OverflowError) as exc:
+        manifest=None
+        kaydet('A05','TXT/manifest/SHA-256, maç sırası ve parametre bağlama',False,exc)
+
+    try:
+        if not isinstance(manifest,dict): raise ValueError('Geçerli manifest yok.')
+        unit=Decimal(str(kolon_fiyati)); budget=Decimal(str(butce))
+        if not unit.is_finite() or not budget.is_finite() or unit<=0 or budget<0:
+            raise ValueError('Fiyat veya bütçe geçersiz.')
+        if Decimal(str(manifest['unit_price_assumption_tl']))!=unit or Decimal(str(manifest['budget_tl']))!=budget:
+            raise ValueError('Manifest ile güncel bütçe/fiyat ayarları farklı.')
+        cost=unit*int(manifest['columns'])
+        if cost>budget or Decimal(str(manifest['cost_assumption_tl']))!=cost:
+            raise ValueError('Bütçe sınırı aşıldı veya hesaplanan tutar tutarsız.')
+        kaydet('A06','Tam TL maliyet ve bütçe kilidi',True,f'{cost} / {budget} TL (kullanıcı fiyat varsayımı).')
+    except (ValueError,TypeError,KeyError,InvalidOperation,OverflowError) as exc:
+        kaydet('A06','Tam TL maliyet ve bütçe kilidi',False,exc)
+
+    try:
+        if not isinstance(manifest,dict) or not isinstance(ozet,dict):
+            raise ValueError('Kapsama özeti ve manifest gerekli.')
+        if ozet.get('imza')!=param_imza or not ozet.get('optimizasyon',{}).get('hedef_tam',False):
+            raise ValueError('Kapsama hedefi doğrulanmadı veya eski parametreler.')
+        if ozet.get('esnetilenler'):
+            raise ValueError('Katı filtre esnetilmiş.')
+        if not manifest.get('coverage_target_met'):
+            raise ValueError('Manifest kapsama hedefi başarısız.')
+        key={15:'tam_15',14:'en_az_14',13:'en_az_13',12:'en_az_12'}.get(ozet.get('garanti_derecesi'))
+        if key is None: raise ValueError('Geçersiz kapsama hedefi.')
+        listed=ozet.get('denetim',{}).get(key)
+        if listed is None or abs(float(listed)-float(ozet['optimizasyon']['kapsama_adet']))>1.1:
+            raise ValueError('Seçilen senaryo evreni için kapsama raporu tutarsız.')
+        if not (0<=float(listed)<=100): raise ValueError('Kapsama yüzdesi aralık dışında.')
+        kaydet('A07','Şartlı evren kapsaması ve katı filtre',True,
+               f'Seçilen evren %{float(listed):.2f} kapsama; gerçek sonuç garantisi değildir.')
+    except (TypeError,KeyError,ValueError,OverflowError) as exc:
+        kaydet('A07','Şartlı evren kapsaması ve katı filtre',False,exc)
+
+    try:
+        if not isinstance(manifest,dict) or not isinstance(ozet,dict):raise ValueError('Halk optimizasyon özeti/manifest yok.')
+        w=float(ozet.get('v173_crowd_weight',0))
+        if not (0<=w<=0.25) or w!=float(manifest.get('crowd_proxy_weight',0)):
+            raise ValueError('Halk ağırlığı uyuşmuyor.')
+        if ozet.get('v173_public_sha256')!=manifest.get('crowd_csv_sha256'):
+            raise ValueError('Halk CSV özeti uyuşmuyor.')
+        if w>0 and not re.fullmatch('[0-9a-f]{64}',str(manifest.get('crowd_csv_sha256',''))):
+            raise ValueError('Halk CSV SHA-256 eksik.')
+        kaydet('A08','Anti-Public izlenebilirliği',True,'İsteğe bağlı halk verisi/parametreler manifestle tutarlı.')
+    except (TypeError,ValueError,KeyError) as exc:
+        kaydet('A08','Anti-Public izlenebilirliği',False,exc)
+
+    try:
+        zero=v171_toto_0_txt(raw)
+        if zero.replace(b'0',b'X')!=raw or len(zero)!=len(raw):
+            raise ValueError('X/0 dönüşümü birebir geri çevrilemiyor.')
+        kaydet('A09','1X2 ile 102 kolonlarının birebir dönüşümü',True,'Sıra ve kolon sayısı değiştirilmedi.')
+    except (ValueError,TypeError,UnicodeError,AttributeError) as exc:
+        kaydet('A09','1X2 ile 102 kolonlarının birebir dönüşümü',False,exc)
+
+    try:
+        template_audit=v18_sablon_kontrol(raw,ozet)
+        kaydet('A10','Şablon üyeliği ve ham kapsama iç tutarlılığı',True,
+               f"{template_audit['universe_count']} ham senaryo; {template_audit['mode']}.")
+    except (ValueError,TypeError,KeyError,UnicodeError,OverflowError,AttributeError) as exc:
+        template_audit=None
+        kaydet('A10','Şablon üyeliği ve ham kapsama iç tutarlılığı',False,exc)
+
+    # Aşağıdaki maddeler için bu programda bağımsız kaynak/işlem doğrulaması YOK.
+    kaydet('B01','Resmî Spor Toto web içeriğinin bağımsız otantikliği',False,
+           'Kullanıcıdan gelen URL, metin ve CSV resmî sayfa olduğunun kanıtı değildir.',blocking=False)
+    kaydet('B02','Gerçek geçmişte kalibre edilmiş üstün tahmin başarısı',False,
+           'Geniş, kaynak doğrulanmış pre-match tarihsel test ve bağımsız holdout bulunmuyor.',blocking=False)
+    kaydet('B03','Bahis sitesi ekran işaretleri, fiyat ve ödeme makbuzu teyidi',False,
+           'Canlı site DOM/ödeme entegrasyonu kapalı; E2E test yapılmadı.',blocking=False)
+    if template_audit and template_audit['mode']=='TEMPLATE_MEMBERSHIP_ONLY_LARGE_UNIVERSE':
+        kaydet('B04','Büyük ham evrenin bağımsız tam yeniden sayımı',False,
+               '4096 senaryodan büyük evrenlerin tam yeniden hesabı bu kabul turunda yapılmadı.',blocking=False)
+    errors=[x['code']+': '+x['detail'] for x in checks if x['status']=='FAIL']
+    eligible=not errors
+    result={'version':'18.0 SAFE RELEASE CANDIDATE','scope':'ANALYSIS_ONLY',
+            'checked_at_utc':now.isoformat(), 'bulletin_signature':signature,
+            'manifest_sha256':hashlib.sha256(manifest_bytes).hexdigest() if isinstance(manifest_bytes,(bytes,bytearray)) else None,
+            'txt_sha256':hashlib.sha256(raw).hexdigest() if isinstance(raw,(bytes,bytearray)) else None,
+            'parameter_signature':str(param_imza) if param_imza else None,
+            'analysis_package_eligible':eligible,'real_money_approved':False,
+            'result':'ANALYSIS_PACKAGE_ELIGIBLE_NOT_LIVE_APPROVED' if eligible else 'BLOCKED',
+            'failures':errors,'checks':checks,
+            'warning':'SHA-256 bütünlük kanıtıdır, resmî kaynak otantikliği veya ödeme teyidi değildir.'}
+    return result
+
+
+def v18_kabul_zip(raw, manifest_bytes, report):
+    """Yalnız rapor PASS ise izlenebilir ANALİZ paketi oluşturur."""
+    if not isinstance(report,dict) or not report.get('analysis_package_eligible') or report.get('real_money_approved') is not False:
+        raise ValueError('Analiz kabul kapısı geçilmedi veya canlı kullanım iddiası var.')
+    v17_paket_kontrol(raw,manifest_bytes)
+    m=json.loads(manifest_bytes)
+    if report.get('txt_sha256')!=hashlib.sha256(raw).hexdigest() or report.get('manifest_sha256')!=hashlib.sha256(manifest_bytes).hexdigest():
+        raise ValueError('Kabul raporundaki imzalar güncel dosyalarla uyuşmuyor.')
+    if report.get('parameter_signature')!=m.get('parameter_hash') or not report.get('bulletin_signature'):
+        raise ValueError('Kabul parametre ve bülten imzası eksik.')
+    zero=v171_toto_0_txt(raw)
+    data={'KOLONLAR_ANALIZ_1X2.txt':bytes(raw),
+          'KOLONLAR_SPORTOTO_102_INCELEME.txt':zero,
+          'BULTEN_MANIFEST.json':bytes(manifest_bytes),
+          'KABUL_RAPORU.json':json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True).encode('utf-8')}
+    checks={'format':'SHA256_FILE_INTEGRITY_NOT_ORIGIN_AUTHENTICATION','sha256':{k:hashlib.sha256(v).hexdigest() for k,v in data.items()}}
+    data['DOSYA_BUTUNLUK.json']=json.dumps(checks,ensure_ascii=False,indent=2,sort_keys=True).encode('utf-8')
+    out=io.BytesIO()
+    with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+        for name,payload in data.items():z.writestr(name,payload)
+    return out.getvalue()
+
+
+def v18_zip_kontrol(zip_bytes):
+    """Disk üstündeki ZIP'in kapalı şemalı dosya bütünlüğü kontrolü; resmî belge değil."""
+    if not isinstance(zip_bytes,(bytes,bytearray)) or len(zip_bytes)<300 or len(zip_bytes)>16_000_000:
+        raise ValueError('ZIP boyutu geçersiz.')
+    expected=set(V18_DOSYALAR)|{'DOSYA_BUTUNLUK.json'}
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+        members=z.infolist()
+        if len(members)!=5 or [x.filename for x in members]!=list(V18_DOSYALAR)+['DOSYA_BUTUNLUK.json']:
+            raise ValueError('Dosya listesi/sırası, tekrarlar veya harici dosyalar geçersiz.')
+        if any(x.is_dir() or x.file_size>8_000_000 for x in members) or sum(x.file_size for x in members)>17_000_000:
+            raise ValueError('Açılmış dosya boyutu güvenli sınır dışında.')
+        data={x.filename:z.read(x.filename) for x in members}
+    check=json.loads(data['DOSYA_BUTUNLUK.json'])
+    if not isinstance(check,dict):raise ValueError('Bütünlük JSON nesnesi gerekli.')
+    if check.get('format')!='SHA256_FILE_INTEGRITY_NOT_ORIGIN_AUTHENTICATION' or set(check.get('sha256',{}))!=set(V18_DOSYALAR):
+        raise ValueError('Bütünlük şeması geçersiz.')
+    if any(hashlib.sha256(data[name]).hexdigest()!=check['sha256'][name] for name in V18_DOSYALAR):
+        raise ValueError('ZIP dosya içerikleri SHA-256 kontrolünden geçmedi.')
+    txt=data['KOLONLAR_ANALIZ_1X2.txt']; manifest_bytes=data['BULTEN_MANIFEST.json']
+    v17_paket_kontrol(txt,manifest_bytes)
+    if v171_toto_0_txt(txt)!=data['KOLONLAR_SPORTOTO_102_INCELEME.txt']:
+        raise ValueError('102 dosyası 1X2 dosyasıyla eşleşmiyor.')
+    report=json.loads(data['KABUL_RAPORU.json']); m=json.loads(manifest_bytes)
+    if not isinstance(report,dict) or report.get('result')!='ANALYSIS_PACKAGE_ELIGIBLE_NOT_LIVE_APPROVED' or report.get('real_money_approved') is not False:
+        raise ValueError('Raporda desteklenmeyen kullanım iddiası var.')
+    if not isinstance(report.get('checks'),list) or any(not isinstance(v,dict) for v in report['checks']):
+        raise ValueError('Kabul raporu kontrol listesi geçersiz.')
+    if not report.get('analysis_package_eligible') or any(v.get('status')=='FAIL' for v in report['checks']):
+        raise ValueError('Kabul raporu analiz için başarısız.')
+    if report.get('manifest_sha256')!=hashlib.sha256(manifest_bytes).hexdigest() or report.get('txt_sha256')!=hashlib.sha256(txt).hexdigest():
+        raise ValueError('Kabul raporu TXT veya manifestle uyuşmuyor.')
+    if report.get('parameter_signature')!=m.get('parameter_hash'):
+        raise ValueError('Parametre imzaları tutarsız.')
+    return {'status':'OFFLINE_INTEGRITY_OK_NOT_OFFICIAL_AUTHENTICATED','columns':m['columns'],
+            'txt_sha256':m['txt_sha256'],'matches':len(m['matches']),
+            'analyzed_at':report.get('checked_at_utc')}
+
+tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, tab_acceptance = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
     "🛡️ 3. Denetimli Paket ve İşlem Kayıtları",
     "📥 4. Analiz TXT + Manifest",
-    "🧪 5. Backtest & Kalibrasyon"
+    "🧪 5. Backtest & Kalibrasyon",
+    "🧠 6. Anti-Public & Çeşitlilik",
+    "✅ 7. v18.0 Kabul ve Güvenilirlik"
 ])
 
 # ------------------------------------------------------------------------------
 # SEKME 1: PROFESYONEL MAÇ KONTROL PANELİ VE SENDİKA MOTORU
 # ------------------------------------------------------------------------------
 guncel_uretim_imzasi = None
+public173_ctx=None
+v173_active_weight=0.0
 with tab_uretim:
-    with st.expander('🧾 v17.2 — Resmî bülten ve bağımsız API karşılaştırma masası',expanded=True):
+    with st.expander('🧾 v17.3 — Resmî bülten ve bağımsız API karşılaştırma masası',expanded=True):
         st.warning('Güvenlik sınırı: Bu kontrollerin HİÇBİRİ resmî web sitesi adına işlem, makbuz onayı veya bağımsız kaynak otantikliği sağlamaz. Otomatik oynama kapalıdır.')
         st.markdown('[Spor Toto Teşkilatının resmî haftalık maç listesi](https://www.sportoto.gov.tr/spor-toto-listeler) — önce bu sayfadan 15 maçı ve resmî kapanışı kontrol edin.')
         st.caption('Resmî listeden elle kopyalanmış 15 satırı 1. Ev Sahibi - Deplasman şeklinde aşağıya yazın. Bu giriş, CSV/API kayıtlarından bağımsız olarak maç sırasını sınamak içindir.')
@@ -2687,6 +3087,23 @@ with tab_uretim:
                 if public_file16 is not None:
                     try: public16=halk_verisi_oku16(public_file16,[v['id'] for v in s_veriler])
                     except Exception as exc: st.error(f"Halk verisi kullanılmadı: {exc}")
+                if public_file16 is not None:
+                    try:
+                        _kickoffs173=[]
+                        _selected173={int(m['id']):m for m in st.session_state.secilen_15_mac}
+                        for v in s_veriler:
+                            _mm=_selected173[int(v['id'])]
+                            _kickoffs173.append(pd.Timestamp(f"{_mm['tarih']}T{_mm['saat']}:00+03:00"))
+                        public173_ctx=v173_halk_dogrula(public_file16.getvalue(),
+                            [v['id'] for v in s_veriler],kickoff_times=_kickoffs173)
+                    except Exception as exc:
+                        public173_ctx={'ok':False,'issues':[str(exc)]}
+                        st.warning('Anti-Public optimizasyonu devre dışı: '+str(exc))
+                if v173_opt_in and public173_ctx is not None and public173_ctx.get('ok'):
+                    v173_active_weight=v173_weight
+                    st.success('15 maçlık halk CSV biçimsel denetimi geçti. Kaynak bağımsız doğrulanmadı; ağırlık deneyseldir.')
+                elif v173_opt_in:
+                    st.error('Anti-Public istendi ancak tam/güncel 15 maçlık CSV yok. Yeni kolon üretimi kilitlenecek.')
                 if not public16: st.info("Gerçek halk tercihi verisi yok. Farklar hesaplanmadı; tahmini halk yüzdeleri gerçek veri olarak gösterilmez.")
                 else: st.warning(f"{len(public16)}/15 maç için kullanıcının sağladığı oranlar var. Kaynak ve maç öncesi olma durumu bağımsız doğrulanmadı.")
                 risk_rows16=[]; banko_probs16=[]; cover_probs16=[]; fav_probs16=[]
@@ -2736,6 +3153,8 @@ with tab_uretim:
                 "max_k": max_kolon_limiti,
                 "uretim_modu": uretim_modu, "kolon_fiyati": kolon_fiyati,
                 "ev": ev_katsayisi,
+                "v173_public_sha":(public173_ctx or {}).get('sha256'),
+                "v173_opt_in":v173_opt_in,"v173_weight":v173_weight,
                 "strateji": strateji_modu,
                 "hamming": benzerlik_elemesi,
                 "akilli_merkez": akilli_merkez, "arama_derinligi": arama_derinligi,
@@ -2763,13 +3182,17 @@ with tab_uretim:
                 "oranlar": [(v["1"], v["X"], v["2"], v["h1"], v["hX"], v["h2"]) for v in s_veriler],
                 "g1_idx": g1_indeksleri,
                 "g2_idx": g2_indeksleri,
-                "sol_menu_imzasi": sol_menu_imzasi
+                "sol_menu_imzasi": sol_menu_imzasi,
+                "v173_public_sha":(public173_ctx or {}).get('sha256'),
+                "v173_active_weight":v173_active_weight
             }, sort_keys=True)
             param_imzasi = hashlib.md5(imza_ham.encode("utf-8")).hexdigest()
             degisiklik_bekliyor = (st.session_state.get("son_param_imzasi") != param_imzasi)
             if not bos_mac_var and not sira_hatasi_var and not oran_hatasi_var and ham_kolon_sayisi <= 300_000:
                 guncel_uretim_imzasi = param_imzasi
 
+            v173_blocked=bool(v173_opt_in and not (public173_ctx or {}).get('ok'))
+            if v173_blocked:st.error('❌ Anti-Public modu etkin fakat geçerli 15 maç halk verisi yok: sistem yeni kolon üretmez.')
             col_ozet, col_buton = st.columns([2.2, 1.2])
             with col_ozet:
                 durum_etiketi = (
@@ -2790,7 +3213,7 @@ with tab_uretim:
                     "⚡ KAPSAMA HESAPLA",
                     type="primary",
                     use_container_width=True,
-                    disabled=(bos_mac_var or sira_hatasi_var or oran_hatasi_var or ham_kolon_sayisi > 300_000)
+                    disabled=(bos_mac_var or sira_hatasi_var or oran_hatasi_var or v173_blocked or ham_kolon_sayisi > 300_000)
                 )
 
             if sira_hatasi_var:
@@ -2808,16 +3231,18 @@ with tab_uretim:
                 and (degisiklik_bekliyor or sol_menu_degisti)
                 and not bos_mac_var
                 and not sira_hatasi_var
+                and not v173_blocked
                 and ham_kolon_sayisi <= 4000
             )
             ilk_acilis_uretim = (
                 st.session_state.uretilen_kuponlar is None
                 and not bos_mac_var
                 and not sira_hatasi_var
+                and not v173_blocked
                 and ham_kolon_sayisi <= 4000
             )
 
-            if degisiklik_bekliyor or bos_mac_var or sira_hatasi_var or oran_hatasi_var or ham_kolon_sayisi > 300_000 or max_kolon_limiti == 0:
+            if degisiklik_bekliyor or bos_mac_var or sira_hatasi_var or oran_hatasi_var or v173_blocked or ham_kolon_sayisi > 300_000 or max_kolon_limiti == 0:
                 if degisiklik_bekliyor:
                     st.session_state.yatirilan_paketler = []
                     st.session_state.paket_konfig_v161 = None
@@ -2825,7 +3250,7 @@ with tab_uretim:
                 st.session_state.son_uretim_ozeti = None
             if max_kolon_limiti == 0:
                 st.info("Sıfır bütçe: aktif kolon yok.")
-            if max_kolon_limiti != 0 and not bos_mac_var and not sira_hatasi_var and not oran_hatasi_var and ham_kolon_sayisi<=300_000 and (uretim_tetikle or otomatik_hizli_yenile or (ilk_acilis_uretim and not st.session_state.get('son_param_imzasi'))):
+            if max_kolon_limiti != 0 and not bos_mac_var and not sira_hatasi_var and not oran_hatasi_var and not v173_blocked and ham_kolon_sayisi<=300_000 and (uretim_tetikle or otomatik_hizli_yenile or (ilk_acilis_uretim and not st.session_state.get('son_param_imzasi'))):
                 with st.spinner("⚡ Garantili kuponlar ve deterministik denetim hesaplanıyor..."):
                     if ai_filtre_modu:
                         limitler = tam_otonom_analiz(s_veriler, strateji_modu, aktif_sablon=g_sablon)
@@ -2853,7 +3278,10 @@ with tab_uretim:
                         kademe_aktif=kademe_filtre_aktif,
                         entropi_aktif=entropi_filtresi,
                         homojen_aktif=homojen_bulten,
-                        kati_filtre=kati_filtre_kilidi
+                        kati_filtre=kati_filtre_kilidi,
+                        public_prob=(np.array([public173_ctx['data'][v['id']]['q'] for v in s_veriler],float)
+                                     if v173_active_weight>0 and public173_ctx and public173_ctx.get('ok') else None),
+                        crowd_strength=v173_active_weight
                     )
 
                     if mutlak_sablon_garantisi:
@@ -2925,7 +3353,10 @@ with tab_uretim:
                             "denetim_ham": denetim_ham,
                             "s_veriler": s_veriler,
                             "g_sablon": g_sablon,
-                            "esnetilenler": esnetilenler
+                            "esnetilenler": esnetilenler,
+                            "v173_public_sha256":(public173_ctx or {}).get('sha256') if v173_active_weight>0 else None,
+                            "v173_crowd_weight":v173_active_weight,
+                            "v173_note":"Crowd proxy is not payout, EV, or true joint popularity"
                         }
                     else:
                         st.session_state.uretilen_kuponlar = None
@@ -3187,13 +3618,7 @@ with tab_otomasyon:
             st.download_button('📦 Analiz kolonları ve manifest (ZIP)',paket_zip17,
                 file_name=f"SPOR_TOTO_V17_ANALIZ_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
             st.dataframe(pd.DataFrame([{'Sıra':x['order'],'Maç':x['match'],'API ID':x['fixture_id']} for x in paket_info17['matches']]),hide_index=True,use_container_width=True)
-            if v171_current_gate.get('ok'):
-                try:
-                    audit_zip171=v171_denetimli_analiz_zip(paket_raw17,paket_m17,v171_current_gate)
-                    st.download_button('🛡️ v17.2 DENETİMLİ İNCELEME PAKETİ (1X2 + 102)',audit_zip171,
-                        file_name=f"SPOR_TOTO_V172_KONTROL_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
-                except (ValueError,TypeError,KeyError) as exc: st.error('Denetimli çıktı durdu: '+str(exc))
-            else:st.warning('Denetimli paket kapalı: resmî liste metni, CSV, güncel API ve tahmin kontrolleri tamamlanmadı.')
+            st.info('v18 denetimli paket ve kabul raporu yalnızca 7. sekmeden üretilir.')
             st.info('Yatırma kararı veriyorsanız resmî site/işlem detaylarıyla 15 satır, her kolon, tutar ve misli manuel teyit edilmelidir. Bu uygulama işlemin kabul edildiğini iddia etmez.')
             with st.expander('🧾 Elle kaydedilen işlem referansları (doğrulanmamış)',expanded=False):
                 receipt17=st.text_input('Resmî makbuz / işlem referansı (kendi kaydınız)',key='v17_receipt_input')
@@ -3216,7 +3641,7 @@ with tab_txt153:
     st.warning('Yalnızca analiz çıktısıdır. Resmî bülten, kapanış, olasılık kalibrasyonu, site DOM ve ödeme teyidi bağımsız doğrulanmadığından canlı bahis için onaylı değildir.')
     txt17_ozet=st.session_state.son_uretim_ozeti
     if v171_current_gate.get('ok'):
-        st.info('v17.2 çapraz kontroller geçti; yine de resmî kaynağın otantikliği bağımsız doğrulanmadı.')
+        st.info('v18 öncesi çapraz kontroller geçti; yine de resmî kaynağın otantikliği bağımsız doğrulanmadı.')
     else:
         st.warning('15/15 bağımsız kontrol tamamlanmadı. Sadece ANALİZ çıktısı indirilebilir; denetimli paket kilitli.')
     try:
@@ -3237,13 +3662,7 @@ with tab_txt153:
         st.download_button('📦 TXT + 15 Maç Manifesti (ZIP)',zip17,
                            file_name=f"SPOR_TOTO_V17_ANALIZ_PAKET_{info17['txt_sha256'][:10]}.zip",
                            mime='application/zip',use_container_width=True)
-        if v171_current_gate.get('ok'):
-            try:
-                z171=v171_denetimli_analiz_zip(raw17,manifest17,v171_current_gate)
-                st.download_button('🛡️ Denetimli 1X2 + resmî 102 alfabeli paket (ZIP)',z171,
-                    file_name=f"SPOR_TOTO_V172_DENETIM_{info17['txt_sha256'][:10]}.zip",
-                    mime='application/zip',use_container_width=True)
-            except (ValueError,TypeError,KeyError) as exc: st.warning('Denetimli paket üretilemedi: '+str(exc))
+        st.info('Denetimli 1X2/102 ZIP üretimi için 7. Kabul Merkezi sekmesini kullanın.')
 
         with st.expander('İlk 20 kolon',expanded=True):
             st.code('\n'.join(raw17.decode().splitlines()[:20]),language='text')
@@ -3329,3 +3748,115 @@ with tab_backtest:
             st.download_button('📄 Backtest raporunu JSON indir',
                 json.dumps(report172,ensure_ascii=False,indent=2,default=str).encode('utf-8'),
                 file_name='SPOR_TOTO_V172_BACKTEST_RAPORU.json',mime='application/json',key='v172_report_out')
+
+
+# ------------------------------------------------------------------------------
+# SEKME 6: v17.3 ANTI-PUBLIC PRO -- diagnoz + agirlik etkisi, grafik YOK
+# ------------------------------------------------------------------------------
+with tab_antipublic:
+    st.subheader('🧠 v17.3 — Anti-Public & Portföy Çeşitliliği')
+    st.warning('Halk tercihi veri seti size ait bir CSV kaydıdır. Kaynağın otantikliği, kayıt saatinin doğruluğu ve piyasa güncelliği bağımsız doğrulanmaz. '
+               'Halk oranları tek-maç marjinalleridir; 15 maçlık ortak kupon dağılımı, ikramiye paylaşımı, net EV veya kazanç tahmini değildir.')
+    st.caption('1. sekmede Banko Riski & Halk Tercihi bölümüne fixture_id,h1,hx,h2,source,snapshot dosyasını yükleyin. '
+               'Tam 15 maç, HTTPS kaynak adresi, saat dilimli ve son 72 saatlik maç öncesi kayıt gereklidir. '
+               'Deneysel ağırlığı sol menüden isteğe bağlı açabilirsiniz; varsayılan kapalıdır.')
+    if public173_ctx is None:
+        st.info('Tam halk CSV henüz yüklenmedi. Optimizasyon model ağırlıklı, Anti-Public etkisi sıfır.')
+    elif not public173_ctx.get('ok'):
+        st.error('Halk verisi doğrulaması başarısız: '+'; '.join(public173_ctx.get('issues',[])))
+    else:
+        st.success(f"15/15 kayıt biçimsel kontrolden geçti • Kullanıcı sağladı, otantiklik doğrulanmadı • En eski: {public173_ctx['max_age_hours']:.1f} saat")
+        st.code('Kullanıcı halk CSV SHA-256: '+public173_ctx['sha256'])
+        if not v173_opt_in:st.info('Deneysel optimizasyon kapalı; kamu verisi yalnız tanı amaçlı gösteriliyor.')
+    if st.session_state.uretilen_kuponlar is None or st.session_state.son_uretim_ozeti is None:
+        st.info('Portföy raporu için 1. sekmede 15 maçlık kupon setini hesaplayın.')
+    elif guncel_uretim_imzasi is None or st.session_state.son_uretim_ozeti.get('imza')!=guncel_uretim_imzasi:
+        st.warning('Şablon, halka açık veri veya ağırlık değişti: yeni kolonları hesaplamadan eski portföy raporu gösterilmiyor.')
+    else:
+        try:
+            _sum173=st.session_state.son_uretim_ozeti
+            _report173=v173_portfoy_raporu(st.session_state.uretilen_kuponlar,
+                _sum173['s_veriler'],public173_ctx['data'] if public173_ctx and public173_ctx.get('ok') else None,
+                _sum173.get('v173_crowd_weight',0))
+            _sha173=_sum173.get('v173_public_sha256')
+            if _sum173.get('v173_crowd_weight',0)>0 and _sha173!=(public173_ctx or {}).get('sha256'):
+                raise ValueError('Halk veri SHA ile uretilen kuponlar uyusmuyor.')
+            _k1,_k2,_k3=st.columns(3)
+            _k1.metric('Kolon',str(_report173['count']))
+            _k2.metric('Mükerrer kolon',str(_report173['duplicates']))
+            _k3.metric('Örnek min. Hamming',str(_report173['min_pairwise_hamming_sample']))
+            st.caption(f"Hamming mesafesi {int(_report173['sample_size'])} deterministik örnek kolon üzerinde hesaplanır; tam portföy ispatı değildir. "
+                       f"Kullanılan halk ağırlığı: {_report173['weight']:.2f}. Bu sıralama kolonların içeriğini değiştirmez.")
+            st.dataframe(pd.DataFrame(_report173['top_rows']),hide_index=True,use_container_width=True)
+            st.download_button('📥 Anti-Public sıralama denetimini CSV indir',
+                pd.DataFrame(_report173['top_rows']).to_csv(index=False).encode('utf-8-sig'),
+                file_name='SPOR_TOTO_V173_ANTI_PUBLIC_INCELEME.csv',mime='text/csv')
+            _audit173={k:v for k,v in _report173.items() if k!='top_rows'}
+            _audit173.update({'model_version':'17.3 SAFE BETA','parameter_signature':guncel_uretim_imzasi,
+                'public_csv_sha256':_sha173,'independent_authentication':False,
+                'coverage_unchanged_by_report':True,'source':'user_supplied_csv'})
+            st.download_button('📄 Anti-Public denetim özetini JSON indir',
+                json.dumps(_audit173,ensure_ascii=False,indent=2).encode('utf-8'),
+                file_name='SPOR_TOTO_V173_ANTI_PUBLIC_RAPOR.json',mime='application/json')
+        except Exception as _exc173:
+            st.error('Anti-Public portföy denetimi durduruldu: '+str(_exc173))
+
+
+# ------------------------------------------------------------------------------
+# SEKME 7: v18.0 ACCEPTANCE & RELIABILITY CENTER
+# ------------------------------------------------------------------------------
+with tab_acceptance:
+    st.subheader('✅ v18.0 — Kabul ve Güvenilirlik Merkezi')
+    st.error('GERÇEK PARAYLA OTOMATİK OYNAMA / ÖDEME YETKİSİ YOK. Bu sistem yalnızca analiz paketi ve doğrulama raporu üretir.')
+    st.caption('Yazılım çekirdek testleri canlı bahis sitesi veya resmî veri otantikliği testi değildir. '
+               'Tek başına CSV kaynağının URL bilgisi, resmî kaynağın gerçekten doğrulandığını kanıtlamaz.')
+    v18_report=None
+    if st.session_state.uretilen_kuponlar is None or not st.session_state.son_uretim_ozeti:
+        st.warning('Önce 1. sekmeden güncel 15 maçın analizini ve kolonları oluşturun.')
+    else:
+        try:
+            o18=st.session_state.son_uretim_ozeti
+            raw18,manifest18,_,info18=v17_paket_uret(
+                st.session_state.uretilen_kuponlar,o18,guncel_uretim_imzasi,
+                st.session_state.secilen_mac_idleri,o18['s_veriler'],kolon_fiyati,hedef_butce_tl,strict=True)
+        except (ValueError,TypeError,KeyError,OverflowError,InvalidOperation) as exc:
+            st.error('Kabul testi için geçerli temel TXT paketi üretilemedi: '+str(exc))
+        else:
+            v18_report=v18_kabul_raporu(raw18,manifest18,v171_current_gate,
+                st.session_state.secilen_15_mac,st.session_state.analiz_verisi,
+                guncel_uretim_imzasi,kolon_fiyati,hedef_butce_tl,
+                ozet=o18)
+            st.dataframe(pd.DataFrame([{'Kod':r['code'],'Kontrol':r['title'],
+                                       'Durum':r['status'],'Ayrıntı':r['detail']}
+                                      for r in v18_report['checks']]),hide_index=True,use_container_width=True)
+            st.caption('PASS: yerel kontrol başarılı. FAIL: analiz paketini engeller. '
+                       'NOT_VERIFIED: canlı/onaylı oyun için gereken bağımsız doğrulama henüz yapılmamış.')
+            st.download_button('📄 Kabul raporu JSON olarak indir',
+                json.dumps(v18_report,ensure_ascii=False,indent=2).encode('utf-8'),
+                file_name='SPOR_TOTO_V18_KABUL_RAPORU.json',mime='application/json',key='v18_report_download')
+            if v18_report['analysis_package_eligible']:
+                st.success('YEREL ANALİZ KABULÜ: 10 / 10 zorunlu koşul geçti. Bu, canlı oyun onayı değildir.')
+                try:
+                    audit18=v18_kabul_zip(raw18,manifest18,v18_report)
+                    validate18=v18_zip_kontrol(audit18)
+                    st.download_button('📦 v18.0 tek denetimli analiz paketi (1X2 + 102 + SHA-256 + rapor)',audit18,
+                        file_name=f"SPOR_TOTO_V180_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
+                        mime='application/zip',type='primary',use_container_width=True,key='v18_archive_download')
+                    st.code(f"TXT SHA-256: {validate18['txt_sha256']}")
+                except (ValueError,TypeError,KeyError,zipfile.BadZipFile) as exc:
+                    st.error('Denetimli ZIP üretimi veya kendi kendine testi başarısız: '+str(exc))
+            else:
+                st.error('KABUL ENGELİ: Zorunlu koşullar geçilmedi. 1. sekmeden veri ve kolonları yenileyin.')
+    st.markdown('#### 📂 Daha önce indirilmiş v18 analiz ZIP dosyasını kontrol et')
+    incoming18=st.file_uploader('Yalnızca v18 denetimli analiz ZIP',type=['zip'],key='v18_audit_upload')
+    if incoming18 is not None:
+        try:
+            result18=v18_zip_kontrol(incoming18.getvalue())
+            st.success(f"Çevrimdışı dosya bütünlüğü doğru: {result18['columns']} kolon, 15 maç. Resmî veya ödeme otantikliği doğrulanmadı.")
+            st.code('TXT SHA-256: '+result18['txt_sha256'])
+        except (ValueError,TypeError,KeyError,UnicodeError,zipfile.BadZipFile,OverflowError) as exc:
+            st.error('ZIP kabul edilmedi: '+str(exc))
+    st.markdown('#### Bağımsız testte halen açık kalan alanlar')
+    st.info('Resmî maç listesi içeriğinin otantikliği • Gerçek API anahtarında canlı veri gecikmesi '
+            '• Streamlit tarayıcı uçtan uca testi • Geçmiş gerçek maç öncesi tahminlerle istatistiksel kalibrasyon '
+            '• Bahis sitesi işaretleme, fiş, fiyat ve ödeme sonucu (entegrasyon kapalı).')
