@@ -18,7 +18,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v15.2 — TEK LİSTE & GÜVENLİ SEÇİM ASİSTANI",
+    page_title="Spor Toto AI Pro v15.3 — TÜM KOLONLAR TXT MERKEZİ",
     page_icon="🏆",
     layout="wide"
 )
@@ -71,7 +71,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.2</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.3</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. 6. Dördüncü sekmede güncel kolonların tamamını tek TXT dosyası olarak indir. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -128,7 +128,7 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v15.2 Pro")
+    st.markdown("## 🏆 Spor Toto AI v15.3 Pro")
     st.caption("SECURE AUTO PLAY INTEGRATION — ÇEVRİMDIŞI DENETİM")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
@@ -1816,10 +1816,33 @@ def denetim_imza151(plan, ozet):
 
 # ANA SEKMELER
 # ==============================================================================
-tab_uretim, tab_takip, tab_otomasyon = st.tabs([
+def tum_kolonlar_txt153(kolonlar, ozet, guncel_imza, mac_ids, max_k=None, ayirici=""):
+    """Güncel oturumun bütün nihai kolonlarını, sıra değiştirmeden metne çevirir."""
+    if not isinstance(ozet, dict) or not guncel_imza or ozet.get("imza") != guncel_imza:
+        raise ValueError("Güncel üretim yok. Önce 1. sekmede KAPSAMA HESAPLA düğmesine basın.")
+    ids = [str(x) for x in ozet.get("mac_ids", [])]
+    if len(ids) != 15 or len(set(ids)) != 15 or ids != [str(x) for x in mac_ids]:
+        raise ValueError("15 maçın bülten sırası uyuşmuyor. Yeniden hesaplayın.")
+    a = np.asarray(kolonlar)
+    if a.ndim != 2 or a.shape[1] != 15 or a.shape[0] == 0:
+        raise ValueError("İndirilebilecek 15 maçlık kolon bulunamadı.")
+    if max_k is not None and len(a) > max_k:
+        raise ValueError("Güncel bütçe sınırı aşıldı. Yeniden hesaplayın.")
+    if not np.isin(a, ("1", "X", "2")).all():
+        raise ValueError("Geçersiz kolon işareti bulundu. Yeniden hesaplayın.")
+    if ayirici not in ("", " "):
+        raise ValueError("Geçersiz TXT biçimi.")
+    rows = [ayirici.join(row) for row in a.tolist()]
+    if len(set(rows)) != len(rows):
+        raise ValueError("Mükerrer kolon bulundu. Hiçbir kolonu sessizce silmeden işlem durduruldu.")
+    return ("\n".join(rows) + "\n").encode("utf-8"), len(rows)
+
+
+tab_uretim, tab_takip, tab_otomasyon, tab_txt153 = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
-    "📋 3. Akıllı Aktarım ve Rapor Merkezi"
+    "📋 3. Akıllı Aktarım ve Rapor Merkezi",
+    "📥 4. Tüm Kolonlar (.TXT)"
 ])
 
 # ------------------------------------------------------------------------------
@@ -2692,3 +2715,41 @@ with tab_otomasyon:
             st.dataframe(cal.groupby('band',observed=True).agg(n=('p','size'),forecast=('p','mean'),actual=('actual','mean')).reset_index().assign(band=lambda x:x.band.astype(str)))
             st.caption('Kaynağın gerçekten maç öncesinde kaydedildiği kullanıcı tarafından doğrulanmalıdır. Bu sonuçlar tek başına sistem üstünlüğünü kanıtlamaz.')
         except Exception as exc: st.error(f'Backtest dosyası işlenemedi: {exc}')
+
+
+# ------------------------------------------------------------------------------
+# SEKME 4: TEK DOSYADA BÜTÜN GÜNCEL KOLONLAR (v15.3)
+# ------------------------------------------------------------------------------
+with tab_txt153:
+    st.subheader("📥 Tüm kolonları tek TXT dosyasında indir")
+    st.caption("Güncel nihai üretimin tamamı; her satır bir kolon, her kolon 15 maç. Bu sekme yalnızca yerel dosya dışa aktarımı yapar.")
+    txt153_format = st.radio("TXT biçimi", ["Bitişik (1X212...)", "Boşluklu (1 X 2 1 2 ...)"], horizontal=True, key="txt153_format")
+    txt153_sep = " " if txt153_format.startswith("Boşluklu") else ""
+    txt153_ozet = st.session_state.son_uretim_ozeti
+    try:
+        txt153_data, txt153_count = tum_kolonlar_txt153(
+            st.session_state.uretilen_kuponlar, txt153_ozet,
+            guncel_uretim_imzasi, st.session_state.secilen_mac_idleri,
+            max_k=max_kolon_limiti, ayirici=txt153_sep
+        )
+    except ValueError as exc:
+        st.info(str(exc))
+    else:
+        c153a, c153b, c153c = st.columns(3)
+        c153a.metric("Toplam kolon", f"{txt153_count:,}")
+        c153b.metric("Maç / kolon", 15)
+        c153c.metric("Dosyadaki satır", f"{txt153_count:,}")
+        if uretim_modu != "Bütçe kontrollü":
+            st.info("Analiz çıktısı: bu üretim bütçe sınırı olmadan hesaplandı. Dosya bir inceleme arşividir.")
+        st.download_button(
+            f"📥 TÜM {txt153_count:,} KOLONU TEK TXT DOSYASI OLARAK İNDİR",
+            data=txt153_data,
+            file_name=f"SPOR_TOTO_V15_3_{txt153_count}KOLON_{str(guncel_uretim_imzasi)[:8]}.txt",
+            mime="text/plain", type="primary", use_container_width=True, key="txt153_all_download"
+        )
+        st.caption("Başlık, sıra numarası veya ek metin yoktur. Sitedeki ilk 15 maçın sırası ve kolonların üretim sırası korunur. Önizleme sınırlıdır; indirilen dosya sınırlı değildir.")
+        with st.expander("TXT önizlemesi — ilk 20 kolon", expanded=True):
+            txt153_preview = txt153_data.splitlines()[:20]
+            st.code(b"\n".join(txt153_preview).decode("utf-8"), language="text")
+        with st.expander("Dosyaya ait 15 maçın sırası"):
+            st.dataframe(pd.DataFrame({"No":range(1,16), "Maç":[m["mac"] for m in txt153_ozet["s_veriler"]]}), hide_index=True, use_container_width=True)
