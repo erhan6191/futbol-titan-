@@ -5,6 +5,7 @@ import json
 import re
 import hashlib
 import unicodedata
+import html
 import urllib.parse
 import io
 import csv
@@ -12,13 +13,14 @@ import zipfile
 import itertools
 from decimal import Decimal, InvalidOperation
 from difflib import SequenceMatcher
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v16.0 — ANTI-PUBLIC INTELLIGENCE & SMART BANKO ENGINE",
+    page_title="Spor Toto AI Pro v16.1 — ANTI-PUBLIC INTELLIGENCE & SMART BANKO ENGINE",
     page_icon="🏆",
     layout="wide"
 )
@@ -71,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v16.0</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede otomatik kupon yatırma asistanını (Favori Çubuğu / F12 Konsol / Dosya / Mobil Kart) kullan. 6. Dördüncü sekmede güncel kolonların tamamını tek TXT dosyası olarak indir.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v16.1</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede otomatik kupon yatırma asistanını (Favori Çubuğu / F12 Konsol / Dosya / Mobil Kart) kullan. 6. Dördüncü sekmede güncel kolonların tamamını tek TXT dosyası olarak indir.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -91,18 +93,21 @@ varsayilan_state = {
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
-    "sema_versiyonu": "16.0"
+    "paket_konfig_v161": None,
+    "sema_versiyonu": "16.1"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "16.0":
+if st.session_state.get("sema_versiyonu") != "16.1":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
     st.session_state.son_sol_menu_imzasi = None
-    st.session_state.sema_versiyonu = "16.0"
+    st.session_state.yatirilan_paketler = []
+    st.session_state.paket_konfig_v161 = None
+    st.session_state.sema_versiyonu = "16.1"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -127,14 +132,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v16.0 Pro")
+    st.markdown("## 🏆 Spor Toto AI v16.1 Pro")
     st.caption("ANTI-PUBLIC INTELLIGENCE & SMART BANKO ENGINE")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v16_0_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v16_1_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -222,7 +227,7 @@ with st.sidebar:
 
     # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
     ev_katsayisi = 0.0
-    st.caption("v16.0: Halk yüzdeleri yalnızca bağımsız risk analizinde kullanılır. Gerçek veri yoksa halk farkı hesaplanmaz.")
+    st.caption("v16.1: Halk yüzdeleri yalnızca bağımsız risk analizinde kullanılır. Gerçek veri yoksa halk farkı hesaplanmaz.")
     risk_banko_p = st.slider("Banko inceleme eşiği (%)", 40, 90, 65, key="banko16_p")
     risk_gap = st.slider("Halk-model farkı uyarısı (puan)", 5, 30, 15, key="banko16_gap")
     risk_spread = st.slider("Piyasa sapması uyarısı (puan)", 1.0, 10.0, 2.5, 0.5, key="banko16_spread")
@@ -295,7 +300,7 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "16.0",
+            "versiyon": "16.1",
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
@@ -313,7 +318,7 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v16_0_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v16_1_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
@@ -381,7 +386,11 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
             f_id = item["fixture"]["id"]
             ev = item["teams"]["home"]["name"]
             dep = item["teams"]["away"]["name"]
-            saat = item["fixture"]["date"][11:16]
+            # API yanıtındaki TZ offsetini koruyarak Türkiye saatine dönüştür.
+            api_tarihi = datetime.fromisoformat(item["fixture"]["date"].replace("Z", "+00:00"))
+            if api_tarihi.tzinfo is None:
+                api_tarihi = api_tarihi.replace(tzinfo=ZoneInfo("Europe/Istanbul"))
+            saat = api_tarihi.astimezone(ZoneInfo("Europe/Istanbul")).strftime("%H:%M")
             lig_etiket = DESTEKLENEN_LIGLER.get(lig_id, f"{item['league']['country']} - {item['league']['name']}")
             gunun_maclari.append({
                 "id": f_id,
@@ -395,22 +404,34 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
                 "label": f"[{lig_etiket}] {ev} - {dep} ({tarih_str} {saat})"
             })
     except Exception as exc:
-        st.warning(f"Bülten alınamadı ({tarih_str}): {exc}")
+        # Hata durumunda boş sonucu 6 saat önbelleğe alma.
+        raise RuntimeError(f"{tarih_str}: {exc}") from exc
     return gunun_maclari
 
 
 def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_ligleri=True):
-    tum_maclar = []
     gun_sayisi = (bit_tarih - bas_tarih).days + 1
+    if not 1 <= gun_sayisi <= 14:
+        raise ValueError("Bülten taraması 1–14 gün aralığında olmalıdır (API kotası koruması).")
+    tum_maclar, hatalar = [], []
     progress = st.progress(0, text="Bülten günleri taranıyor (Önbellek destekli)...")
-    for i in range(gun_sayisi):
-        g_str = (bas_tarih + timedelta(days=i)).strftime("%Y-%m-%d")
-        maclar = gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri)
-        tum_maclar.extend(maclar)
-        progress.progress((i + 1) / gun_sayisi)
-    progress.empty()
-    tum_maclar.sort(key=lambda x: (0 if x["lig_id"] in [203, 204] else 1, x["tarih"], x["saat"]))
-    return tum_maclar
+    try:
+        for i in range(gun_sayisi):
+            g_str = (bas_tarih + timedelta(days=i)).strftime("%Y-%m-%d")
+            try:
+                tum_maclar.extend(gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri))
+            except (requests.RequestException, RuntimeError, ValueError) as exc:
+                hatalar.append(str(exc))
+            progress.progress((i + 1) / gun_sayisi)
+    finally:
+        progress.empty()
+    if hatalar:
+        st.warning(f"{len(hatalar)} günün verisi alınamadı. Eksik bülten olabilir: " + " | ".join(hatalar[:3]))
+    # Aynı fikstür birden fazla kaynaktan/kayıttan gelirse ID bazında tekilleştir.
+    tekil = {int(m["id"]): m for m in tum_maclar}
+    sirali = list(tekil.values())
+    sirali.sort(key=lambda x: (0 if x["lig_id"] in [203, 204] else 1, x["tarih"], x["saat"], x["id"]))
+    return sirali
 
 
 def olasilik_yumusat(p1, px_val, p2):
@@ -600,7 +621,7 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
             "tuzak_farki": max(h1, hx, h2) - max(g1, gx, g2),
             "piyasa_std": piyasa_std,
             "kaynak":kaynak,"buro_sayisi":bureau,"veri_uyarilari":hatalar,
-            "snapshot_utc":datetime.utcnow().isoformat()+"Z"
+            "snapshot_utc":datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         })
         progress.progress((i + 1) / len(secilen_maclar))
     progress.empty()
@@ -685,6 +706,38 @@ def bulten_metni_eslestir(yapistirilan_metin, havuz_maclari):
     return eslesen_maclar, eslesmeyen_satirlar
 
 
+def mac_secimi_senkronize_v161():
+    """Havuz güncellendiğinde mevcut 15'li listede yalnızca geçerli tekil ID'ler kalsın."""
+    lookup = {int(m["id"]): m for m in st.session_state.mac_listesi}
+    kullanilan = set()
+    temiz = []
+    for eski in st.session_state.secilen_15_mac:
+        mid = int(eski["id"])
+        if mid in lookup and mid not in kullanilan and len(temiz) < 15:
+            temiz.append(lookup[mid]); kullanilan.add(mid)
+    st.session_state.secilen_15_mac = temiz
+
+
+def mac_ekle_v161(fixture_id):
+    mac_secimi_senkronize_v161()
+    fid = int(fixture_id)
+    ids = {int(m["id"]) for m in st.session_state.secilen_15_mac}
+    if fid in ids or len(ids) >= 15:
+        return False
+    lookup = {int(m["id"]): m for m in st.session_state.mac_listesi}
+    if fid not in lookup:
+        return False
+    st.session_state.secilen_15_mac.append(lookup[fid])
+    st.session_state["bulten_onay14"] = False
+    return True
+
+
+def mac_cikar_v161(fixture_id):
+    fid = int(fixture_id)
+    st.session_state.secilen_15_mac = [m for m in st.session_state.secilen_15_mac if int(m["id"]) != fid]
+    st.session_state["bulten_onay14"] = False
+
+
 def canli_skorlari_cek(fixture_id_listesi, api_key):
     ids_str = "-".join(str(fid) for fid in fixture_id_listesi)
     url = f"https://v3.football.api-sports.io/fixtures?ids={ids_str}"
@@ -717,8 +770,9 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
                         skor_metinleri[idx] = f"{eg} - {dg} (🔴 {durum}{dk_str})"
                         yeni_sonuclar[idx] = "⏳ Bekliyor"
                     elif durum in ["PST", "CANC", "ABD", "SUSP", "INT"]:
-                        skor_metinleri[idx] = f"⚠️ Ertelendi/Kura ({durum})"
-                        yeni_sonuclar[idx] = "🎲 Kura (1/X/2)"
+                        skor_metinleri[idx] = f"⚠️ Özel durum ({durum}) — resmî Spor Toto hükmünü kontrol edin"
+                        # Fikstür API statüsü, Spor Toto'nun resmî kura/sonuç kararı değildir.
+                        yeni_sonuclar[idx] = "⏳ Bekliyor"
     except Exception as exc:
         st.warning(f"Skor güncellenmedi: {exc}")
         return st.session_state.canli_sonuclar,st.session_state.canli_skor_metni
@@ -1662,7 +1716,10 @@ def kupon_dosyasi_coz(dosya):
 # B SİSTEMİNDEN ENTEGRE EDİLEN OTOMATİK KUPON YATIRMA MERKEZİ FONKSİYONLARI
 # ==============================================================================
 def guvenli_tarayici_asistani_uret(aktif_paket, mac_isimleri, paket_no, toplam_paket, hiz_ms=110):
-    paket_imza = hashlib.md5(json.dumps(aktif_paket).encode("utf-8")).hexdigest()[:8]
+    # Aynı kolon dizisi başka bülten/pakette tekrar etse bile tarayıcı ilerlemesi karışmasın.
+    paket_imza = hashlib.sha256(json.dumps({"kolonlar":aktif_paket,"maclar":mac_isimleri,
+                                          "paket":paket_no,"toplam":toplam_paket},
+                                          ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
     kisa_maclar = [m.split("-")[0].strip()[:10] for m in mac_isimleri]
 
     js_kodu = f"""// ============================================================================
@@ -2068,7 +2125,7 @@ with tab_uretim:
     else:
         acik_kal = st.session_state.analiz_verisi is None
         with st.expander("⚡ ADIM 1: Bülten Maçlarını Seçin veya Yapıştırın (Önbellek Korumalı)", expanded=acik_kal):
-            bugun = datetime.now().date()
+            bugun = datetime.now(ZoneInfo("Europe/Istanbul")).date()
             varsayilan_bitis = bugun + timedelta(days=3)
 
             c_ust1, c_ust2, c_ust3, c_ust4 = st.columns([1.5, 1.1, 1.4, 0.8])
@@ -2082,10 +2139,23 @@ with tab_uretim:
                 if st.button("📥 Seçili Günlerin Maçlarını Yükle", type="primary", use_container_width=True):
                     if not api_key:
                         st.warning("Lütfen önce sol menüden API anahtarınızı girin.")
-                    elif isinstance(tarih_araligi, tuple) and len(tarih_araligi) == 2:
-                        st.session_state.mac_listesi = tarih_araligi_maclarini_getir(
-                            tarih_araligi[0], tarih_araligi[1], api_key, sadece_toto
-                        )
+                    elif isinstance(tarih_araligi, (tuple, list)) and len(tarih_araligi) == 2:
+                        try:
+                            yeniler = tarih_araligi_maclarini_getir(tarih_araligi[0], tarih_araligi[1], api_key, sadece_toto)
+                        except ValueError as exc:
+                            st.error(str(exc))
+                        else:
+                            st.session_state.mac_listesi = yeniler
+                            mac_secimi_senkronize_v161()
+                            st.session_state["bulten_onay14"] = False
+                            # Yeni havuzdan seçim değiştiyse eski kuponların yanlış bültene aktarılmasını önle.
+                            st.session_state.analiz_verisi = None
+                            st.session_state.tablo_baz_df = None
+                            st.session_state.tablo_df = None
+                            st.session_state.uretilen_kuponlar = None
+                            st.session_state.son_uretim_ozeti = None
+                            st.session_state.son_param_imzasi = None
+                            st.session_state.son_sol_menu_imzasi = None
                     else:
                         st.warning("Lütfen başlangıç ve bitiş tarihini birlikte seçin.")
             with c_ust4:
@@ -2096,6 +2166,7 @@ with tab_uretim:
                     st.session_state.secilen_mac_idleri=[]
                     st.session_state.mac_listesi = []
                     st.session_state.secilen_15_mac = []
+                    st.session_state["bulten_onay14"] = False
                     st.session_state.eslesmeyen_satirlar = []
                     st.session_state.analiz_verisi = None
                     st.session_state.tablo_baz_df = None
@@ -2108,8 +2179,8 @@ with tab_uretim:
                     st.rerun()
 
             if st.session_state.mac_listesi:
-                opsiyon_haritasi = {m["label"]: m for m in st.session_state.mac_listesi}
-                col_sol, col_sag = st.columns([1.2, 2.2])
+                mac_secimi_senkronize_v161()
+                col_sol, col_sag = st.columns([1.05, 2.25])
                 with col_sol:
                     yapistirilan = st.text_area(
                         "📋 Hızlı Eşleştir (İddaa/Nesine/Bilyoner'den 15 maçı yapıştırın):",
@@ -2121,6 +2192,7 @@ with tab_uretim:
                         st.session_state.eslesmeyen_satirlar = eslesmeyenler
                         if bulunanlar:
                             st.session_state.secilen_15_mac = bulunanlar
+                            st.session_state["bulten_onay14"] = False
                             st.toast(f"✅ {len(bulunanlar)} maç sırasıyla eşleştirildi!")
                             st.rerun()
                         else:
@@ -2132,16 +2204,38 @@ with tab_uretim:
                         )
 
                 with col_sag:
-                    varsayilan_secimler = [m["label"] for m in st.session_state.secilen_15_mac if m["label"] in opsiyon_haritasi]
-                    secilen_etiketler = st.multiselect(
-                        f"🎯 15 Bülten Maçı ({len(st.session_state.mac_listesi)} maç bulundu):",
-                        options=list(opsiyon_haritasi.keys()),
-                        default=varsayilan_secimler,
-                        max_selections=15,
-                        placeholder="Takım veya lig adı yazın..."
-                    )
-                    st.session_state.secilen_15_mac = [opsiyon_haritasi[e] for e in secilen_etiketler]
-
+                    st.markdown("#### 🎯 Maçları Tek Tıkla Ekle")
+                    st.caption("Bir karşılaşmanın yanındaki **➕ Ekle** düğmesine bir kez basın. Listeye hemen eklenir; seçimler bülten sırasıyla saklanır.")
+                    arama = st.text_input("🔎 Karşılaşma veya lig ara", key="mac_ara_v161", placeholder="Takım adı, maç veya lig yazın...")
+                    arama_norm = metin_temizle(arama)
+                    aramaya_uyan = [m for m in st.session_state.mac_listesi
+                                    if not arama_norm or arama_norm in metin_temizle(m["label"])]
+                    secili_idler = {int(m["id"]) for m in st.session_state.secilen_15_mac}
+                    adaylar = [m for m in aramaya_uyan if int(m["id"]) not in secili_idler]
+                    st.caption(f"Havuz: {len(st.session_state.mac_listesi)} maç | Arama sonucu: {len(adaylar)} eklenebilir | Seçili: {len(secili_idler)}/15")
+                    if len(adaylar)>12:
+                        st.caption("İlk 12 karşılaşma gösteriliyor. Diğerlerini bulmak için takım/lig adıyla arayın.")
+                    with st.container(height=285, border=True):
+                        if not adaylar:
+                            st.info("Eklenecek maç bulunamadı veya tüm eşleşmeler seçildi.")
+                        for m in adaylar[:12]:
+                            mac_yazi, mac_buton = st.columns([5.5, 1.2], vertical_alignment="center")
+                            mac_yazi.write(m["label"])
+                            if mac_buton.button("➕ Ekle", key=f"mac_ekle_v161_{m['id']}",
+                                               disabled=(len(secili_idler)>=15),use_container_width=True):
+                                if mac_ekle_v161(m["id"]):
+                                    st.rerun()
+                    with st.expander(f"✅ Seçilen maçlar ve sıraları ({len(st.session_state.secilen_15_mac)}/15)", expanded=True):
+                        if not st.session_state.secilen_15_mac:
+                            st.caption("Henüz maç eklenmedi.")
+                        else:
+                            for sec_no, m in enumerate(st.session_state.secilen_15_mac, 1):
+                                sec_yazi, sil_buton = st.columns([6,1],vertical_alignment="center")
+                                sec_yazi.write(f"{sec_no}. {m['karsilasma']} ({m['tarih']} {m['saat']})")
+                                if sil_buton.button("✕", key=f"mac_cikar_v161_{m['id']}",
+                                                    help="Bu maçı listeden çıkar",use_container_width=True):
+                                    mac_cikar_v161(m["id"])
+                                    st.rerun()
                     s_sayi = len(st.session_state.secilen_15_mac)
                     sira_onayi=st.checkbox("15 maçın resmî bülten sırasını kontrol ettim",key="bulten_onay14")
                     b_col1, b_col2 = st.columns([2, 1.2])
@@ -2167,7 +2261,7 @@ with tab_uretim:
                             st.rerun()
 
         # ======================================================================
-        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v16.0 MOTOR)
+        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v16.1 MOTOR)
         # ======================================================================
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
@@ -2310,7 +2404,7 @@ with tab_uretim:
                     "piyasa_std": piyasa_std_val
                 })
 
-            with st.expander("🧠 v16.0 — BANKO RİSKİ & HALK TERCİHİ ANALİZİ", expanded=True):
+            with st.expander("🧠 Banko Riski & Halk Tercihi — Sayısal İnceleme", expanded=False):
                 st.caption("Model olasılığı, halk tercihi ve matematiksel kapsama farklı kavramlardır. Bu ekran kazanç veya ikramiye tahmini yapmaz; mevcut şablonu değiştirmez.")
                 public_file16=st.file_uploader("İsteğe bağlı halk tercihleri CSV (gerçek, maç bazlı)",type=["csv"],key="public16")
                 st.download_button("Halk verisi boş CSV şablonu", "fixture_id,h1,hx,h2,source,snapshot\n"+"".join(f"{v['id']},,,,,\n" for v in s_veriler), "halk_verisi_sablon.csv",mime="text/csv",key="public_template16")
@@ -2332,12 +2426,17 @@ with tab_uretim:
                 a16,b16,c16=st.columns(3)
                 a16.metric("Seçili banko",len(banko_probs16)); b16.metric("En az bir banko hatası (model)",f"%{100*(1-bdist16[0]):.1f}" if banko_probs16 else "—")
                 c16.metric("Tüm şablonun model kütlesi",f"%{100*np.prod(cover_probs16):.3f}" if not bos_mac_var else "—")
-                if banko_probs16: st.bar_chart(pd.DataFrame({"Banko hata adedi":range(len(bdist16)),"Model olasılığı %":100*bdist16}).set_index("Banko hata adedi"))
                 fdist16=banko_hata_dagilimi16(fav_probs16)
-                st.caption("Model favorilerinin gerçekleşmemesi senaryoları")
-                st.bar_chart(pd.DataFrame({"Favori dışı sonuç adedi":range(len(fdist16)),"Model olasılığı %":100*fdist16}).set_index("Favori dışı sonuç adedi"))
-                st.caption("Grafikler maçların bağımsız olduğu varsayımıyla hesaplanır; model kalibre değilse oranlar gerçek frekansları temsil etmeyebilir. Halk farkı, bir sonucun daha olası olduğu veya beklenen getirinin pozitif olduğu anlamına gelmez.")
-                st.download_button("Risk incelemesini indir (CSV)",pd.DataFrame(risk_rows16).to_csv(index=False).encode('utf-8-sig'),"SPOR_TOTO_V16_0_RISK.csv",mime="text/csv",key="risk_export16")
+                with st.expander("Banko/favori hata olasılıkları — sayısal tablo", expanded=False):
+                    hata_uzunlugu = max(len(bdist16), len(fdist16))
+                    hata_tablosu = pd.DataFrame({
+                        "Hata sayısı": range(hata_uzunlugu),
+                        "Banko hatası model %": [round(100*bdist16[i],2) if i<len(bdist16) else None for i in range(hata_uzunlugu)],
+                        "Favori dışı sonuç model %": [round(100*fdist16[i],2) if i<len(fdist16) else None for i in range(hata_uzunlugu)]
+                    })
+                    st.dataframe(hata_tablosu,hide_index=True,use_container_width=True,height=300)
+                st.caption("Tablo maçların bağımsız olduğu varsayımına dayanır; modeller kalibre edilmediyse yüzdeler gerçekleşme frekansı değildir. Halk oranı, beklenen kâr veya gerçek maç olasılığı garantisi değildir.")
+                st.download_button("Risk incelemesini indir (CSV)",pd.DataFrame(risk_rows16).to_csv(index=False).encode('utf-8-sig'),"SPOR_TOTO_V16_1_RISK.csv",mime="text/csv",key="risk_export16")
 
             if grup_guvence_aktif:
                 if otonom_grup_limiti:
@@ -2444,6 +2543,9 @@ with tab_uretim:
             )
 
             if degisiklik_bekliyor or bos_mac_var or sira_hatasi_var or ham_kolon_sayisi > 300_000 or max_kolon_limiti == 0:
+                if degisiklik_bekliyor:
+                    st.session_state.yatirilan_paketler = []
+                    st.session_state.paket_konfig_v161 = None
                 st.session_state.uretilen_kuponlar = None
                 st.session_state.son_uretim_ozeti = None
             if max_kolon_limiti == 0:
@@ -2608,7 +2710,7 @@ with tab_uretim:
                     st.download_button(
                         "📥 Senaryo kolonlarını indir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v16_0_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        f"spor_toto_v16_1_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
                         mime="text/plain",
                         disabled=degisiklik_bekliyor or (max_kolon_limiti is not None and len(garanti)>max_kolon_limiti),
                         type="primary",
@@ -2624,7 +2726,7 @@ with tab_uretim:
                     f"Tam 15: **%{denetim['tam_15']:.1f}** | En Az 14: **%{denetim['en_az_14']:.1f}** | En Az 13: **%{denetim['en_az_13']:.1f}**"
                 )
 
-                with st.expander("📊 Üretilen Nihai Kuponların Maç Bazlı 1-X-2 Dağılım & Gerçek Olasılık Kontrolü", expanded=True):
+                with st.expander("Kuponların Maç Bazlı 1-X-2 Dağılımı — Sayısal Tablo", expanded=False):
                     toplam_k = len(garanti)
                     dagilim_satirlari = []
                     for m_i, v_m in enumerate(ozet["s_veriler"]):
@@ -2696,6 +2798,7 @@ with tab_takip:
             use_container_width=True,
             height=560
         )
+        st.caption("⚠️ Erteleme/iptal, otomatik 'kura' değildir. Kura seçeneğini yalnızca resmî Spor Toto kararı doğrulandıktan sonra elle işaretleyin.")
         st.session_state.canli_sonuclar = sonuc_df["Sonuç"].tolist()
 
     with col_t2:
@@ -2745,7 +2848,7 @@ with tab_takip:
                 bekleyen_indeksler = np.where(~kesin_mask)[0]
 
                 if len(bekleyen_indeksler) > 0 and len(hedef_kuponlar) > 0:
-                    with st.expander(f"🛟 Kalan {len(bekleyen_indeksler)} Maç İçin '{en_yuksek_derece} Bilen' Sigorta (Hedge) & Finansal Hesaplayıcı", expanded=True):
+                    with st.expander(f"Kalan {len(bekleyen_indeksler)} Maç: {en_yuksek_derece} Adayı İçin Açık Sonuç Analizi", expanded=False):
                         hedge_satirlar = []
                         toplam_aday = len(hedef_kuponlar)
                         son_mac_acik_riskler = []
@@ -2799,7 +2902,11 @@ with tab_takip:
 with tab_otomasyon:
     st.markdown("### 🛡️ Güvenli & Kolay Kupon Yatırma Merkezi (Safe-Play — Sütun Hizalı & Mükerrer Korumalı 4'lü Asistan)")
 
-    if st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0:
+    if (st.session_state.uretilen_kuponlar is not None
+            and len(st.session_state.uretilen_kuponlar)>0
+            and isinstance(st.session_state.son_uretim_ozeti,dict)
+            and guncel_uretim_imzasi
+            and st.session_state.son_uretim_ozeti.get("imza")==guncel_uretim_imzasi):
         k_oto = st.session_state.uretilen_kuponlar.tolist()
         toplam_kolon_say = len(k_oto)
         toplam_tutar_tl = toplam_kolon_say * kolon_fiyati
@@ -2817,7 +2924,7 @@ with tab_otomasyon:
                 <strong style="margin-left:8px;">Bu sistemdeki hiçbir araç kendi başına 'Oyna / Öde / Onayla' butonuna basmaz!</strong><br>
                 <span style="font-size:0.9rem;color:#334155;">
                 • Toplam Üretilen: <strong>{toplam_kolon_say:,} Kolon ({toplam_tutar_tl:,.0f} TL)</strong> &nbsp;|&nbsp;
-                • 1. Maç: <strong>{aktif_mac_isimleri[0]}</strong> &nbsp;➔&nbsp; 15. Maç: <strong>{aktif_mac_isimleri[-1]}</strong>
+                • 1. Maç: <strong>{html.escape(str(aktif_mac_isimleri[0]))}</strong> &nbsp;➔&nbsp; 15. Maç: <strong>{html.escape(str(aktif_mac_isimleri[-1]))}</strong>
                 </span>
             </div>""",
             unsafe_allow_html=True
@@ -2887,7 +2994,7 @@ with tab_otomasyon:
                 st.download_button(
                     "📥 1. Tek Tıkla Kupon Dosyasını İndir (.TXT)",
                     data=txt_icerik.encode("utf-8"),
-                    file_name=f"st_v16_0_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.txt",
+                    file_name=f"st_v16_1_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.txt",
                     mime="text/plain",
                     type="primary",
                     use_container_width=True
@@ -2900,7 +3007,7 @@ with tab_otomasyon:
                 st.download_button(
                     "📊 Alternatif: Excel (.CSV) Olarak İndir",
                     data=saf_csv_icerik.encode("utf-8"),
-                    file_name=f"st_v16_0_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.csv",
+                    file_name=f"st_v16_1_{len(k_oto)}kolon_{dosya_kontrol_imzasi}.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
@@ -2929,6 +3036,10 @@ with tab_otomasyon:
                     help="İddaa.com ekranda 4'er kolon (A-B-C-D) aldığı için 4'ün katları (Örn: 20, 24, 28, 40) seçmeniz önerilir."
                 )
                 toplam_paket_say = math.ceil(len(k_oto) / boyut)
+                yeni_paket_konfig = f"{guncel_uretim_imzasi}:{boyut}"
+                if st.session_state.get("paket_konfig_v161") != yeni_paket_konfig:
+                    st.session_state.yatirilan_paketler = []
+                    st.session_state.paket_konfig_v161 = yeni_paket_konfig
                 paket_listesi = []
                 for i in range(toplam_paket_say):
                     bas_k = i * boyut + 1
@@ -2942,7 +3053,8 @@ with tab_otomasyon:
 
                 p_checkbox = st.checkbox(
                     f"✅ Paket {paket_no}'i Yatırıldı Olarak İşaretle (Mükerrer Koruması)",
-                    value=(paket_no in st.session_state.yatirilan_paketler)
+                    value=(paket_no in st.session_state.yatirilan_paketler),
+                    key=f"paket_isaret_v161_{guncel_uretim_imzasi}_{boyut}_{paket_no}"
                 )
                 if p_checkbox and paket_no not in st.session_state.yatirilan_paketler:
                     st.session_state.yatirilan_paketler.append(paket_no)
@@ -2989,7 +3101,7 @@ with tab_otomasyon:
 
                 with st.expander("🖥️ Seçenek 2: Klasik F12 Konsol (Console) Kodu İle Çalıştır", expanded=False):
                     st.info(
-                        "1. `iddaa.com/spor-toto` sayfasında **F12** tuşuna basıp **Console** sekmesine geçin (İlk kez yapıştırıyorsanız `allow pasting` yazıp Enter'a basın).\n"
+                        "1. `iddaa.com/spor-toto` sayfasında **F12** tuşuna basıp **Console** sekmesine geçin. Tarayıcı güvenlik uyarılarını aşmayın; kodu önce kontrol edin.\n"
                         "2. Aşağıdaki kodu kopyalayıp konsola yapıştırın ve **Enter**'a basın.\n"
                         "3. Sağ üstte açılan panelde **'🎯 4 Kolonu Doldur & İlerle'** butonuna basın. Asistan 4 kolonu doldurduğu anda sayacı otomatik olarak sıradaki 4'lüye geçirir."
                     )
@@ -3054,7 +3166,7 @@ with tab_txt153:
         st.download_button(
             f"📥 TÜM {txt153_count:,} KOLONU TEK TXT DOSYASI OLARAK İNDİR",
             data=txt153_data,
-            file_name=f"SPOR_TOTO_V16_0_{txt153_count}KOLON_{str(guncel_uretim_imzasi)[:8]}.txt",
+            file_name=f"SPOR_TOTO_V16_1_{txt153_count}KOLON_{str(guncel_uretim_imzasi)[:8]}.txt",
             mime="text/plain", type="primary", use_container_width=True, key="txt153_all_download"
         )
         st.caption("Başlık, sıra numarası veya ek metin yoktur. Sitedeki ilk 15 maçın sırası ve kolonların üretim sırası korunur. Önizleme sınırlıdır; indirilen dosya sınırlı değildir.")
