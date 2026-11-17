@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v18.0.2 — USER-ACCEPTED ANALYSIS",
+    page_title="Spor Toto AI Pro v18.1 — INDEPENDENT MATHEMATICAL AUDIT",
     page_icon="🏆",
     layout="wide"
 )
@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v18.0 SAFE RELEASE CANDIDATE</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç ve bağımsız bülten karşılaştırmasını yap. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve tek doğrulanabilir analiz ZIP paketini indir. 6. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v18.1 INDEPENDENT MATHEMATICAL AUDIT</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç; ister kullanıcı onayı, ister üçlü karşılaştırma yöntemini kullan. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve analiz ZIP paketini indir. 6. Sekizinci Bağımsız Matematik Denetiminde ham şablonun 12–15 tam kapsama hesabını incele. 7. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -144,7 +144,7 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v18.0.2")
+    st.markdown("## 🏆 Spor Toto AI v18.1")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
@@ -1886,7 +1886,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"18.0.2 USER-ATTESTED ANALYSIS BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"18.1 INDEPENDENT MATHEMATICAL AUDIT RC", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -1900,6 +1900,22 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
               "crowd_csv_sha256":ozet.get('v173_public_sha256'),
               "crowd_proxy_not_payout_forecast":True,
               "txt_sha256":hashlib.sha256(raw).hexdigest()}
+    # v18.1: Bağımsız denetim için orijinal ham şablon ve raporlanan dört değer pakete bağlanır.
+    manifest['version']='18.1 INDEPENDENT MATHEMATICAL AUDIT RC'
+    if ozet.get('g_sablon') is not None:
+        original_template=v181_template_canonical(ozet['g_sablon'])
+        original_size=math.prod(map(len,original_template))
+        if int(ozet.get('ham_adet',-1))!=original_size:
+            raise ValueError('Ham şablon sayısı manifest hazırlığında tutarsız.')
+        manifest['raw_template']=original_template
+        manifest['raw_template_sha256']=v181_template_hash(original_template)
+        manifest['raw_universe_count']=original_size
+        manifest['reported_raw_coverage']=ozet.get('denetim_ham')
+        manifest['independent_audit_required']=True
+    else:
+        # Eski test/yardımcı paketlerinde şablon yoksa işlev geriye uyumlu kalır;
+        # A10/B04 kabul kontrolleri ve bağımsız denetçi, tam şablonu OLMADAN PASS vermez.
+        manifest['independent_audit_required']=False
     payload=json.dumps(manifest,ensure_ascii=False,sort_keys=True,indent=2).encode('utf-8')
     out=io.BytesIO()
     with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_DEFLATED) as z:
@@ -2429,40 +2445,206 @@ V18_DOSYALAR = (
 
 
 
-def v18_sablon_kontrol(raw, ozet, limit=4096):
-    """Şablon üyeliği; küçük ham evrende bağımsız TAM kapsama yeniden hesabı."""
-    if not isinstance(ozet,dict):raise ValueError('Şablon özeti eksik.')
-    template=ozet.get('g_sablon')
-    if not isinstance(template,list) or len(template)!=15:
-        raise ValueError('15 satırlı orijinal şablon yok.')
-    sets=[]
-    for i,row in enumerate(template,1):
-        if not isinstance(row,(list,tuple)) or not 1<=len(row)<=3 or len(set(row))!=len(row) or set(row)-set('1X2'):
-            raise ValueError(f'{i}. şablon satırında 1/X/2 hatası.')
-        sets.append(set(row))
-    total=math.prod(len(row) for row in template)
-    if not 1<=total<=300000 or int(ozet.get('ham_adet',-1))!=total:
-        raise ValueError('Orijinal şablon evren büyüklüğü tutarsız.')
-    lines=raw.decode('utf-8').splitlines()
-    for i,line in enumerate(lines,1):
-        if len(line)!=15 or any(line[j] not in sets[j] for j in range(15)):
-            raise ValueError(f'{i}. kolon orijinal şablon dışında.')
-    if total<=limit:
-        evren=np.array(list(itertools.product(*template)))
-        mevcut=np.array([list(x) for x in lines])
-        actual=deterministik_garanti_denetle(mevcut,evren)
-        saved=ozet.get('denetim_ham',{})
-        for key,value in actual.items():
+# ===== v18.1 / EXACT INDEPENDENT MATH AUDITOR (NO PREDICTION ENGINE) =====
+V181_KEYS = ('tam_15', 'en_az_14', 'en_az_13', 'en_az_12')
+
+
+def v181_template_canonical(template):
+    if not isinstance(template, list) or len(template) != 15:
+        raise ValueError('Tam 15 satırlı ham şablon gereklidir.')
+    normalized = []
+    for n, row in enumerate(template, 1):
+        if not isinstance(row, (list, tuple)) or not 1 <= len(row) <= 3:
+            raise ValueError(f'{n}. ham şablon satırı geçersiz.')
+        if any(not isinstance(x, str) or x not in ('1', 'X', '2') for x in row) or len(row) != len(set(row)):
+            raise ValueError(f'{n}. şablonda geçersiz veya mükerrer işaret.')
+        # Kanonik sıralama: farklı serileştirme sıralarından kaynaklanan imza karışıklığını önler.
+        normalized.append([x for x in ('1', 'X', '2') if x in row])
+    if math.prod(map(len, normalized)) > 300000:
+        raise ValueError('Ham evren 300.000 sınırının üzerinde. Kör/eksik hesap yapılmaz.')
+    return normalized
+
+
+def v181_template_hash(template):
+    normalized = v181_template_canonical(template)
+    return hashlib.sha256(json.dumps(normalized, separators=(',', ':'), ensure_ascii=False).encode('utf-8')).hexdigest()
+
+
+def v181_parse_txt(raw):
+    if not isinstance(raw, (bytes, bytearray)) or not 0 < len(raw) < 8_000_000:
+        raise ValueError('Kolon TXT eksik veya güvenli boyut sınırı dışında.')
+    try:
+        lines = raw.decode('utf-8-sig').splitlines()
+    except UnicodeDecodeError as exc:
+        raise ValueError('TXT UTF-8 olmalıdır.') from exc
+    if not 0 < len(lines) <= 300000:
+        raise ValueError('Geçersiz kolon sayısı.')
+    if any(len(s) != 15 or any(c not in '1X2' for c in s) for s in lines):
+        raise ValueError('Tüm kolonlar 15 karakterli 1/X/2 olmalıdır.')
+    if len(set(lines)) != len(lines):
+        raise ValueError('Mükerrer kolon bulunuyor.')
+    return lines
+
+
+def v181_exact_audit(raw, template, expected=None, max_universe=300000):
+    """Sıfır örnekleme ile ürün evrenindeki HER olasılığı sayar.
+    min-plus Hamming uzaklık dönüşümü; 15 eksenin hepsinde geçiş tamdır.
+    """
+    t = v181_template_canonical(template)
+    n = math.prod(map(len, t))
+    if n > max_universe:
+        raise ValueError('Bu çalıştırmadaki evren kaynak limiti aşıldı; kapsam iddiası yok.')
+    lines = v181_parse_txt(raw)
+    dims = tuple(len(row) for row in t)
+    lookups = [{symbol: idx for idx, symbol in enumerate(row)} for row in t]
+    coords = [[] for _ in range(15)]
+    for k, line in enumerate(lines, 1):
+        for axis, ch in enumerate(line):
+            if ch not in lookups[axis]:
+                raise ValueError(f'{k}. kolon {axis + 1}. maçta ham şablon dışında.')
+            coords[axis].append(lookups[axis][ch])
+    distances = np.full(dims, 16, dtype=np.uint8)
+    distances[tuple(np.asarray(c, dtype=np.intp) for c in coords)] = 0
+    # Min-plus Hamming transform: bir eksen için d'(s)=min(d(s), 1+min_{u} d(u)).
+    # Her eksende geçildiğinde kalan eksenlerden bağımsız en yakın kupon uzaklığı elde edilir.
+    for axis in range(15):
+        if dims[axis] == 1:
+            continue
+        minima = distances.min(axis=axis, keepdims=True)
+        np.minimum(distances, minima + np.uint8(1), out=distances)
+    closest = np.subtract(np.uint8(15), distances.reshape(-1))
+    histogram = np.bincount(closest, minlength=16)
+    if int(histogram.sum()) != n:
+        raise AssertionError('Dahili toplam sayım hatası.')
+    counts = {key: int(histogram[cutoff:].sum()) for cutoff, key in [(15, V181_KEYS[0]), (14, V181_KEYS[1]), (13, V181_KEYS[2]), (12, V181_KEYS[3])]}
+    percents = {key: 100.0 * count / n for key, count in counts.items()}
+    mismatches = []
+    if expected is not None:
+        if not isinstance(expected, dict):
+            raise ValueError('Bildirilen kapsama özeti JSON nesnesi olmalıdır.')
+        for key in V181_KEYS:
+            if key not in expected:
+                raise ValueError(f'Bildirilen ham kapsamada {key} alanı eksik.')
             try:
-                stated=float(saved[key])
-                if not math.isfinite(stated) or abs(value-stated)>1e-6:
-                    raise ValueError(f'Ham evren yeniden hesabı: {key} tutarsız.')
-            except (KeyError,TypeError) as exc:
-                raise ValueError('Ham evren kapsama kayıtları eksik.') from exc
-        return {'mode':'EXACT_RAW_UNIVERSE_RECOMPUTED','universe_count':total,
-                'raw_coverage_percent':actual}
-    return {'mode':'TEMPLATE_MEMBERSHIP_ONLY_LARGE_UNIVERSE','universe_count':total,
-            'raw_coverage_percent':None}
+                claim = float(expected[key])
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f'{key} yüzdesi sayı değil.') from exc
+            if not math.isfinite(claim) or abs(claim - percents[key]) > 1e-6:
+                mismatches.append({'metric': key, 'reported_percent': expected[key], 'exact_percent': percents[key]})
+    # En zayıf en iyi isabetli senaryo bir karşı-örnektir (tüm eşiği geçmeyebilir).
+    worst_flat = int(np.argmin(closest))
+    worst_coords = np.unravel_index(worst_flat, dims)
+    witness = ''.join(t[i][int(worst_coords[i])] for i in range(15))
+    return {
+        'audit_version': '18.1 INDEPENDENT EXACT FULL-UNIVERSE',
+        'algorithm': 'EXACT_MIXED_RADIX_HAMMING_MIN_PLUS_FULL_ENUMERATION',
+        'scope': 'RAW_TEMPLATE_CARTESIAN_UNIVERSE_ONLY',
+        'input_txt_sha256': hashlib.sha256(raw).hexdigest(),
+        'template_sha256': v181_template_hash(t),
+        'template': t,
+        'scenario_count': n,
+        'unique_columns': len(lines),
+        'closest_hit_histogram_0_to_15': [int(x) for x in histogram],
+        'exact_count': counts,
+        'exact_percent': percents,
+        'minimum_best_hits': int(closest.min()),
+        'worst_case_example': witness,
+        'reported_coverage_agrees': not mismatches if expected is not None else None,
+        'mismatches': mismatches,
+        'official_bulletin_verified': False,
+        'prediction_accuracy_verified': False,
+        'payment_verified': False,
+        'real_money_approved': False,
+        'warning': 'Kapsama yalnız verilen ham şablon senaryolarında. Tahmin, ikramiye veya gerçek maç garantisi değildir.'
+    }
+
+
+def v181_audit_archive(zip_bytes, external_template=None):
+    """v18.x analiz ZIP'i açar; yeni imzalı şablon veya dışarıdan açık şablon gerekir."""
+    if not isinstance(zip_bytes, (bytes, bytearray)) or not 100 < len(zip_bytes) <= 16_000_000:
+        raise ValueError('ZIP boyutu geçersiz.')
+    try:
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+            members = z.infolist()
+            names = [m.filename for m in members]
+            required = {'KOLONLAR_ANALIZ_1X2.txt','BULTEN_MANIFEST.json','KABUL_RAPORU.json','DOSYA_BUTUNLUK.json','KOLONLAR_SPORTOTO_102_INCELEME.txt'}
+            if set(names) != required or len(names) != 5 or len(names) != len(set(names)):
+                raise ValueError('ZIP içindeki dosya listesi beklenen biçimde değil.')
+            if any(m.is_dir() or m.file_size > 8_000_000 for m in members) or sum(m.file_size for m in members) > 17_000_000:
+                raise ValueError('Şişirilmiş ZIP içerikleri reddedildi.')
+            data = {name: z.read(name) for name in names}
+    except (zipfile.BadZipFile, RuntimeError) as exc:
+        raise ValueError('ZIP okunamadı.') from exc
+    try:
+        integrity = json.loads(data['DOSYA_BUTUNLUK.json'])
+        manifest = json.loads(data['BULTEN_MANIFEST.json'])
+        acceptance = json.loads(data['KABUL_RAPORU.json'])
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError('ZIP içindeki JSON bozuk.') from exc
+    if integrity.get('format') != 'SHA256_FILE_INTEGRITY_NOT_ORIGIN_AUTHENTICATION' or set(integrity.get('sha256', {})) != (required - {'DOSYA_BUTUNLUK.json'}):
+        raise ValueError('Dosya bütünlük şeması geçersiz.')
+    for name in required - {'DOSYA_BUTUNLUK.json'}:
+        if hashlib.sha256(data[name]).hexdigest() != integrity['sha256'][name]:
+            raise ValueError(f'{name} SHA-256 uyuşmuyor.')
+    raw = data['KOLONLAR_ANALIZ_1X2.txt']
+    lines = v181_parse_txt(raw)
+    if hashlib.sha256(raw).hexdigest() != manifest.get('txt_sha256') or len(lines) != manifest.get('columns'):
+        raise ValueError('Kolon dosyası manifestle uyuşmuyor.')
+    if acceptance.get('manifest_sha256') != hashlib.sha256(data['BULTEN_MANIFEST.json']).hexdigest() or acceptance.get('txt_sha256') != hashlib.sha256(raw).hexdigest():
+        raise ValueError('Kabul raporu başka pakete ait.')
+    if acceptance.get('analysis_package_eligible') is not True or acceptance.get('real_money_approved') is not False:
+        raise ValueError('ZIP analiz kabul raporu uygun değil.')
+    if data['KOLONLAR_SPORTOTO_102_INCELEME.txt'] != raw.replace(b'X',b'0'):
+        raise ValueError('102 dönüştürme dosyası eşleşmiyor.')
+    t = manifest.get('raw_template')
+    if t is None:
+        if external_template is None:
+            raise ValueError('Bu eski ZIP orijinal ham şablonu taşımıyor. 15 satırlı g_sablon JSON ayrıca gerekir; yalnız 1.849 kolondan şablon çıkarılamaz.')
+        t = external_template
+        provenance = 'EXTERNAL_TEMPLATE_NOT_BOUND_TO_OLD_MANIFEST'
+    else:
+        if external_template is not None and v181_template_hash(external_template) != v181_template_hash(t):
+            raise ValueError('Harici şablonla manifest şablonu uyuşmuyor.')
+        if manifest.get('raw_template_sha256') != v181_template_hash(t):
+            raise ValueError('Manifest şablon imzası uyuşmuyor.')
+        if manifest.get('raw_universe_count') != math.prod(len(x) for x in t):
+            raise ValueError('Manifest evren büyüklüğü hatalı.')
+        provenance = 'EMBEDDED_TEMPLATE_MANIFEST_BOUND'
+    expected = manifest.get('reported_raw_coverage') if provenance == 'EMBEDDED_TEMPLATE_MANIFEST_BOUND' else None
+    audit = v181_exact_audit(raw, t, expected=expected)
+    target = manifest.get('target_correct_matches')
+    metric = {15:V181_KEYS[0],14:V181_KEYS[1],13:V181_KEYS[2],12:V181_KEYS[3]}.get(target)
+    if metric is None:
+        raise ValueError('Hedef isabet geçersiz.')
+    if manifest.get('coverage_raw_universe_percent') is not None and abs(float(manifest['coverage_raw_universe_percent']) - audit['exact_percent'][metric]) > 1e-6:
+        raise ValueError('Manifest ham kapsam yüzdesi ile tam yeniden sayım farklı.')
+    if audit['mismatches']:
+        raise ValueError('Ham senaryo kapsam iddiaları bağımsız tam hesapla eşleşmiyor.')
+    audit['template_provenance'] = provenance
+    audit['bulletin_signature'] = acceptance.get('bulletin_signature')
+    audit['analysis_zip_sha256'] = hashlib.sha256(zip_bytes).hexdigest()
+    return audit
+
+
+
+def v18_sablon_kontrol(raw, ozet, limit=300000):
+    """v18.1: tüm ham evrende bağımsız 12/13/14/15 tam sayımı."""
+    if not isinstance(ozet, dict):
+        raise ValueError('Ham şablon özeti gerekli.')
+    template = ozet.get('g_sablon')
+    if not isinstance(ozet.get('denetim_ham'), dict):
+        raise ValueError('Karşılaştırılacak eski ham kapsama yüzdeleri eksik.')
+    audit = v181_exact_audit(raw, template, expected=ozet['denetim_ham'], max_universe=limit)
+    if int(ozet.get('ham_adet', -1)) != audit['scenario_count']:
+        raise ValueError('Ham evren büyüklüğü özetle farklı.')
+    if audit['mismatches']:
+        raise ValueError('Bağımsız tam sayım: önceki ham kapsama değerleriyle uyuşmazlık.')
+    return {'mode':'EXACT_RAW_UNIVERSE_RECOMPUTED',
+            'universe_count':audit['scenario_count'],
+            'raw_coverage_percent':audit['exact_percent'],
+            'closest_hit_histogram_0_to_15':audit['closest_hit_histogram_0_to_15'],
+            'input_txt_sha256':audit['input_txt_sha256'],
+            'template_sha256':audit['template_sha256']}
 
 # =============================================================================
 # v18.0.2 — İSTEĞE BAĞLI KULLANICI ONAYLI BÜLTEN KAPISI (ANALİZ AMAÇLI)
@@ -2730,12 +2912,15 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
            'Geniş, kaynak doğrulanmış pre-match tarihsel test ve bağımsız holdout bulunmuyor.',blocking=False)
     kaydet('B03','Bahis sitesi ekran işaretleri, fiyat ve ödeme makbuzu teyidi',False,
            'Canlı site DOM/ödeme entegrasyonu kapalı; E2E test yapılmadı.',blocking=False)
-    if template_audit and template_audit['mode']=='TEMPLATE_MEMBERSHIP_ONLY_LARGE_UNIVERSE':
+    if template_audit and template_audit.get('mode')=='EXACT_RAW_UNIVERSE_RECOMPUTED':
+        kaydet('B04','Büyük ham evrenin bağımsız tam yeniden sayımı',True,
+               f"{template_audit['universe_count']} ham senaryonun 12/13/14/15 tam sayımı yapıldı.",blocking=False)
+    else:
         kaydet('B04','Büyük ham evrenin bağımsız tam yeniden sayımı',False,
-               '4096 senaryodan büyük evrenlerin tam yeniden hesabı bu kabul turunda yapılmadı.',blocking=False)
+               'Tam bağımsız sayım yok veya kontrol başarısız.',blocking=False)
     errors=[x['code']+': '+x['detail'] for x in checks if x['status']=='FAIL']
     eligible=not errors
-    result={'version':'18.0.2 USER-ATTESTED ANALYSIS BETA','scope':'ANALYSIS_ONLY',
+    result={'version':'18.1 INDEPENDENT MATHEMATICAL AUDIT RC','scope':'ANALYSIS_ONLY',
             'checked_at_utc':now.isoformat(), 'bulletin_signature':signature,
             'manifest_sha256':hashlib.sha256(manifest_bytes).hexdigest() if isinstance(manifest_bytes,(bytes,bytearray)) else None,
             'txt_sha256':hashlib.sha256(raw).hexdigest() if isinstance(raw,(bytes,bytearray)) else None,
@@ -2816,18 +3001,23 @@ def v18_zip_kontrol(zip_bytes):
         raise ValueError('Kabul raporu TXT veya manifestle uyuşmuyor.')
     if report.get('parameter_signature')!=m.get('parameter_hash'):
         raise ValueError('Parametre imzaları tutarsız.')
+    if m.get('independent_audit_required'):
+        audit181=v181_audit_archive(zip_bytes)
+        if audit181.get('mismatches'):
+            raise ValueError('Tam matematiksel sayım paket iddiasıyla eşleşmiyor.')
     return {'status':'OFFLINE_INTEGRITY_OK_NOT_OFFICIAL_AUTHENTICATED','columns':m['columns'],
             'txt_sha256':m['txt_sha256'],'matches':len(m['matches']),
             'analyzed_at':report.get('checked_at_utc')}
 
-tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, tab_acceptance = st.tabs([
+tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, tab_acceptance, tab_math181 = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
     "🛡️ 3. Denetimli Paket ve İşlem Kayıtları",
     "📥 4. Analiz TXT + Manifest",
     "🧪 5. Backtest & Kalibrasyon",
     "🧠 6. Anti-Public & Çeşitlilik",
-    "✅ 7. v18.0.2 Kabul ve Güvenilirlik"
+    "✅ 7. Kabul ve Güvenilirlik",
+    "🧮 8. v18.1 Bağımsız Matematik Denetimi"
 ])
 
 # ------------------------------------------------------------------------------
@@ -2837,7 +3027,7 @@ guncel_uretim_imzasi = None
 public173_ctx=None
 v173_active_weight=0.0
 with tab_uretim:
-    with st.expander('🧾 v18.0.2 — Bülten kabul şekli',expanded=True):
+    with st.expander('🧾 v18.1 — Bülten kabul şekli',expanded=True):
         st.warning('Bu uygulama resmî bülteni, resmî kapanışı veya ödeme işlemini bağımsız doğrulayamaz. Otomatik oynama ve ödeme kapalıdır.')
         v1802_mode=st.radio('Bülten kabul yöntemi',
             ['Benim liste onayım (CSV/metin/API zorunlu değil)', 'Eski üçlü karşılaştırma (CSV + metin + API)'],
@@ -3970,7 +4160,7 @@ with tab_antipublic:
 # SEKME 7: v18.0 ACCEPTANCE & RELIABILITY CENTER
 # ------------------------------------------------------------------------------
 with tab_acceptance:
-    st.subheader('✅ v18.0.2 — Kabul ve Güvenilirlik Merkezi')
+    st.subheader('✅ v18.1 — Kabul ve Güvenilirlik Merkezi')
     st.error('GERÇEK PARAYLA OTOMATİK OYNAMA / ÖDEME YETKİSİ YOK. Bu sistem yalnızca analiz paketi ve doğrulama raporu üretir.')
     st.caption('Yazılım çekirdek testleri canlı bahis sitesi veya resmî veri otantikliği testi değildir. '
                'Tek başına CSV kaynağının URL bilgisi, resmî kaynağın gerçekten doğrulandığını kanıtlamaz.')
@@ -4011,8 +4201,8 @@ with tab_acceptance:
                 try:
                     audit18=v18_kabul_zip(raw18,manifest18,v18_report)
                     validate18=v18_zip_kontrol(audit18)
-                    st.download_button('📦 v18.0 tek denetimli analiz paketi (1X2 + 102 + SHA-256 + rapor)',audit18,
-                        file_name=f"SPOR_TOTO_V180_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
+                    st.download_button('📦 v18.1 denetimli analiz paketi (1X2 + 102 + SHA-256 + ham şablon)',audit18,
+                        file_name=f"SPOR_TOTO_V181_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
                         mime='application/zip',type='primary',use_container_width=True,key='v18_archive_download')
                     st.code(f"TXT SHA-256: {validate18['txt_sha256']}")
                 except (ValueError,TypeError,KeyError,zipfile.BadZipFile) as exc:
@@ -4032,3 +4222,55 @@ with tab_acceptance:
     st.info('Resmî maç listesi içeriğinin otantikliği • Gerçek API anahtarında canlı veri gecikmesi '
             '• Streamlit tarayıcı uçtan uca testi • Geçmiş gerçek maç öncesi tahminlerle istatistiksel kalibrasyon '
             '• Bahis sitesi işaretleme, fiş, fiyat ve ödeme sonucu (entegrasyon kapalı).')
+
+
+# ------------------------------------------------------------------------------
+# SEKME 8: v18.1 — HAM EVRENİN TAM VE BAĞIMSIZ HESABI
+# ------------------------------------------------------------------------------
+with tab_math181:
+    st.subheader('🧮 v18.1 — Bağımsız Matematiksel Denetim')
+    st.info('Bu modül üretim motorunu çağırmaz. Ham şablondaki HER senaryo için en yakın kolonun 0–15 isabetini tam olarak hesaplar. Resmî bülten veya kâr garantisi değildir.')
+    live_summary=st.session_state.get('son_uretim_ozeti')
+    live_columns=st.session_state.get('uretilen_kuponlar')
+    if live_summary is not None and live_columns is not None:
+        try:
+            ids=live_summary.get('mac_ids',[])
+            if ids != st.session_state.get('secilen_mac_idleri'):
+                raise ValueError('Oturumdaki maç sırası ile üretim maçı uyuşmuyor.')
+            if not guncel_uretim_imzasi or live_summary.get('imza') != guncel_uretim_imzasi:
+                raise ValueError('Üretim ayarları değişmiş; yeniden üretim gerekli.')
+            exact_raw,_=tum_kolonlar_txt153(live_columns,live_summary,guncel_uretim_imzasi,ids)
+            exact_report=v181_exact_audit(exact_raw,live_summary['g_sablon'],expected=live_summary.get('denetim_ham'))
+            st.success(f"TAM MATEMATİK DENETİMİ: {exact_report['scenario_count']:,} senaryo, {exact_report['unique_columns']:,} tekil kolon.") if not exact_report['mismatches'] else st.error('Eski rapor yüzdeleri ile tam sayım uyuşmuyor; analiz paketini kullanmayın.')
+            st.dataframe(pd.DataFrame([{'Hedef':k,'Karşılanan senaryo':exact_report['exact_count'][k],
+                'Toplam':exact_report['scenario_count'],'Kapsama %':round(exact_report['exact_percent'][k],6)}
+                for k in ('tam_15','en_az_14','en_az_13','en_az_12')]),hide_index=True,use_container_width=True)
+            st.caption('En düşük en iyi isabet: '+str(exact_report['minimum_best_hits'])+' / 15. En zayıf senaryo örneği: '+exact_report['worst_case_example'])
+            st.download_button('📄 Bağımsız tam matematik raporu (JSON)',json.dumps(exact_report,ensure_ascii=False,indent=2).encode('utf-8'),
+                file_name='SPOR_TOTO_V181_BAGIMSIZ_MATEMATIK_RAPORU.json',mime='application/json',key='v181_session_report')
+            st.download_button('📋 Orijinal 15 satırlık ham şablon (JSON)',json.dumps(exact_report['template'],ensure_ascii=False,indent=2).encode('utf-8'),
+                file_name='SPOR_TOTO_V181_HAM_SABLON.json',mime='application/json',key='v181_template_export')
+        except (ValueError,TypeError,KeyError,UnicodeError,OverflowError) as exc:
+            st.error('Tam matematik denetimi başarısız: '+str(exc))
+    else:
+        st.warning('Oturumda kolon/ham şablon yok. Önce 1. sekmeden güncel kuponları üretin.')
+    st.markdown('#### Dışa aktarılan analiz ZIP dosyasını tam sayım ile sınama')
+    uploaded181=st.file_uploader('v18.1 veya eski v18.x denetimli analiz ZIP',type=['zip'],key='v181_audit_zip')
+    old_template181=st.file_uploader('Yalnız eski ZIP için orijinal 15 satırlık ham şablon (JSON); yeni ZIP gerekmez',type=['json'],key='v181_template_json')
+    if uploaded181 is not None:
+        try:
+            t181=json.loads(old_template181.getvalue().decode('utf-8-sig')) if old_template181 is not None else None
+            out181=v181_audit_archive(uploaded181.getvalue(),external_template=t181)
+            if out181['mismatches']:
+                st.error('Ham kapsam tutarsızlığı bulundu; analiz doğrulanmadı.')
+            else:
+                st.success(f"Tam sayım: {out181['scenario_count']:,} senaryo; {out181['unique_columns']:,} kolon.")
+                if out181['template_provenance']!='EMBEDDED_TEMPLATE_MANIFEST_BOUND':
+                    st.warning('Bu eski ZIP için şablon haricen sağlandı: şablonun gerçekten orijinal olduğunu yalnız ZIP içinden doğrulayamıyoruz.')
+                st.dataframe(pd.DataFrame([{'Hedef':k,'Kapsama %':round(out181['exact_percent'][k],6),'Senaryo':out181['exact_count'][k]}
+                    for k in ('tam_15','en_az_14','en_az_13','en_az_12')]),hide_index=True,use_container_width=True)
+            st.download_button('📄 Bu ZIP için bağımsız raporu indir',json.dumps(out181,ensure_ascii=False,indent=2).encode('utf-8'),
+                file_name='SPOR_TOTO_V181_ZIP_DENETIM_RAPORU.json',mime='application/json',key='v181_zip_report')
+        except (ValueError,TypeError,KeyError,UnicodeError,zipfile.BadZipFile,OverflowError) as exc:
+            st.error('Denetim engellendi: '+str(exc))
+    st.caption('Büyük evren tam sayımı 300.000 ham senaryoya kadar desteklenir. Kapsama yalnız şablon evrenindedir; bülten doğruluğunu, tahmin kalibrasyonunu veya ödeme sonucunu kanıtlamaz.')
