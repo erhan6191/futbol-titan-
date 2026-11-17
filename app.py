@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v17.1 — BULLETIN CROSS-CHECK & SAFE AUDIT",
+    page_title="Spor Toto AI Pro v17.2 — BACKTEST, FRESHNESS & SAFE AUDIT",
     page_icon="🏆",
     layout="wide"
 )
@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v17.1 SAFE BETA</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç. 2. Kullanıcının haftalık bülten CSV dosyasını karşılaştır; bu resmî kaynağı doğrulamaz. 3. Kaynak kalitesini kontrol et. 4. Şablon ve bütçe belirle, analiz yap. 5. Dördüncü sekmeden tek TXT ve SHA-256 manifest paketini indir. 6. Resmî sitedeki bülteni, sırayı, tutarı ve varsa makbuzu bağımsız doğrula.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v17.2 SAFE BETA</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç. 2. Kullanıcının haftalık bülten CSV dosyasını karşılaştır; bu resmî kaynağı doğrulamaz. 3. Kaynak kalitesini kontrol et. 4. Şablon ve bütçe belirle, analiz yap. 5. Dördüncü sekmeden tek TXT ve SHA-256 manifest paketini indir. 6. Beşinci sekmede maç öncesi geçmiş tahminleri analiz et. 7. Resmî sitedeki bülteni, sırayı, tutarı ve varsa makbuzu bağımsız doğrula.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -94,7 +94,7 @@ varsayilan_state = {
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
     "paket_konfig_v161": None,
-    "sema_versiyonu": "17.1",
+    "sema_versiyonu": "17.2",
     "v171_api_proof": None,
     "v17_receipts": {},
     "v17_official_user_csv": None,
@@ -104,7 +104,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "17.1":
+if st.session_state.get("sema_versiyonu") != "17.2":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -119,7 +119,7 @@ if st.session_state.get("sema_versiyonu") != "17.1":
     st.session_state.v17_official_user_csv = None
     st.session_state.v17_official_hash = None
     st.session_state.v171_api_proof = None
-    st.session_state.sema_versiyonu = "17.1"
+    st.session_state.sema_versiyonu = "17.2"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -144,14 +144,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v17.1")
+    st.markdown("## 🏆 Spor Toto AI v17.2")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v17_1_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v17_2_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -218,7 +218,7 @@ with st.sidebar:
     limit_metni = f"En fazla {max_kolon_limiti:,} kolon" if max_kolon_limiti is not None else "Bütçesiz analiz (oynama talimatı değildir)"
     st.caption(limit_metni)
     arsiv_upload = st.file_uploader("İsteğe bağlı geçmiş maç arşivi (CSV)", type=["csv"], key="history14", help="date,home,away,hg,ag; yalnız tamamlanmış maçlar, takım adları API ile aynı olmalıdır. Her lig için ayrı model önerilir.")
-    st.caption("Kolon fiyatı ve oynanma oranları otomatik doğrulanmaz. Arşiv yoksa piyasa/API; arşiv varsa DC/Elo deneysel model. Ağırlıklar kalibre edilmemiştir.")
+    st.caption("Kolon fiyatı ve oynanma oranları otomatik doğrulanmaz. Arşiv yoksa piyasa/API; arşiv varsa DC/Elo deneysel model. Ağırlıklar kalibre edilmemiştir. Geçmiş tahmin testleri 5. sekmededir.")
 
     aninda_otomatik_hesapla = st.toggle(
         "⚡ Tablo & Menü Değişikliklerinde Anında Senkronize Et (<= 4.000 Ham Kolon)",
@@ -312,7 +312,8 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "16.1",
+            "versiyon": "17.2",
+            "secilen_15_mac": st.session_state.secilen_15_mac,
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
@@ -330,11 +331,13 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v16_1_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v17_2_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
 
+    if st.session_state.get('v172_restore_notice'):
+        st.warning(st.session_state.v172_restore_notice)
     yuklenen_oturum = st.file_uploader("📂 Kayıtlı Oturumu Yükle (.JSON):", type=["json"])
     if yuklenen_oturum is not None:
         if st.button("♻️ Oturumu Geri Yükle", use_container_width=True):
@@ -348,7 +351,29 @@ with st.sidebar:
                 st.session_state.uretilen_kuponlar=None
                 st.session_state.tablo_df=None;st.session_state.tablo_baz_df=None
 
-                st.session_state.secilen_mac_idleri = veri_json.get("secilen_mac_idleri", [])
+                st.session_state.secilen_mac_idleri = ids
+                # Eski JSON'larda secilen_15_mac bulunmuyordu: mac sirasini tahmin etmeyiz.
+                yeniden_secim=veri_json.get('secilen_15_mac')
+                if isinstance(yeniden_secim,list) and len(yeniden_secim)==15:
+                    if [int(x['id']) for x in yeniden_secim]!=[int(x) for x in ids] or any(
+                        not all(str(x.get(k,'')).strip() for k in ('ev','dep','tarih','saat')) for x in yeniden_secim):
+                        raise ValueError('Yedek 15 mac ayrintilari eksik veya sirasi farkli.')
+                    restored=[]
+                    for m in yeniden_secim:
+                        mm=dict(m)
+                        mm['karsilasma']=f"{mm['ev']} - {mm['dep']}"
+                        mm['label']=mm.get('label') or mm['karsilasma']
+                        restored.append(mm)
+                    st.session_state.secilen_15_mac=restored
+                    st.session_state.mac_listesi=list(restored)
+                    st.session_state.v172_restore_notice='15 maç sırası yedekten geri getirildi. Eski tahmin/kuponlar güncel sayılmaz.'
+                else:
+                    in_session=st.session_state.get('secilen_15_mac',[])
+                    if len(in_session)!=15 or [int(m['id']) for m in in_session]!=[int(x) for x in ids]:
+                        st.session_state.secilen_15_mac=[]
+                        st.session_state.mac_listesi=[]
+                    st.session_state.v172_restore_notice='Eski JSON dosyasında 15 maçın tam seçimi bulunmuyor. Maçları resmî sırasıyla yeniden seçin.'
+                st.session_state.v171_api_proof=None
                 st.session_state.analiz_verisi = veri_json.get("analiz_verisi")
                 if veri_json.get("tablo_df"):
                     yuklenen_df = pd.DataFrame(veri_json["tablo_df"])
@@ -357,7 +382,7 @@ with st.sidebar:
                     st.session_state.tablo_versiyon += 1
                 if veri_json.get("uretilen_kuponlar"):
                     st.session_state.uretilen_kuponlar = None  # eski üretimi yeniden hesapla
-                st.session_state.son_uretim_ozeti = veri_json.get("son_uretim_ozeti")
+                st.session_state.son_uretim_ozeti = None # Önceki üretim yeni analize taşınamaz.
                 st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
                 st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
                 st.session_state.yatirilan_paketler = veri_json.get("yatirilan_paketler", [])
@@ -594,7 +619,9 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
     market=np.median(np.array([odds_list_1,odds_list_x,odds_list_2]),axis=1) if odds_list_1 else None
     spread=float(max(np.std(x) for x in [odds_list_1,odds_list_x,odds_list_2])) if odds_list_1 else 0.
     api=np.array([ai_1,ai_x,ai_2]) if pred_geldi else None
-    return market,api,spread,len(odds_list_1),hatalar
+    # Bu fonksiyon cache icinde calistigi icin gercek FETCH zamani cache ile korunur.
+    fetched_at = datetime.now(timezone.utc).isoformat().replace('+00:00','Z')
+    return market,api,spread,len(odds_list_1),hatalar,fetched_at
 
 
 def hibrit_tahminleri_al(secilen_maclar, api_key):
@@ -607,7 +634,7 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
     for i, mac in enumerate(secilen_maclar):
         f_id = mac["id"]
         lig_id = mac.get("lig_id", 203)
-        market,api,piyasa_std,bureau,hatalar = tek_mac_analiz_cek(f_id, api_key, lig_id=lig_id)
+        market,api,piyasa_std,bureau,hatalar,remote_fetched_at = tek_mac_analiz_cek(f_id, api_key, lig_id=lig_id)
         model=None
         if history is not None:
             try:
@@ -634,6 +661,8 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
             "tuzak_farki": max(h1, hx, h2) - max(g1, gx, g2),
             "piyasa_std": piyasa_std,
             "kaynak":kaynak,"buro_sayisi":bureau,"veri_uyarilari":hatalar,
+            "source_fetched_at":remote_fetched_at,
+            "source_provenance":"API_REQUEST_AT" if (market is not None or api is not None) else "NO_API_PREDICTION",
             "snapshot_utc":datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         })
         progress.progress((i + 1) / len(secilen_maclar))
@@ -1861,7 +1890,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"17.1 SAFE BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"17.2 SAFE BETA", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -2073,11 +2102,203 @@ def v171_denetimli_analiz_zip(raw,manifest_bytes,kapisi):
     return bundle.getvalue()
 
 
-tab_uretim, tab_takip, tab_otomasyon, tab_txt153 = st.tabs([
+
+
+# =============================================================================
+# v17.2: GERCEK API VERI ALIM SAATI + GECMIS TAHMIN BACKTEST / CHRONO SPLIT
+# NOT: Kullanicinin sagladigi gecmis veriler bagimsiz olarak onaylanmaz.
+# =============================================================================
+V172_SOURCES = ('market', 'api', 'model', 'blend')
+V172_REQUIRED = ('match_id','kickoff_utc','snapshot_utc','league','result')
+V172_NUMERIC = tuple(f'{src}_{r}' for src in V172_SOURCES for r in ('1','x','2'))
+
+
+def v172_source_quality(records, simdi=None):
+    """Arayuzde yeniden hesaplanmis olmasi kaynak alimini yeni yapmaz."""
+    now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
+    out=[]
+    if not isinstance(records,list) or len(records)!=15:
+        return ['15 tahmin satiri gerekli.']
+    for i,r in enumerate(records,1):
+        try:
+            fetched=v17_utc(r['source_fetched_at'])
+            if fetched>now + pd.Timedelta(seconds=5) or now-fetched>pd.Timedelta(minutes=30):
+                out.append(f'{i}. mac: API veri alim zamani 30 dakikadan eski/gelecekte.')
+            if r.get('source_provenance')!='API_REQUEST_AT':
+                out.append(f'{i}. mac: API tahmin/oran kaynagi dogrulanamadi.')
+        except (KeyError,ValueError,TypeError):
+            out.append(f'{i}. mac: gercek API alis zamani yok (eski oturum olabilir).')
+    return out
+
+
+def v172_history_parse(csv_bytes, now=None):
+    """Tarihsel tahminler: baslamadan EN AZ 30 dk once kaydedilmis olmalidir.
+    Yalnizca skorlardan geriye donuk model tahmini uretmez.
+    """
+    if not isinstance(csv_bytes,bytes) or not csv_bytes or len(csv_bytes)>16_000_000:
+        raise ValueError('Gecmis tahmin CSV dosyasi yok veya 16 MB sinirini asiyor.')
+    df=pd.read_csv(io.BytesIO(csv_bytes),dtype={'match_id':'string','league':'string','result':'string'},low_memory=False)
+    if not set(V172_REQUIRED) <= set(df.columns):
+        raise ValueError('Eksik CSV alanlari: '+', '.join(sorted(set(V172_REQUIRED)-set(df.columns))))
+    if not 1<=len(df)<=50_000:
+        raise ValueError('CSV 1 ile 50000 mac icermelidir.')
+    if df[list(V172_REQUIRED)].isna().any().any():
+        raise ValueError('Mac ID, lig, baslama, snapshot veya sonuc bos.')
+    df['match_id']=df.match_id.str.strip()
+    if (df.match_id.str.len()>60).any() or (df.match_id=='').any() or df.match_id.duplicated().any():
+        raise ValueError('Tekrarlanan/bos/asiri uzun mac ID.')
+    df['league']=df.league.str.strip()
+    if (df.league=='').any() or (df.league.str.len()>90).any():
+        raise ValueError('Lig etiketi gecersiz.')
+    for c in ('kickoff_utc','snapshot_utc'):
+        raw=df[c].astype(str).str.strip()
+        # Offset kaybolmus sessiz UTC varsayimi yasak.
+        if not raw.str.contains(r'(?:Z|[+-]\d{2}:?\d{2})$',regex=True).all():
+            raise ValueError(c+' saat dilimi icermeli (Z veya +03:00).')
+        try:df[c]=pd.to_datetime(raw,utc=True,errors='raise',format='ISO8601')
+        except (ValueError,TypeError):df[c]=pd.to_datetime(raw,utc=True,errors='raise')
+    t_now=v17_utc(now) if now is not None else pd.Timestamp.now(tz='UTC')
+    if (df.kickoff_utc>=t_now).any():
+        raise ValueError('Gecmiste bitmis mac olmalidir; henuz baslamamis maclar yasak.')
+    if (df.snapshot_utc >= df.kickoff_utc-pd.Timedelta(minutes=30)).any():
+        raise ValueError('Maç baslamadan en az 30 dakika oncesine ait tahmin kaydi gerekli.')
+    if (df.kickoff_utc-df.snapshot_utc > pd.Timedelta(days=30)).any():
+        raise ValueError('Tahmin kaydi mactan 30 gun oncesine ait olamaz.')
+    df['result']=df.result.str.strip().str.upper().replace({'0':'X'})
+    if not df.result.isin(('1','X','2')).all():
+        raise ValueError('90 dakika normal sure mac sonucu 1/X/2 olmali (0 -> X).')
+    active=[]
+    for src in V172_SOURCES:
+        cols=[f'{src}_{r}' for r in ('1','x','2')]
+        exists=[c in df.columns for c in cols]
+        if any(exists) and not all(exists):
+            raise ValueError(f'{src} eksik 1/X/2 sutunu.')
+        if not all(exists):continue
+        vals=df[cols].apply(pd.to_numeric,errors='coerce').to_numpy(float)
+        valid=np.isfinite(vals).all(axis=1)
+        absent=df[cols].isna().all(axis=1).to_numpy()
+        if ((~valid)&(~absent)).any():
+            raise ValueError(f'{src}: kismi, metin veya sonsuz olasilik satiri var.')
+        if valid.any():
+            p=vals[valid]
+            if ((p<0)|(p>100)).any() or (abs(p.sum(axis=1)-100)>1.0).any():
+                raise ValueError(f'{src}: olasiliklar 0-100 arasi ve toplami yaklasik 100 olmali.')
+            active.append(src)
+        for c in cols: df[c]=pd.to_numeric(df[c],errors='coerce')
+    if not active:raise ValueError('En az bir kaynaga ait baslangic oncesi 1/X/2 tahminleri gerekli.')
+    df=df.sort_values(['kickoff_utc','match_id'],kind='stable').reset_index(drop=True)
+    return df,active
+
+
+def v172_prob_and_label(df, src):
+    cols=[f'{src}_{x}' for x in ('1','x','2')]
+    p=df[cols].to_numpy(float)/100.
+    mask=np.isfinite(p).all(axis=1)
+    # 99.7 gibi kucuk yuzde yuvarlama farklarini normalleştir.
+    p=p[mask]; p=p/np.sum(p,axis=1,keepdims=True)
+    yy=df.loc[mask,'result'].map({'1':0,'X':1,'2':2}).to_numpy(int)
+    return mask,p,yy
+
+
+def v172_metrics(probs,y):
+    p=np.asarray(probs,dtype=float);y=np.asarray(y,dtype=int)
+    if p.ndim!=2 or p.shape[1]!=3 or len(y)!=len(p) or len(p)==0:
+        raise ValueError('3 sinifli pozitif sayida tahmin gerekli.')
+    if not np.isfinite(p).all() or (p<0).any() or (p.sum(axis=1)<=0).any():
+        raise ValueError('Sayisal olasilik gecersiz.')
+    p=p/p.sum(axis=1,keepdims=True)
+    if not np.isin(y,[0,1,2]).all():raise ValueError('Sonuc 0,1,2 siniflarinda olmali.')
+    onehot=np.eye(3)[y]
+    brier=np.mean(np.sum((p-onehot)**2,axis=1))
+    ll=np.mean(-np.log(np.clip(p[np.arange(len(y)),y],1e-12,1)))
+    prediction=np.argmax(p,axis=1)
+    confidence=np.max(p,axis=1)
+    # Multiclass ECE: top confidence binning; sample size yetmezse yorum icin az.
+    ece=0.
+    for j in range(10):
+        inbin=(confidence>=j/10)&((confidence<(j+1)/10) if j<9 else (confidence<=1.0))
+        if inbin.any():ece+=inbin.mean()*abs((prediction[inbin]==y[inbin]).mean()-confidence[inbin].mean())
+    return {'n':int(len(y)),'brier':float(brier),'log_loss':float(ll),
+            'top1_accuracy':float(np.mean(prediction==y)),'ece_top1':float(ece)}
+
+
+def v172_temperature(probs, t):
+    p=np.asarray(probs,float)
+    if t<=0:raise ValueError('Temperature pozitif olmali.')
+    logits=np.log(np.clip(p,1e-12,1.))/float(t)
+    logits-=np.max(logits,axis=1,keepdims=True)
+    e=np.exp(logits)
+    return e/e.sum(axis=1,keepdims=True)
+
+
+def v172_temporal_calibration(df,src):
+    """Takvim gunu kesmesi + embargo; test sonucuyla sicaklik ogrenilmez."""
+    from scipy.optimize import minimize_scalar
+    mask,p,y=v172_prob_and_label(df,src)
+    data=df.loc[mask].reset_index(drop=True)
+    result={'source':src,'total_n':int(len(data)),'status':'INSUFFICIENT_DATA','train_n':0,'holdout_n':0}
+    if len(data)<120:return result
+    dates=data.kickoff_utc.dt.floor('D')
+    days=np.sort(dates.unique())
+    if len(days)<20:return result
+    # Her gun tamamen ya train ya test; test baslangicindan once 24h embargo.
+    cutday=days[int(len(days)*0.70)]
+    cut=pd.Timestamp(cutday)
+    tr=(data.kickoff_utc < cut-pd.Timedelta(days=1)).to_numpy()
+    te=(data.kickoff_utc >= cut).to_numpy()
+    result['train_n']=int(tr.sum());result['holdout_n']=int(te.sum())
+    if tr.sum()<80 or te.sum()<30:return result
+    def objective(t):
+        pc=v172_temperature(p[tr],t)
+        return float(-np.mean(np.log(np.clip(pc[np.arange(tr.sum()),y[tr]],1e-12,1))))
+    fit=minimize_scalar(objective,bounds=(.5,4),method='bounded',options={'xatol':1e-3})
+    if not fit.success or not np.isfinite(fit.x):return result
+    val_raw=v172_metrics(p[te],y[te]); val_cal=v172_metrics(v172_temperature(p[te],fit.x),y[te])
+    freq=(np.bincount(y[tr],minlength=3)+1)/(int(tr.sum())+3)
+    val_base=v172_metrics(np.tile(freq,(int(te.sum()),1)),y[te])
+    result.update(status='OUT_OF_TIME_TEST',temperature=float(fit.x),
+                  holdout_start=cut.isoformat(),train_end=(cut-pd.Timedelta(days=1)).isoformat(),
+                  raw=val_raw,calibrated=val_cal,baseline=val_base,
+                  calibrated_better_log_loss=bool(val_cal['log_loss']<val_raw['log_loss']))
+    return result
+
+
+def v172_backtest_report(df,sources):
+    rows=[];temp=[]; league=[]
+    for src in sources:
+        mask,p,y=v172_prob_and_label(df,src)
+        met=v172_metrics(p,y)
+        rows.append({'Kaynak':src,'Mac':met['n'],'Brier':round(met['brier'],5),
+                     'LogLoss':round(met['log_loss'],5),'1X2_Isabet_%':round(100*met['top1_accuracy'],2),
+                     'ECE_%':round(100*met['ece_top1'],2),'Not':'Retrospektif; bagimsiz onay yok'})
+        temp.append(v172_temporal_calibration(df,src))
+        srcdf=df.loc[mask].copy()
+        for lig, grp in srcdf.groupby('league',sort=True):
+            if len(grp)<10:continue
+            _,pl,yl=v172_prob_and_label(grp,src)
+            r=v172_metrics(pl,yl)
+            league.append({'Kaynak':src,'Lig':str(lig),'Mac':r['n'],
+                           'Brier':round(r['brier'],5),'LogLoss':round(r['log_loss'],5),
+                           'Uyari':'Az ornek (<30)' if r['n']<30 else 'Betimleyici'})
+    common=np.ones(len(df),bool)
+    for src in sources:
+        common &= np.isfinite(df[[f'{src}_{r}' for r in ('1','x','2')]].to_numpy(float)).all(axis=1)
+    paired=[]
+    if common.sum()>=30:
+        for src in sources:
+            _,p,y=v172_prob_and_label(df.loc[common],src)
+            m=v172_metrics(p,y)
+            paired.append({'Kaynak':src,'Ayni_mac_adedi':m['n'],'Brier':round(m['brier'],5),
+                           'LogLoss':round(m['log_loss'],5),'1X2_Isabet_%':round(100*m['top1_accuracy'],2)})
+    return rows,temp,league,paired
+
+
+tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
     "🛡️ 3. Denetimli Paket ve İşlem Kayıtları",
-    "📥 4. Analiz TXT + Manifest"
+    "📥 4. Analiz TXT + Manifest",
+    "🧪 5. Backtest & Kalibrasyon"
 ])
 
 # ------------------------------------------------------------------------------
@@ -2085,7 +2306,7 @@ tab_uretim, tab_takip, tab_otomasyon, tab_txt153 = st.tabs([
 # ------------------------------------------------------------------------------
 guncel_uretim_imzasi = None
 with tab_uretim:
-    with st.expander('🧾 v17.1 — Resmî bülten ve bağımsız API karşılaştırma masası',expanded=True):
+    with st.expander('🧾 v17.2 — Resmî bülten ve bağımsız API karşılaştırma masası',expanded=True):
         st.warning('Güvenlik sınırı: Bu kontrollerin HİÇBİRİ resmî web sitesi adına işlem, makbuz onayı veya bağımsız kaynak otantikliği sağlamaz. Otomatik oynama kapalıdır.')
         st.markdown('[Spor Toto Teşkilatının resmî haftalık maç listesi](https://www.sportoto.gov.tr/spor-toto-listeler) — önce bu sayfadan 15 maçı ve resmî kapanışı kontrol edin.')
         st.caption('Resmî listeden elle kopyalanmış 15 satırı 1. Ev Sahibi - Deplasman şeklinde aşağıya yazın. Bu giriş, CSV/API kayıtlarından bağımsız olarak maç sırasını sınamak içindir.')
@@ -2101,7 +2322,7 @@ with tab_uretim:
                      'closes_at':'','source_url':'https://www.sportoto.gov.tr/spor-toto-listeler','obtained_at':''} for i,m in enumerate(matchlist17)]
             st.download_button('⬇️ Boş karşılaştırma CSV şablonu',
                 pd.DataFrame(rows17).to_csv(index=False).encode('utf-8-sig'),
-                file_name='SPOR_TOTO_V171_BULTEN_SABLONU.csv',mime='text/csv')
+                file_name='SPOR_TOTO_V172_BULTEN_SABLONU.csv',mime='text/csv')
             st.caption('CSV API listesinden oluşturulur; bağımsız kanıt DEĞİLDİR. Kapanışı, tarihleri ve takım isimlerini resmî kaynaktan karşılaştırın.')
             if api_key and st.button('🔄 API-Football 15 maçı YENİDEN canlı kontrol et',key='v171_api_revalidate'):
                 try:
@@ -2119,6 +2340,11 @@ with tab_uretim:
             v171_current_gate=v171_bagimsiz_kontrol_kapisi(
                 user_bulten17.getvalue() if user_bulten17 else b'',v171_manual,matchlist17,
                 st.session_state.get('v171_api_proof'),st.session_state.analiz_verisi,simdi=_now171)
+            v172_source_issues = v172_source_quality(st.session_state.analiz_verisi,simdi=_now171)
+            if v172_source_issues:
+                v171_current_gate['issues'].extend(v172_source_issues)
+                v171_current_gate['ok']=False
+                v171_current_gate['status']='BLOCKED'
             if v171_current_gate['ok']:
                 st.success('✅ Kullanıcı CSV + bağımsız metin + güncel API + tahmin kayıtları birbiriyle tutarlı. RESMÎ KAYNAĞIN OTANTİKLİĞİ DOĞRULANMADI.')
             else:
@@ -2273,7 +2499,38 @@ with tab_uretim:
             veriler = st.session_state.analiz_verisi
             with st.expander("Kaynak kalitesi ve veri uyarıları",expanded=False):
                 st.dataframe(pd.DataFrame([{k:v.get(k) for k in ('mac','kaynak','buro_sayisi','snapshot_utc','veri_uyarilari')} for v in veriler]))
-            if v17_tahmin_kalitesi(veriler): st.error('TAHMİN KALİTESİ UYARISI: ' + ' | '.join(v17_tahmin_kalitesi(veriler)[:4]) + ' — analiz yapılabilir; gerçek oyun yetkisi yok.')
+            _q17=v17_tahmin_kalitesi(veriler) + v172_source_quality(veriler)
+            if _q17:
+                st.error(f"TAHMİN GÜNCELLİK/KAYNAK UYARISI: {len(_q17)} kontrol başarısız. "
+                         "Bu uyarı eski oturum tahminleri veya eski API veri alımı nedeniyle olabilir; "
+                         "analiz yapılabilir ama denetimli paket kapalıdır.")
+                with st.expander('⚠️ Uyarı ayrıntıları ve çözümü',expanded=False):
+                    for issue in _q17[:30]:st.write('• '+issue)
+                    st.caption('Tahmin snapshot’ı hesaplama saati; API alım saati ayrı kaydedilir. Yenileme API kotası tüketebilir.')
+                if st.button('🔄 15 MAÇIN TAHMİNLERİNİ API’DEN YENİDEN ÇEK VE HESAPLA',
+                             key='v172_refresh_analysis',type='primary',use_container_width=True,
+                             disabled=(not api_key or len(st.session_state.secilen_15_mac)!=15)):
+                    try:
+                        tek_mac_analiz_cek.clear()
+                        recalculated=hibrit_tahminleri_al(st.session_state.secilen_15_mac,api_key)
+                        problems=v17_tahmin_kalitesi(recalculated)+v172_source_quality(recalculated)
+                        if problems:raise ValueError('Yenileme kaynaksız/eksik: '+' | '.join(problems[:4]))
+                    except Exception as exc:
+                        st.error(f'Tahmin yenilenemedi, eski kayıtlar değiştirilmedi: {exc}')
+                    else:
+                        st.session_state.analiz_verisi=recalculated
+                        # Eski kuponlar ve düzenlenmiş tablo ASLA yeni olasılığa taşınmaz.
+                        st.session_state.tablo_baz_df=None
+                        st.session_state.tablo_df=None
+                        st.session_state.tablo_versiyon+=1
+                        st.session_state.uretilen_kuponlar=None
+                        st.session_state.son_uretim_ozeti=None
+                        st.session_state.son_param_imzasi=None
+                        st.session_state.son_sol_menu_imzasi=None
+                        st.session_state.v171_api_proof=None
+                        st.session_state.v172_restore_notice=''
+                        st.toast('Yeni API veri alımıyla 15 tahmin yenilendi. Eski şablon/kuponlar sıfırlandı; bülteni yeniden doğrulayın.')
+                        st.rerun()
             on_limitler = tam_otonom_analiz(veriler, strateji_modu)
 
             if st.session_state.tablo_baz_df is None:
@@ -2933,8 +3190,8 @@ with tab_otomasyon:
             if v171_current_gate.get('ok'):
                 try:
                     audit_zip171=v171_denetimli_analiz_zip(paket_raw17,paket_m17,v171_current_gate)
-                    st.download_button('🛡️ v17.1 DENETİMLİ İNCELEME PAKETİ (1X2 + 102)',audit_zip171,
-                        file_name=f"SPOR_TOTO_V171_KONTROL_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
+                    st.download_button('🛡️ v17.2 DENETİMLİ İNCELEME PAKETİ (1X2 + 102)',audit_zip171,
+                        file_name=f"SPOR_TOTO_V172_KONTROL_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
                 except (ValueError,TypeError,KeyError) as exc: st.error('Denetimli çıktı durdu: '+str(exc))
             else:st.warning('Denetimli paket kapalı: resmî liste metni, CSV, güncel API ve tahmin kontrolleri tamamlanmadı.')
             st.info('Yatırma kararı veriyorsanız resmî site/işlem detaylarıyla 15 satır, her kolon, tutar ve misli manuel teyit edilmelidir. Bu uygulama işlemin kabul edildiğini iddia etmez.')
@@ -2959,7 +3216,7 @@ with tab_txt153:
     st.warning('Yalnızca analiz çıktısıdır. Resmî bülten, kapanış, olasılık kalibrasyonu, site DOM ve ödeme teyidi bağımsız doğrulanmadığından canlı bahis için onaylı değildir.')
     txt17_ozet=st.session_state.son_uretim_ozeti
     if v171_current_gate.get('ok'):
-        st.info('v17.1 çapraz kontroller geçti; yine de resmî kaynağın otantikliği bağımsız doğrulanmadı.')
+        st.info('v17.2 çapraz kontroller geçti; yine de resmî kaynağın otantikliği bağımsız doğrulanmadı.')
     else:
         st.warning('15/15 bağımsız kontrol tamamlanmadı. Sadece ANALİZ çıktısı indirilebilir; denetimli paket kilitli.')
     try:
@@ -2984,7 +3241,7 @@ with tab_txt153:
             try:
                 z171=v171_denetimli_analiz_zip(raw17,manifest17,v171_current_gate)
                 st.download_button('🛡️ Denetimli 1X2 + resmî 102 alfabeli paket (ZIP)',z171,
-                    file_name=f"SPOR_TOTO_V171_DENETIM_{info17['txt_sha256'][:10]}.zip",
+                    file_name=f"SPOR_TOTO_V172_DENETIM_{info17['txt_sha256'][:10]}.zip",
                     mime='application/zip',use_container_width=True)
             except (ValueError,TypeError,KeyError) as exc: st.warning('Denetimli paket üretilemedi: '+str(exc))
 
@@ -2992,3 +3249,83 @@ with tab_txt153:
             st.code('\n'.join(raw17.decode().splitlines()[:20]),language='text')
         with st.expander('15 maç sıra ve kimlik denetimi'):
             st.dataframe(pd.DataFrame(info17['matches']),hide_index=True,use_container_width=True)
+
+
+# ------------------------------------------------------------------------------
+# SEKME 5: v17.2 TARIHSEL TAHMIN DENETIMI -- yalnız gercek pre-match snapshot
+# ------------------------------------------------------------------------------
+with tab_backtest:
+    st.subheader('🧪 v17.2 — Geçmiş Tahmin Başarısı & Kalibrasyon')
+    st.warning('Gerçek sonuçlardan geriye dönük tahmin türetilmez. Yalnız maç başlamadan en az 30 dakika önce kaydedilmiş 1/X/2 olasılıkları değerlendirilir. CSV kullanıcı beyanıdır; sonuçlar ve snapshot kaynağı bağımsız doğrulanmaz.')
+    st.caption('CSV zorunlu: match_id,kickoff_utc,snapshot_utc,league,result; kaynaklar için market_1,market_x,market_2 veya api_1,api_x,api_2 veya model_1,model_x,model_2 veya blend_1,blend_x,blend_2. Her kaynak yüzdeleri 100 etmeli. Sonuç normal süre 1/X/2 (0 kabul edilir). Saatler +03:00 veya Z içermeli.')
+    tpl172='match_id,kickoff_utc,snapshot_utc,league,result,market_1,market_x,market_2,api_1,api_x,api_2,model_1,model_x,model_2,blend_1,blend_x,blend_2\n'
+    st.download_button('⬇️ Boş tarihsel tahmin CSV şablonu',tpl172.encode('utf-8-sig'),
+                       file_name='SPOR_TOTO_V172_BACKTEST_SABLONU.csv',mime='text/csv',key='v172_blank')
+    # Güncel tahminleri maç başlamadan arşivleyin; 90dk sonuçlarını daha sonra doldurun.
+    if st.session_state.analiz_verisi is not None:
+        with st.expander('📥 Gelecek backtest için maç öncesi tahmin arşivi oluştur',expanded=False):
+            try:
+                ms=st.session_state.secilen_15_mac
+                ps=st.session_state.analiz_verisi
+                if len(ms)!=15 or len(ps)!=15 or [str(m['id']) for m in ms]!=[str(v['id']) for v in ps]:
+                    raise ValueError('Tam 15 maç ve aynı sıradaki tahminler gerekli.')
+                outrows=[]
+                for m,v in zip(ms,ps):
+                    kickoff=v17_utc(f"{m['tarih']}T{m['saat']}:00+03:00")
+                    snap=v17_utc(v['source_fetched_at'])
+                    if snap >= kickoff-pd.Timedelta(minutes=30) or kickoff-snap>pd.Timedelta(days=30):
+                        raise ValueError(f"{m['karsilasma']}: geçerli maç öncesi API snapshot bulunmuyor.")
+                    if v.get('source_provenance')!='API_REQUEST_AT':
+                        raise ValueError(f"{m['karsilasma']}: API kaynaklı 1/X/2 bulunmuyor.")
+                    outrows.append({'match_id':str(m['id']),'kickoff_utc':kickoff.isoformat(),
+                        'snapshot_utc':snap.isoformat(),'league':str(m.get('lig','')),
+                        'result':'','blend_1':v['1'],'blend_x':v['X'],'blend_2':v['2']})
+                histcsv=pd.DataFrame(outrows).to_csv(index=False).encode('utf-8-sig')
+                st.download_button('📥 Bu 15 maçın gerçek maç öncesi tahminlerini CSV indir',
+                    histcsv,file_name='SPOR_TOTO_V172_ON_TAHMIN_15MAC.csv',mime='text/csv',key='v172_save_prematch')
+                st.caption('Sonuç sütunu bilerek boş bırakılır. Maçlar bittikten sonra 90dk sonuçlarını resmî kayıtlara göre 1/X/2 girip bu arşivi 5. sekmeye tekrar yükleyin. Blend, kalibre edilmemiş mevcut birleşik modeldir.')
+            except (KeyError,TypeError,ValueError) as exc:
+                st.info('Maç öncesi arşiv oluşturulamadı: '+str(exc))
+    uploaded172=st.file_uploader('Geçmiş, maç öncesi tahmin kayıtları CSV',type=['csv'],key='v172_history_file')
+    if uploaded172 is None:
+        st.info('Henüz doğrulanabilir maç öncesi tahmin arşivi yüklenmedi; Brier/LogLoss veya model iyileştirme iddiası hesaplanmaz. Sonuç CSV’si tek başına yeterli değildir.')
+    else:
+        try:
+            parsed172,sources172=v172_history_parse(uploaded172.getvalue())
+            overview172,calib172,leagues172,paired172=v172_backtest_report(parsed172,sources172)
+        except (ValueError,TypeError,KeyError,pd.errors.ParserError,OverflowError) as exc:
+            st.error('Backtest başlatılmadı: '+str(exc))
+        else:
+            st.success(f'{len(parsed172)} benzersiz geçmiş maç, {len(sources172)} olasılık kaynağı okundu. Bu tarihsel verilerin doğruluğunu kullanıcı sağlamalıdır.')
+            st.dataframe(pd.DataFrame(overview172),hide_index=True,use_container_width=True)
+            st.caption('Brier ve LogLoss için düşük değer iyidir; ECE, en yüksek olasılıklı sınıfın kalibrasyon hatasıdır. Farklı maç kümelerinin skorları doğrudan sıralanmaz.')
+            if paired172:
+                st.markdown('#### Aynı maçlarda adil kaynak karşılaştırması')
+                st.dataframe(pd.DataFrame(paired172),hide_index=True,use_container_width=True)
+            else:st.info('Ortak en az 30 maç olmadığından kaynaklar arasında eşit örneklem karşılaştırması yok.')
+            st.markdown('#### Kronolojik train/test ve sıcaklık kalibrasyonu (yalnız rapor)')
+            tempview172=[]
+            for c in calib172:
+                row={'Kaynak':c['source'],'Durum':c['status'],'Toplam':c['total_n'],
+                     'Train':c['train_n'],'Test':c['holdout_n']}
+                if c['status']=='OUT_OF_TIME_TEST':
+                    row.update({'Sicaklik':round(c['temperature'],3),
+                                'Test_Orijinal_LogLoss':round(c['raw']['log_loss'],5),
+                                'Test_Kalibre_LogLoss':round(c['calibrated']['log_loss'],5),
+                                'Test_Baseline_LogLoss':round(c['baseline']['log_loss'],5)})
+                tempview172.append(row)
+            st.dataframe(pd.DataFrame(tempview172),hide_index=True,use_container_width=True)
+            st.caption('Kronolojik ayırma ve en az 24 saat embargo uygulanır. Kalibrasyon en az 80 eğitim + 30 test maçı ve 20 farklı gün gerektirir. Sonuçlar otomatik olarak canlı tahminlere uygulanmaz.')
+            if leagues172:
+                with st.expander('Lig bazında sonuçlar (en az 10 maç)'):
+                    st.dataframe(pd.DataFrame(leagues172),hide_index=True,use_container_width=True)
+            report172={'version':'17.2 SAFE BETA','status':'HISTORICAL_USER_SUPPLIED_UNVERIFIED',
+                'rows':len(parsed172),'sources':sources172,'metrics':overview172,
+                'chronological_calibration':calib172,'leagues':leagues172,
+                'paired':paired172,'input_sha256':hashlib.sha256(uploaded172.getvalue()).hexdigest(),
+                'notes':['Backtest ile dogrulanan kaynak verisi kullaniciya aittir.',
+                         'Bunlar gercek bahis karliligi veya gelecek mac basarisi garantisi degildir.',
+                         'Kalibrasyon parametreleri canli tahmin motoruna uygulanmamistir.']}
+            st.download_button('📄 Backtest raporunu JSON indir',
+                json.dumps(report172,ensure_ascii=False,indent=2,default=str).encode('utf-8'),
+                file_name='SPOR_TOTO_V172_BACKTEST_RAPORU.json',mime='application/json',key='v172_report_out')
