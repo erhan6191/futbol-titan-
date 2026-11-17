@@ -18,7 +18,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v15.3 — TÜM KOLONLAR TXT MERKEZİ",
+    page_title="Spor Toto AI Pro v16.0 — ANTI-PUBLIC INTELLIGENCE & SMART BANKO ENGINE",
     page_icon="🏆",
     layout="wide"
 )
@@ -71,7 +71,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.3</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. 6. Dördüncü sekmede güncel kolonların tamamını tek TXT dosyası olarak indir. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v16.0</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede bütün kolonları tek seferde doğrula. Platform etiketi seç ve kontrol raporunu incele. 6. Dördüncü sekmede güncel kolonların tamamını tek TXT dosyası olarak indir. Yetkili sağlayıcı bağlantısı mevcut değildir; hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -92,18 +92,18 @@ varsayilan_state = {
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
     "aktarim_kontrol15": {},
-    "sema_versiyonu": "15.1"
+    "sema_versiyonu": "16.0"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "15.1":
+if st.session_state.get("sema_versiyonu") != "16.0":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
     st.session_state.son_sol_menu_imzasi = None
-    st.session_state.sema_versiyonu = "15.1"
+    st.session_state.sema_versiyonu = "16.0"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -128,8 +128,8 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v15.3 Pro")
-    st.caption("SECURE AUTO PLAY INTEGRATION — ÇEVRİMDIŞI DENETİM")
+    st.markdown("## 🏆 Spor Toto AI v16.0 Pro")
+    st.caption("ANTI-PUBLIC INTELLIGENCE & SMART BANKO ENGINE")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
@@ -216,16 +216,17 @@ with st.sidebar:
         "Yapay Zeka Oyun Stili:",
         [
             "⚖️ Dengeli (Log-Olasılık)",
-            "🛡️ Favori Ağırlıklı (Daha Az Kolon / Yüksek İsabet)",
-            "💎 İkramiye senaryosu (halk eğilimi varsayımı)"
+            "🛡️ Favori Ağırlıklı (model senaryosu)",
+            "🔍 Belirsizlik incelemesi (sıkı banko eşiği)"
         ]
     )
 
-    ev_katsayisi = st.slider(
-        "Simüle halk eğilimi sıralama ağırlığı:",
-        min_value=0.0, max_value=1.0, value=0.20, step=0.05,
-        help="Sıralama sezgisidir. Gerçek oynanma yüzdesi ve EV değildir."
-    )
+    # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
+    ev_katsayisi = 0.0
+    st.caption("v16.0: Halk yüzdeleri yalnızca bağımsız risk analizinde kullanılır. Gerçek veri yoksa halk farkı hesaplanmaz.")
+    risk_banko_p = st.slider("Banko inceleme eşiği (%)", 40, 90, 65, key="banko16_p")
+    risk_gap = st.slider("Halk-model farkı uyarısı (puan)", 5, 30, 15, key="banko16_gap")
+    risk_spread = st.slider("Piyasa sapması uyarısı (puan)", 1.0, 10.0, 2.5, 0.5, key="banko16_spread")
 
     grup_guvence_aktif = st.toggle("🌟 Çift Kademeli Güvence (G1 & G2) Filtresi", value=True)
     if grup_guvence_aktif:
@@ -584,7 +585,7 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
             except Exception as exc: hatalar.append(f"Arşiv modeli: {exc}")
         p,kaynak=_model_birlestir(market,api,model,bureau,piyasa_std)
         g1,gx,g2=olasilik_yumusat(*p)
-        h1, hx, h2 = halk_egilimi_simule_et(g1, gx, g2, mac["karsilasma"])
+        h1, hx, h2 = g1, gx, g2
         sonuclar.append({
             "bulten_no": i + 1,
             "id": f_id,
@@ -756,7 +757,7 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
 
     if "Favori" in strateji:
         ai_banko, ai_cifte = max(50, int(hz + 2)), max(35, int(hz - 9))
-    elif "İkramiye" in strateji:
+    elif "Belirsizlik" in strateji:
         ai_banko, ai_cifte = max(58, int(hz + 8)), max(40, int(hz - 4))
     else:
         ai_banko, ai_cifte = max(54, int(hz + 5)), max(37, int(hz - 7))
@@ -811,7 +812,7 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
         plase_aralik = (max(zorunlu_plase, int(round(exp_plase)) - 3), min(acik_plase, int(round(exp_plase)) + 2))
         surpriz_aralik = (zorunlu_surp, min(acik_surp, max(zorunlu_surp + 2, int(math.ceil(exp_surp)) + 2)))
         z_zarf = (-1.65, 2.50)
-    elif "İkramiye" in strateji:
+    elif "Belirsizlik" in strateji:
         fav_aralik = (max(zorunlu_fav, int(round(exp_fav)) - 4), min(acik_fav, max(zorunlu_fav + 2, int(round(exp_fav)) + 2)))
         plase_aralik = (max(zorunlu_plase, int(round(exp_plase)) - 2), min(acik_plase, int(round(exp_plase)) + 3))
         surpriz_aralik = (max(zorunlu_surp, int(round(exp_surp)) - 2), min(acik_surp, max(zorunlu_surp + 3, int(math.ceil(exp_surp)) + 3)))
@@ -854,6 +855,67 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
     }
 
 
+def halk_verisi_oku16(file, expected_ids):
+    """User supplied marginal percentages. No inference of provenance."""
+    d = pd.read_csv(file, dtype={"fixture_id":"string"})
+    required = {"fixture_id", "h1", "hx", "h2", "source", "snapshot"}
+    if not required <= set(d.columns):
+        raise ValueError("Gerekli sütunlar: fixture_id,h1,hx,h2,source,snapshot")
+    if d.fixture_id.isna().any() or d.fixture_id.duplicated().any():
+        raise ValueError("Boş veya mükerrer maç ID'si.")
+    if any(not str(x).isdigit() for x in d.fixture_id):
+        raise ValueError("Maç ID sayısal olmalı.")
+    ids = [int(x) for x in d.fixture_id]
+    if len(ids)!=len(set(ids)) or not set(ids) <= set(map(int, expected_ids)):
+        raise ValueError("Dosya bu bültene ait olmayan veya tekrarlı maç içeriyor.")
+    q = d[["h1","hx","h2"]].apply(pd.to_numeric, errors="raise").to_numpy(float)
+    if not np.isfinite(q).all() or (q<0).any() or (q>100).any() or (abs(q.sum(axis=1)-100)>0.2).any():
+        raise ValueError("Halk oranları 0–100 olmalı ve her satır yaklaşık 100 etmelidir.")
+    if d.source.isna().any() or d.source.astype(str).str.strip().eq("").any():
+        raise ValueError("Kaynak bilgisi boş olamaz.")
+    if not d.snapshot.astype(str).str.contains(r"(?:Z|[+-]\d{2}:?\d{2})$",regex=True).all():
+        raise ValueError("Snapshot ISO 8601 saat dilimi içermeli.")
+    times=pd.to_datetime(d.snapshot,utc=True,errors="raise")
+    if (times>pd.Timestamp.now(tz="UTC")).any():
+        raise ValueError("Gelecek tarihli snapshot olamaz.")
+    return {i:{"q":(row/row.sum()).tolist(),"source":str(src),"snapshot":str(t)} for i,row,src,t in zip(ids,q,d.source,times)}
+
+
+def banko_risk16(v, selected, public=None, p_threshold=65, gap_threshold=15, spread_threshold=2.5):
+    keys=("1","X","2")
+    p=np.asarray([v[k] for k in keys],float)
+    if not np.isfinite(p).all() or (p<0).any() or p.sum()<=0:
+        raise ValueError("Geçersiz model olasılığı")
+    p=p/p.sum(); order=np.argsort(-p,kind="stable"); fav=int(order[0]); second=int(order[1])
+    entropy=float(-np.sum(p*np.log(np.maximum(p,1e-15)))/np.log(3))
+    ix=keys.index(selected[0]) if len(selected)==1 else fav
+    source=str(v.get("kaynak", "")); missing=not source or "VERİ YOK" in source
+    spread=float(v.get("piyasa_std",0) or 0); bureau=int(v.get("buro_sayisi",0) or 0)
+    data_limited=missing or bureau<2
+    q=np.asarray(public["q"],float) if public is not None else None
+    gap=None if q is None else float((q[ix]-p[ix])*100)
+    reasons=[]
+    if data_limited: reasons.append("Sınırlı kaynak")
+    if spread>=spread_threshold: reasons.append("Piyasa sapması")
+    if p[ix]*100<p_threshold: reasons.append("Olasılık eşiği altında")
+    if gap is not None and gap>=gap_threshold: reasons.append("Halk-model farkı yüksek")
+    if ix!=fav: reasons.append("Model favorisi dışında")
+    if entropy>=.9: reasons.append("Yüksek belirsizlik")
+    return {"favori":keys[fav],"incelenen":keys[ix],"p":float(p[ix]),"entropy":entropy,
+            "margin":float((p[fav]-p[second])*100),"gap":gap,"reasons":reasons,
+            "halk":None if q is None else float(q[ix]),"covered":float(sum(p[keys.index(k)] for k in selected)),
+            "p_all":p}
+
+
+def banko_hata_dagilimi16(probabilities):
+    # Independent Bernoulli error count, descriptive scenario analysis only.
+    out=np.array([1.0])
+    for p in probabilities:
+        if not np.isfinite(p) or not 0<=p<=1: raise ValueError("Geçersiz olasılık")
+        out=np.convolve(out,[p,1-p])
+    return out
+
+
 def teshis_etiketi_hesapla(en_b_oran, tuzak_farki, piyasa_std):
     kirilgan_tuzak_mi = (42 <= en_b_oran <= 57) and (tuzak_farki >= 9)
     kararsiz_mi = piyasa_std >= 2.2
@@ -887,7 +949,7 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai", ozel_dur
         cifte_secim = akilli_cifte_sec(v)
         sira_idx = tum_sirali.index(v["id"])
 
-        kirilgan_tuzak_mi = (42 <= en_b_oran <= 57) and (v.get("tuzak_farki", 0) >= 9)
+        kirilgan_tuzak_mi = False  # halk oranı arşivi şablonu otomatik değiştirmez
         kararsiz_mi = v.get("piyasa_std", 0.0) >= 2.2
 
         if mod == "butce_oto" and ozel_durumlar is not None:
@@ -928,7 +990,7 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai", ozel_dur
                 secim = ["1", "X", "2"]
                 g1, g2 = False, True
         else:
-            if (en_b_oran >= 56 or sira_idx < 4) and not (tuzak_aktif and kararsiz_mi):
+            if en_b_oran >= max(limitler["banko_siniri"], risk_banko_p) and not banko_risk16(v, [en_b_secim], p_threshold=risk_banko_p, gap_threshold=risk_gap, spread_threshold=risk_spread)["reasons"]:
                 secim = [en_b_secim]
                 g1, g2 = False, False
             elif (en_b_oran >= limitler["cifte_siniri"] or sira_idx < 11) and not (tuzak_aktif and kirilgan_tuzak_mi and sira_idx >= 11):
@@ -939,7 +1001,7 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai", ozel_dur
                 secim = ["1", "X", "2"]
                 g1, g2 = False, True
 
-        teshis = teshis_etiketi_hesapla(en_b_oran, v.get("tuzak_farki", 0), v.get("piyasa_std", 0.0))
+        teshis = "; ".join(banko_risk16(v,[en_b_secim],p_threshold=risk_banko_p,gap_threshold=risk_gap,spread_threshold=risk_spread)["reasons"]) or "Eşik uyarısı yok"
 
         satirlar.append({
             "Sıra": v["bulten_no"],
@@ -949,7 +1011,7 @@ def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai", ozel_dur
             "1 (%)": v["1"],
             "X (%)": v["X"],
             "2 (%)": v["2"],
-            "Halk (%)": v.get("halk_favori", en_b_oran),
+            "Halk (%)": None,
             "Analiz": teshis,
             "1": "1" in secim,
             "X": "X" in secim,
@@ -1975,6 +2037,7 @@ with tab_uretim:
                 st.session_state.tablo_df = ilk_df.copy()
 
             st.markdown("#### 🎛️ Profesyonel Şablon & Akıllı Bütçe Optimizasyon Masası")
+            st.caption("AI Dinamik modda zorunlu ilk dört banko kaldırıldı. Bütçe ve sabit adetli hazır şablonlar farklı kurallarla çalışır; risk tablosunda her birini ayrıca inceleyin.")
             tb0, tb1, tb2, tb3, tb4 = st.columns([1.6, 1.15, 1.15, 1.15, 0.85])
             with tb0:
                 if st.button(f"🎯 Bütçeme Göre Otomatik Kur ({hedef_butce_tl:,.0f} TL)", type="primary", use_container_width=True):
@@ -1999,7 +2062,7 @@ with tab_uretim:
                     st.session_state.son_param_imzasi = None
                     st.rerun()
             with tb2:
-                if st.button("🤖 AI Dengeli (4B-7Ç-4K)", use_container_width=True):
+                if st.button("🤖 AI Dinamik (sabit banko yok)", use_container_width=True):
                     yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="ai")
                     st.session_state.tablo_baz_df = yeni_df.copy()
                     st.session_state.tablo_df = yeni_df.copy()
@@ -2034,11 +2097,7 @@ with tab_uretim:
                     "1 (%)": st.column_config.NumberColumn("Ev %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
                     "X (%)": st.column_config.NumberColumn("Ber %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
                     "2 (%)": st.column_config.NumberColumn("Dep %", min_value=1, max_value=98, step=1, format="%%%d", width="small"),
-                    "Halk (%)": st.column_config.NumberColumn(
-                        "Halk Favori %",
-                        min_value=1, max_value=99, step=1, format="%%%d", width="small",
-                        help="İddaa/Nesine/Hedef15 üzerindeki gerçek favori oynanma yüzdesini buraya elle de girebilirsiniz."
-                    ),
+                    "Halk (%)": None,
                     "Analiz": st.column_config.TextColumn("Teşhis", width="small"),
                     "1": st.column_config.CheckboxColumn("1", width="small"),
                     "X": st.column_config.CheckboxColumn("X", width="small"),
@@ -2085,22 +2144,10 @@ with tab_uretim:
                     g2_indeksleri.append(idx_r)
 
                 y1, yx, y2 = olasilik_yumusat(r["1 (%)"], r["X (%)"], r["2 (%)"])
-                h1, hx, h2 = halk_egilimi_simule_et(y1, yx, y2, r["Karşılaşma"])
-
+                h1, hx, h2 = y1, yx, y2
                 kaynak_m = id_analiz_haritasi.get(int(r["ID"]), {})
-                orijinal_halk_fav = kaynak_m.get("halk_favori", max(h1, hx, h2))
-                kullanici_halk_fav = int(r["Halk (%)"])
-
-                if abs(kullanici_halk_fav - orijinal_halk_fav) >= 2:
-                    if y1 >= yx and y1 >= y2:
-                        h1, hx, h2 = olasilik_yumusat(kullanici_halk_fav, (100 - kullanici_halk_fav) * (hx / max(1, hx + h2)), (100 - kullanici_halk_fav) * (h2 / max(1, hx + h2)))
-                    elif y2 >= y1 and y2 >= yx:
-                        h1, hx, h2 = olasilik_yumusat((100 - kullanici_halk_fav) * (h1 / max(1, h1 + hx)), (100 - kullanici_halk_fav) * (hx / max(1, h1 + hx)), kullanici_halk_fav)
-                    else:
-                        h1, hx, h2 = olasilik_yumusat((100 - kullanici_halk_fav) * (h1 / max(1, h1 + h2)), kullanici_halk_fav, (100 - kullanici_halk_fav) * (h2 / max(1, h1 + h2)))
-
                 piyasa_std_val = kaynak_m.get("piyasa_std", 0.0)
-                tuzak_farki_val = max(h1, hx, h2) - max(y1, yx, y2)
+                tuzak_farki_val = 0.0
 
                 g_sablon.append(sec if sec else ["1"])
                 s_veriler.append({
@@ -2111,6 +2158,35 @@ with tab_uretim:
                     "tuzak_farki": tuzak_farki_val,
                     "piyasa_std": piyasa_std_val
                 })
+
+            with st.expander("🧠 v16.0 — BANKO RİSKİ & HALK TERCİHİ ANALİZİ", expanded=True):
+                st.caption("Model olasılığı, halk tercihi ve matematiksel kapsama farklı kavramlardır. Bu ekran kazanç veya ikramiye tahmini yapmaz; mevcut şablonu değiştirmez.")
+                public_file16=st.file_uploader("İsteğe bağlı halk tercihleri CSV (gerçek, maç bazlı)",type=["csv"],key="public16")
+                st.download_button("Halk verisi boş CSV şablonu", "fixture_id,h1,hx,h2,source,snapshot\n"+"".join(f"{v['id']},,,,,\n" for v in s_veriler), "halk_verisi_sablon.csv",mime="text/csv",key="public_template16")
+                public16={}
+                if public_file16 is not None:
+                    try: public16=halk_verisi_oku16(public_file16,[v['id'] for v in s_veriler])
+                    except Exception as exc: st.error(f"Halk verisi kullanılmadı: {exc}")
+                if not public16: st.info("Gerçek halk tercihi verisi yok. Farklar hesaplanmadı; tahmini halk yüzdeleri gerçek veri olarak gösterilmez.")
+                else: st.warning(f"{len(public16)}/15 maç için kullanıcının sağladığı oranlar var. Kaynak ve maç öncesi olma durumu bağımsız doğrulanmadı.")
+                risk_rows16=[]; banko_probs16=[]; cover_probs16=[]; fav_probs16=[]
+                for i,(v,selected) in enumerate(zip(s_veriler,g_sablon)):
+                    src=id_analiz_haritasi.get(v['id'],{})
+                    info=banko_risk16({**src,**v},selected,public16.get(v['id']),risk_banko_p,risk_gap,risk_spread)
+                    if len(selected)==1: banko_probs16.append(info['p'])
+                    cover_probs16.append(info['covered']);fav_probs16.append(float(max(info['p_all'])))
+                    risk_rows16.append({"No":i+1,"Maç":v['mac'],"Seçimler":"/".join(selected),"İncelenen sonuç":info['incelenen'],"Model %":round(100*info['p'],1),"Halk %":None if info['halk'] is None else round(100*info['halk'],1),"Halk − model (puan)":None if info['gap'] is None else round(info['gap'],1),"Entropi":round(info['entropy'],3),"İlk iki farkı":round(info['margin'],1),"Şablon kapsamı %":round(100*info['covered'],1),"Kaynak":public16.get(v['id'],{}).get('source','—'),"Kayıt zamanı":public16.get(v['id'],{}).get('snapshot','—'),"İnceleme":"; ".join(info['reasons']) or "Eşik uyarısı yok"})
+                st.dataframe(pd.DataFrame(risk_rows16),hide_index=True,use_container_width=True)
+                bdist16=banko_hata_dagilimi16(banko_probs16)
+                a16,b16,c16=st.columns(3)
+                a16.metric("Seçili banko",len(banko_probs16)); b16.metric("En az bir banko hatası (model)",f"%{100*(1-bdist16[0]):.1f}" if banko_probs16 else "—")
+                c16.metric("Tüm şablonun model kütlesi",f"%{100*np.prod(cover_probs16):.3f}" if not bos_mac_var else "—")
+                if banko_probs16: st.bar_chart(pd.DataFrame({"Banko hata adedi":range(len(bdist16)),"Model olasılığı %":100*bdist16}).set_index("Banko hata adedi"))
+                fdist16=banko_hata_dagilimi16(fav_probs16)
+                st.caption("Model favorilerinin gerçekleşmemesi senaryoları")
+                st.bar_chart(pd.DataFrame({"Favori dışı sonuç adedi":range(len(fdist16)),"Model olasılığı %":100*fdist16}).set_index("Favori dışı sonuç adedi"))
+                st.caption("Grafikler maçların bağımsız olduğu varsayımıyla hesaplanır; model kalibre değilse oranlar gerçek frekansları temsil etmeyebilir. Halk farkı, bir sonucun daha olası olduğu veya beklenen getirinin pozitif olduğu anlamına gelmez.")
+                st.download_button("Risk incelemesini indir (CSV)",pd.DataFrame(risk_rows16).to_csv(index=False).encode('utf-8-sig'),"SPOR_TOTO_V16_0_RISK.csv",mime="text/csv",key="risk_export16")
 
             if grup_guvence_aktif:
                 if otonom_grup_limiti:
@@ -2713,6 +2789,13 @@ with tab_otomasyon:
             st.write(f'En yüksek olasılık isabeti: %{100*acc.mean():.1f} | Maç sonrası kayıt elendi: {invalid}')
             cal=pd.DataFrame({'p':p.ravel(),'actual':oh.ravel()});cal['band']=pd.cut(cal.p,np.linspace(0,1,11),include_lowest=True)
             st.dataframe(cal.groupby('band',observed=True).agg(n=('p','size'),forecast=('p','mean'),actual=('actual','mean')).reset_index().assign(band=lambda x:x.band.astype(str)))
+            st.markdown("#### Favori güvenilirliği (gerçekleşmiş maçlar)")
+            fc=pd.DataFrame({"forecast":p[np.arange(len(p)),pred],"actual":acc.astype(float)})
+            fc['band']=pd.cut(fc.forecast,[0,.4,.5,.6,.7,.8,.9,1.0],include_lowest=True)
+            ft=fc.groupby('band',observed=True).agg(n=('forecast','size'),model=('forecast','mean'),observed=('actual','mean')).reset_index()
+            ft['fark_puan']=100*(ft['model']-ft['observed']);ft['band']=ft.band.astype(str)
+            st.dataframe(ft,hide_index=True)
+            st.caption("Pozitif fark aşırı güveni işaret edebilir; küçük örneklemlerde belirsizlik yüksektir. Bu tablo geçmiş arşivden hesaplanır, sürpriz sonucu önermez.")
             st.caption('Kaynağın gerçekten maç öncesinde kaydedildiği kullanıcı tarafından doğrulanmalıdır. Bu sonuçlar tek başına sistem üstünlüğünü kanıtlamaz.')
         except Exception as exc: st.error(f'Backtest dosyası işlenemedi: {exc}')
 
@@ -2744,7 +2827,7 @@ with tab_txt153:
         st.download_button(
             f"📥 TÜM {txt153_count:,} KOLONU TEK TXT DOSYASI OLARAK İNDİR",
             data=txt153_data,
-            file_name=f"SPOR_TOTO_V15_3_{txt153_count}KOLON_{str(guncel_uretim_imzasi)[:8]}.txt",
+            file_name=f"SPOR_TOTO_V16_0_{txt153_count}KOLON_{str(guncel_uretim_imzasi)[:8]}.txt",
             mime="text/plain", type="primary", use_container_width=True, key="txt153_all_download"
         )
         st.caption("Başlık, sıra numarası veya ek metin yoktur. Sitedeki ilk 15 maçın sırası ve kolonların üretim sırası korunur. Önizleme sınırlıdır; indirilen dosya sınırlı değildir.")
