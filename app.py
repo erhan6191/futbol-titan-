@@ -6,6 +6,10 @@ import re
 import hashlib
 import unicodedata
 import urllib.parse
+import io
+import csv
+import zipfile
+from decimal import Decimal, InvalidOperation
 from difflib import SequenceMatcher
 from datetime import datetime, timedelta
 import numpy as np
@@ -13,7 +17,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v14.3 — ADVANCED MIXED COVERING CODE & GLOBAL OPTIMIZATION ENGINE",
+    page_title="Spor Toto AI Pro v15.0 — GLOBAL OPTIMIZATION & SMART COUPON TRANSFER CENTER",
     page_icon="🏆",
     layout="wide"
 )
@@ -66,7 +70,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- TEK SAYFALIK YAZDIRILABİLİR PDF KILAVUZU HTML ŞABLONU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v14.3</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Sonuçları kaydet; üçüncü sekmeden analiz raporu dışa aktar.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v15.0</h1><p>Matematiksel kapsama yalnızca belirtilen senaryo evreni içinde geçerlidir. Gerçek sonuç veya gelir garantisi değildir.</p><p>1. Bülten ve takımları doğrula. 2. Kaynak kalitesini kontrol et. 3. Şablon ve bütçe belirle. 4. Doğrulama raporunu incele. 5. Üçüncü sekmede platform etiketi seç, arşivi hazırla ve paketlerin kontrolünü kaydet. Hesap bağlantısı veya ödeme yapılmaz.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -86,18 +90,19 @@ varsayilan_state = {
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
-    "sema_versiyonu": "14.3"
+    "aktarim_kontrol15": {},
+    "sema_versiyonu": "15.0"
 }
 for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "14.3":
+if st.session_state.get("sema_versiyonu") != "15.0":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
     st.session_state.son_sol_menu_imzasi = None
-    st.session_state.sema_versiyonu = "14.3"
+    st.session_state.sema_versiyonu = "15.0"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -122,14 +127,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v14.3 Pro")
-    st.caption("ADVANCED MIXED COVERING CODE & GLOBAL OPTIMIZATION ENGINE")
+    st.markdown("## 🏆 Spor Toto AI v15.0 Pro")
+    st.caption("GLOBAL OPTIMIZATION & SMART COUPON TRANSFER CENTER")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v14_3_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v15_0_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -234,7 +239,7 @@ with st.sidebar:
         g1_manuel, g2_manuel = (0, 15), (0, 15)
 
     st.markdown("---")
-    st.markdown("### 🔬 3. v14.3 Ekonomik Sıkıştırma & Yapısal Filtreler")
+    st.markdown("### 🔬 3. v15.0 Ekonomik Sıkıştırma & Yapısal Filtreler")
     ortogonal_anahtar_aktif = st.toggle(
         "🔑 Karma örtme (GF(2)/GF(3)) + kaynak sınırlı yedek",
         value=True,
@@ -289,7 +294,7 @@ with st.sidebar:
     st.markdown("### 💾 4. Haftalık Bülten Yedeği")
     if st.session_state.analiz_verisi is not None:
         yedek_paket = {
-            "versiyon": "14.3",
+            "versiyon": "15.0",
             "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
             "analiz_verisi": st.session_state.analiz_verisi,
             "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
@@ -307,7 +312,7 @@ with st.sidebar:
                 indent=2,
                 default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
             ).encode("utf-8"),
-            file_name=f"spor_toto_v14_3_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+            file_name=f"spor_toto_v15_0_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
             mime="application/json",
             use_container_width=True
         )
@@ -721,7 +726,7 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 
 
 # ==============================================================================
-# v14.3 ULTRA HIZLI ŞABLON KURUCU, TEK GEÇİŞLİ ORTOGONAL & 2-OPT MOTORU
+# v15.0 ULTRA HIZLI ŞABLON KURUCU, TEK GEÇİŞLİ ORTOGONAL & 2-OPT MOTORU
 # ==============================================================================
 def akilli_cifte_sec(v):
     return sorted(['1','X','2'],key=lambda k:v[k],reverse=True)[:2]
@@ -1640,7 +1645,7 @@ function locate(){
  return result;
 }
 const panel=document.createElement("div");panel.id=id;panel.style.cssText="position:fixed;right:16px;top:16px;z-index:2147483647;background:#fff;color:#17212b;border:2px solid #315b8a;border-radius:10px;padding:16px;width:360px;max-height:85vh;overflow:auto;font:14px Arial;box-shadow:0 5px 20px #0005";
-const title=document.createElement("strong");title.textContent="v14.3 – seçim önizleme / "+P.id;panel.append(title);
+const title=document.createElement("strong");title.textContent="v15.0 – seçim önizleme / "+P.id;panel.append(title);
 const msg=document.createElement("p");msg.textContent="Sadece seçim kutularını işaretler. Ödeme veya kupon onayı yapmaz.";panel.append(msg);
 const preview=document.createElement("pre");preview.style.cssText="white-space:pre-wrap;font:12px monospace";preview.textContent=P.pairs.map((p,i)=>(i+1)+'. '+p.join(' - ')+' | '+P.cols.map(col=>col[i]).join(' ')).join('\n');panel.append(preview);
 const check=document.createElement("input");check.type="checkbox";const label=document.createElement("label");label.append(check,document.createTextNode(" Maç sırasını ve soldan sağa A/B/C/D, her grupta 1/X/2 sırasını doğruladım."));panel.append(label);
@@ -1690,17 +1695,79 @@ def kupon_dosyasi_coz(dosya):
         return None
 
 
+
+# ==============================================================================
+# v15.0 — SMART COUPON TRANSFER CENTER: çevrimdışı paket ve denetim
+# ==============================================================================
+AKTARIM_PLATFORMLARI = ("İddaa.com", "Nesine", "Bilyoner", "Misli", "Birebin", "Oley", "Diğer / manuel")
+
+def aktarim_plan15(kolonlar, ozet, guncel_imza, uretim_modu, fiyat, butce):
+    """Yalnız güncel, geçerli, bütçe kontrollü ve benzersiz kolonları kabul eder."""
+    if not isinstance(ozet, dict) or not guncel_imza or ozet.get('imza') != guncel_imza:
+        raise ValueError('Güncel üretim bulunamadı; önce kapsama hesaplayın.')
+    if uretim_modu != 'Bütçe kontrollü' or ozet.get('uretim_modu') != uretim_modu:
+        raise ValueError('Analiz modu yalnızca inceleme içindir. Aktarım merkezi bütçe kontrollü üretimi kabul eder.')
+    a = np.asarray(kolonlar)
+    if a.ndim != 2 or a.shape[1] != 15 or not len(a) or not np.isin(a,['1','X','2']).all():
+        raise ValueError('Geçerli 15 maçlık kolon bulunamadı.')
+    rows = [''.join(row) for row in a.tolist()]
+    if len(set(rows)) != len(rows): raise ValueError('Mükerrer kolon bulundu; yeniden hesaplayın.')
+    matches = ozet.get('s_veriler') or []
+    ids = [str(m.get('id','')) for m in matches]
+    names = [str(m.get('mac','')).strip() for m in matches]
+    if len(ids)!=15 or len(set(ids))!=15 or not all(ids) or not all(names):
+        raise ValueError('Bültenin 15 benzersiz maç kimliği doğrulanamadı.')
+    if ids != [str(x) for x in ozet.get('mac_ids',[])]: raise ValueError('Bülten sırası değişmiş.')
+    try:
+        price=Decimal(str(fiyat)); cap=Decimal(str(butce)); oldprice=Decimal(str(ozet.get('kolon_fiyati')))
+        if not price.is_finite() or not cap.is_finite() or price<=0 or cap<=0 or oldprice!=price or price*len(rows)>cap:
+            raise ValueError('Fiyat veya bütçe sınırı geçersiz; tekrar hesaplayın.')
+    except InvalidOperation as exc: raise ValueError('Fiyat veya bütçe okunamadı.') from exc
+    content=json.dumps({'ids':ids,'names':names,'rows':rows},ensure_ascii=False,separators=(',',':'))
+    fingerprint=hashlib.sha256(content.encode('utf-8')).hexdigest()
+    packets=(len(rows)+3)//4
+    return {'id':fingerprint,'rows':rows,'ids':ids,'names':names,'packets':packets,
+            'price':str(price),'cost':str(price*len(rows)),'budget':str(cap)}
+
+def aktarim_kayit15(plan, platform, values):
+    if platform not in AKTARIM_PLATFORMLARI: raise ValueError('Bilinmeyen platform etiketi.')
+    if not isinstance(values,list) or any(type(x) is not int or x<1 or x>plan['packets'] for x in values):
+        raise ValueError('Paket kontrol kaydı geçersiz.')
+    return {'schema':'15.0-manual-review','plan_id':plan['id'],'platform':platform,'checked':sorted(set(values))}
+
+def aktarim_ilerleme15(plan, checked):
+    ids=set(checked)
+    done=sum(min(4,len(plan['rows'])-4*(i-1)) for i in ids)
+    return done,len(plan['rows'])-done
+
+def aktarim_arsiv15(plan, platform):
+    """Genel amaçlı çevrimdışı arşiv; platform import protokolü değildir."""
+    if platform not in AKTARIM_PLATFORMLARI: raise ValueError('Bilinmeyen platform.')
+    out=io.StringIO(newline=''); w=csv.writer(out)
+    w.writerow(['Paket','Kolon']+[str(i) for i in range(1,16)])
+    for i,row in enumerate(plan['rows']): w.writerow([i//4+1,i+1,*row])
+    manifest={k:plan[k] for k in ('id','ids','names','packets','price','cost','budget')}
+    manifest.update(platform=platform,columns=len(plan['rows']),format='generic-offline-v15',status='not-submitted')
+    stream=io.BytesIO()
+    with zipfile.ZipFile(stream,'w',compression=zipfile.ZIP_DEFLATED) as z:
+        z.writestr('kolonlar.csv',out.getvalue().encode('utf-8-sig'))
+        z.writestr('kolonlar.txt','\n'.join(plan['rows'])+'\n')
+        z.writestr('bulten_ve_maliyet.json',json.dumps(manifest,ensure_ascii=False,indent=2))
+        z.writestr('OKU.txt','Çevrimdışı kontrol arşivi. Resmî site aktarım formatı değildir. İşlem yapılmadı. Maç sırası, fiyat ve seçimleri kendiniz kontrol edin.')
+    return stream.getvalue()
+
 # ANA SEKMELER
 # ==============================================================================
 tab_uretim, tab_takip, tab_otomasyon = st.tabs([
     "🎛️ 1. Bülten ve Senaryo Analizi",
     "📡 2. Canlı Sonuç ve Kapsama Takibi",
-    "📋 3. Kolon Aktarım Asistanı ve Rapor"
+    "📋 3. Akıllı Aktarım ve Rapor Merkezi"
 ])
 
 # ------------------------------------------------------------------------------
 # SEKME 1: PROFESYONEL MAÇ KONTROL PANELİ VE SENDİKA MOTORU
 # ------------------------------------------------------------------------------
+guncel_uretim_imzasi = None
 with tab_uretim:
     if not api_key and st.session_state.analiz_verisi is None:
         st.info("👈 Başlamak için sol menüden **API-Football Anahtarınızı** girin veya kayıtlı **.JSON** oturumunuzu yükleyin.")
@@ -1806,7 +1873,7 @@ with tab_uretim:
                             st.rerun()
 
         # ======================================================================
-        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v14.3 ULTRA HIZLI MOTOR)
+        # ADIM 2: PROFESYONEL SENDİKA KONTROL PANELİ (v15.0 ULTRA HIZLI MOTOR)
         # ======================================================================
         if st.session_state.analiz_verisi:
             veriler = st.session_state.analiz_verisi
@@ -2003,6 +2070,7 @@ with tab_uretim:
                     "a1": max_ardisik_1, "ax": max_ardisik_x, "a2": max_ardisik_2,
                     "bs": banko_siniri, "cs": cifte_sans_siniri
                 },
+                "grup_guvence": grup_guvence_aktif,
                 "g1_aralik": g1_aralik,
                 "g2_aralik": g2_aralik
             }, sort_keys=True)
@@ -2019,6 +2087,8 @@ with tab_uretim:
             }, sort_keys=True)
             param_imzasi = hashlib.md5(imza_ham.encode("utf-8")).hexdigest()
             degisiklik_bekliyor = (st.session_state.get("son_param_imzasi") != param_imzasi)
+            if not bos_mac_var and not sira_hatasi_var and ham_kolon_sayisi <= 300_000:
+                guncel_uretim_imzasi = param_imzasi
 
             col_ozet, col_buton = st.columns([2.2, 1.2])
             with col_ozet:
@@ -2053,7 +2123,7 @@ with tab_uretim:
                     "Lütfen yukarıdaki **'🎯 Bütçeme Göre Otomatik Kur'** veya **'🌱 Ekonomik'** butonuna basın."
                 )
 
-            # DÜZELTME 3 & 4 (v14.3):
+            # DÜZELTME 3 & 4 (v15.0):
             # - Otomatik anlık senkronizasyon yalnızca <= 4.000 kolonda devreye girer (büyük şablonlarda arayüzü kilitlemez).
             # - uretilen_kuponlar ASLA None yapılarak silinmez! Böylece 2. ve 3. sekmeler her zaman kesintisiz çalışır.
             # - tablo_baz_df sol menü değişimlerinde yeniden atanmaz; tablo zıplaması önlenir.
@@ -2211,7 +2281,7 @@ with tab_uretim:
                     st.caption(f"ℹ️ **Otonom Koruma:** Daralmaya karşı şu filtreler otomatik esnetildi: `{', '.join(ozet['esnetilenler'])}`")
                 if ozet.get("budanan_adet", 0) > 0 or ozet.get("swap_adet", 0) > 0:
                     st.caption(
-                        f"✂️ **v14.3 Ekonomik Sıkıştırma Kazancı:** Ters budama ile **{ozet.get('budanan_adet', 0)}** kolon, "
+                        f"✂️ **v15.0 Ekonomik Sıkıştırma Kazancı:** Ters budama ile **{ozet.get('budanan_adet', 0)}** kolon, "
                         f"Ek yerel sıkıştırma ile **{ozet.get('swap_adet', 0)}** ekstra kolon "
                         f"hedef kapsama korunarak tasarruf edildi!"
                     )
@@ -2237,7 +2307,7 @@ with tab_uretim:
                     st.download_button(
                         "📥 Senaryo kolonlarını indir (.TXT)",
                         "\n".join([" ".join(k) for k in garanti]),
-                        f"spor_toto_v14_3_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
+                        f"spor_toto_v15_0_{ozet['garanti_derecesi']}G_{len(garanti)}kolon.txt",
                         mime="text/plain",
                         disabled=degisiklik_bekliyor or (max_kolon_limiti is not None and len(garanti)>max_kolon_limiti),
                         type="primary",
@@ -2418,63 +2488,101 @@ with tab_takip:
                     height=340
                 )
             else:
-                st.info("👈 Sol tablodan maç sonuçlarını seçtiğiniz anda canlı ikramiye potası ve finansal sigorta analizi hesaplanır.")
+                st.info("👈 Sol tablodan maç sonuçlarını seçtiğiniz anda canlı kapsama analizi hesaplanır.")
         else:
             st.info("👈 Takip başlatmak için önce 1. Sekmeden kupon üretin veya kupon dosyası yükleyin.")
 
 # ------------------------------------------------------------------------------
-# SEKME 3: GÜVENLİ, ANLAŞILIR VE KOLAY OTOMATİK KUPON YATIRMA MERKEZİ (v14.3)
+# SEKME 3: AKILLI ÇEVRİMDIŞI AKTARIM VE RAPOR MERKEZİ (v15.0)
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.subheader("Kolon aktarım asistanı — 3 adım")
-    st.caption("Kupon işaretleme asistanı deneysel; ödeme ve kupon onayı otomatik değildir. Garanti yalnızca tanımlanmış senaryo evrenine ilişkindir.")
+    st.subheader("📋 Akıllı Kupon Aktarım Merkezi v15.0")
+    st.caption("Tek ekranda platform etiketi, paket hazırlama ve kontrol takibi. Hesap bağlantısı, otomatik bahis gönderimi ve ödeme yoktur.")
     o = st.session_state.son_uretim_ozeti or {}
     k = st.session_state.uretilen_kuponlar
-    if max_kolon_limiti != 0 and (max_kolon_limiti is None or (k is not None and len(k)<=max_kolon_limiti)) and k is not None and len(k) and o.get('imza') and o['imza'] == st.session_state.son_param_imzasi:
-        st.subheader("1. Paketi seç ve kontrol et")
-        st.caption("Bülten sırasını doğrulayın. Dörtlü tablo otomatik hazırlanır; tarayıcı asistanı yalnız doğrulanabilir seçim kutularını kullanıcı komutuyla işaretler. Ödeme ve kupon onayı yapmaz.")
-        if o.get('uretim_modu') != 'Bütçe kontrollü': st.info('Analiz modu: bu sonuç yalnızca senaryo karşılaştırması içindir.')
-        else:
-            paket_adet = math.ceil(len(k)/4)
-            paket = st.number_input('Paket numarası (her paket en fazla 4 kolon)',min_value=1,max_value=paket_adet,value=1,step=1,key='paket143_'+o['imza'])
-            bas = (paket-1)*4; parca = k[bas:bas+4]
-            d = {'No':list(range(1,16)), 'Maç':[m['mac'] for m in o['s_veriler']]}
-            for i,col in enumerate(parca): d[chr(65+i)]=col
-            st.dataframe(pd.DataFrame(d),hide_index=True,use_container_width=True)
-            st.caption(f'Paket {paket}/{paket_adet} | Kolon {bas+1}–{bas+len(parca)} | {len(parca)*kolon_fiyati:,.2f} TL (girdiğiniz fiyat)')
-            fmt = st.selectbox('Aktarım dosyası biçimi',['1X2 bitişik','102 bitişik','CSV','Boşluklu'],key='format143')
-            sep={'CSV':',','Boşluklu':' '}.get(fmt,'')
-            icerik='\n'.join(sep.join('0' if fmt=='102 bitişik' and x=='X' else x for x in row) for row in parca)
-            imza=hashlib.sha256((o['imza']+str(bas)+icerik).encode()).hexdigest()[:12]
-            st.download_button('Dörtlü paketi dışa aktar',icerik,f'paket_{paket}_{imza}.'+('csv' if fmt=='CSV' else 'txt'),mime='text/plain')
-            st.caption('Paket doğrulama kodu: '+imza)
-            st.markdown('**2. Aktarım yöntemi**')
-            st.info('Manuel: yukarıdaki A/B/C/D tablosunu kullanın. Deneysel asistan: aşağıdaki adımları izleyin. Son kontrol ve onay size aittir.')
-            with st.expander('Tarayıcı işaretleme asistanı — adım adım', expanded=True):
-                st.warning('Canlı sitede test edilmedi. Yalnız 15 maç ve satır başına 12 doğrulanabilir kutu varsa çalışır; aksi durumda manuel aktarımı kullanın. Ödeme otomasyonu yoktur.')
+    try:
+        plan = aktarim_plan15(k,o,guncel_uretim_imzasi,uretim_modu,kolon_fiyati,hedef_butce_tl)
+    except ValueError as exc:
+        st.info(str(exc)); plan=None
+    if plan:
+        st.markdown("### 1. Platformu seçin")
+        platform=st.radio('Platform etiketi',AKTARIM_PLATFORMLARI,horizontal=True,key='platform15')
+        st.info('Seçim yalnızca dosya ve kontrol kaydına etiket ekler. Bu platformla hesap veya resmî API bağlantısı kurulmaz.')
+        ledger=st.session_state.setdefault('aktarim_kontrol15',{})
+        key=plan['id']+':'+platform
+        try: record=aktarim_kayit15(plan,platform,ledger.get(key,[]))
+        except ValueError: record=aktarim_kayit15(plan,platform,[])
+        checked=record['checked']
+        other=[p for p in AKTARIM_PLATFORMLARI if p!=platform and ledger.get(plan['id']+':'+p)]
+        if other: st.warning('Aynı kolonlar başka platform etiketi altında kontrol edilmiş: '+', '.join(other)+'. Çift işlem riskine dikkat edin.')
+        done,left=aktarim_ilerleme15(plan,checked)
+        c=st.columns(4)
+        c[0].metric('Toplam kolon',len(plan['rows']))
+        c[1].metric('Hesaplanan toplam',f"{Decimal(plan['cost']):,.2f} TL")
+        c[2].metric('Kontrol edilen',done)
+        c[3].metric('Bekleyen kontrol',left)
+        st.progress(done/len(plan['rows']))
+        st.caption(f"{len(checked)}/{plan['packets']} paket kontrol kaydı | Üst bütçe {Decimal(plan['budget']):,.2f} TL | Bu sayaç yatırılan kupon veya ödeme kanıtı değildir.")
+        if not o.get('optimizasyon',{}).get('hedef_tam'):
+            st.warning('Seçili tam kapsama hedefi doğrulanmamış olabilir. Denetim raporunu inceleyin.')
+        st.markdown('### 2. Tüm kolonları veya tek paketi hazırlayın')
+        with st.expander('15 maçın bülten sırası',expanded=False):
+            st.dataframe(pd.DataFrame({'No':range(1,16),'Maç':plan['names'],'Maç ID':plan['ids']}),hide_index=True,use_container_width=True)
+        export_key='arsiv15:'+key+':'+plan['price']+':'+plan['budget']
+        if st.button('📦 Tüm kolonlar için kontrol arşivi hazırla',type='primary',use_container_width=True):
+            st.session_state['arsiv15_hazir']=(export_key,aktarim_arsiv15(plan,platform))
+        cached=st.session_state.get('arsiv15_hazir')
+        if cached and cached[0]==export_key:
+            st.download_button('📥 TXT + CSV + bülten bilgileri (.ZIP)',cached[1],f"toto15_{plan['id'][:12]}.zip",mime='application/zip',use_container_width=True)
+        st.caption('Genel amaçlı arşivdir; bahis sitelerinin doğrudan içe aktarabileceği doğrulanmış bir format değildir.')
+        first=next((i for i in range(1,plan['packets']+1) if i not in checked),plan['packets'])
+        nav='paket15:'+key
+        if nav not in st.session_state: st.session_state[nav]=first
+        navcols=st.columns(3)
+        if navcols[0].button('← Önceki',key='prev15:'+key,disabled=st.session_state[nav]<=1): st.session_state[nav]-=1
+        if navcols[1].button('İlk bekleyen paket',key='resume15:'+key): st.session_state[nav]=first
+        if navcols[2].button('Sonraki →',key='next15:'+key,disabled=st.session_state[nav]>=plan['packets']): st.session_state[nav]+=1
+        paket=int(st.number_input('Paket numarası (en fazla 4 kolon)',min_value=1,max_value=plan['packets'],step=1,key=nav))
+        bas=(paket-1)*4; parca=plan['rows'][bas:bas+4]
+        d={'No':range(1,16),'Maç':plan['names']}
+        for i,col in enumerate(parca): d[chr(65+i)]=list(col)
+        st.dataframe(pd.DataFrame(d),hide_index=True,use_container_width=True)
+        st.caption(f"Paket {paket}/{plan['packets']} | Kolon {bas+1}–{bas+len(parca)} | {Decimal(plan['price'])*len(parca):,.2f} TL (tahmini)")
+        st.download_button('Bu paketi indir (.TXT)','\n'.join(parca)+'\n',f"paket_{paket}_{plan['id'][:12]}.txt",mime='text/plain')
+        if platform=='İddaa.com':
+            with st.expander('Eski deneysel seçim önizleme asistanı (isteğe bağlı)',expanded=False):
+                st.caption('v14.3 işaretleme önizlemesi korunmuştur; canlı siteyle uyumluluğu doğrulanmamıştır. Ödeme/gönderim yapmaz. Hata varsa manuel kontrol edin.')
                 try:
-                    js=tarayici_isaretleme_kodu(parca,d['Maç'],hashlib.sha256((o['imza']+str(bas)).encode()).hexdigest()[:16])
-                    # URL kodlama, script içindeki boşluk ve satır sonlarını güvenli korur.
-                    bookmarklet='javascript:'+urllib.parse.quote(js,safe="!~*'();:@&=+$,/?[]")
-                    st.markdown('''**1.** Chrome favori çubuğunu Ctrl+Shift+B ile açın. Bir favori oluşturun; adını `Toto Paket Asistanı` koyun.\n\n**2.** Aşağıdaki kodu kopyalayıp favorinin URL alanına yerleştirin. Paket değiştiğinde kod da değişir.\n\n**3.** Spor Toto sayfasını açın, ilgili favoriye tıklayın. Açılan panelde 15 maçın sırasını ve seçim kutularını kontrol edin.\n\n**4.** İşaretleme tamamlandığında sonuçları siteyle ve üstteki tabloyla karşılaştırın. Asistan ödeme yapmaz. Hata varsa durun; manuel kontrol edin.''')
-                    st.code(bookmarklet,language='text')
-                    st.caption('F12 kullanmanız gerekmez. Canlı siteyle uyumluluk doğrulanmamıştır.')
-                    if st.checkbox('Gelişmiş kullanıcı: JavaScript kaynak kodunu göster',key='js143_'+imza):
-                        st.code(js,language='javascript')
-                except ValueError as exc:st.warning(str(exc))
-
-            st.markdown('**3. Kontrol kaydı**')
-            tamam=st.session_state.setdefault('paket_kontrol143',{})
-            key=o['imza']+':'+str(bas)
-            tamam[key]=st.checkbox('Bu paketin 15 maçını ve seçimlerini kontrol ettim',value=bool(tamam.get(key)),key='kontrol143_'+key)
-            kontrol_adedi=sum(bool(v) for a,v in tamam.items() if a.startswith(o['imza']+':'))
-            st.progress(min(1.,kontrol_adedi/paket_adet))
-            st.caption(f'Kontrol edilen paket: {kontrol_adedi}/{paket_adet}. Bu kayıt ödeme/yatırma kanıtı değildir.')
-    else: st.info('Güncel kolon çıktısı yok; birinci sekmeden yeniden hesaplayın.')
+                    pid=hashlib.sha256((plan['id']+':'+str(paket)).encode()).hexdigest()[:16]
+                    js=tarayici_isaretleme_kodu(np.array([list(r) for r in parca]),plan['names'],pid)
+                    st.code('javascript:'+urllib.parse.quote(js,safe="!~*'();:@&=+$,/?[]"),language='text')
+                    st.caption('İsteğe bağlı: favori URL alanına eklenebilir; bu yalnız seçili paketin deneysel önizlemesidir.')
+                    if st.checkbox('JavaScript kaynağını göster',key='js15:'+pid): st.code(js,language='javascript')
+                except ValueError as exc: st.warning(str(exc))
+        st.markdown('### 3. Kontrolü kaydedin / kaldığınız yerden devam edin')
+        st.caption('İşaret yalnızca manuel kontrolü kaydeder. Hiçbir hesap veya bahis işlemi başlatmaz.')
+        a,b=st.columns(2)
+        if a.button('✅ Bu paketi kontrol ettim',disabled=paket in checked,key='check15:'+key):
+            ledger[key]=sorted(set(checked+[paket])); st.rerun()
+        if b.button('Kontrol işaretini kaldır',disabled=paket not in checked,key='undo15:'+key):
+            ledger[key]=[p for p in checked if p!=paket]; st.rerun()
+        st.download_button('💾 Kontrol kaydını sakla (JSON)',json.dumps(record,ensure_ascii=False,indent=2),f"kontrol_{plan['id'][:12]}.json",mime='application/json')
+        with st.expander('Kayıtlı kontrol ilerlemesini geri yükle'):
+            saved=st.file_uploader('Kontrol JSON dosyası',type=['json'],key='restore15:'+key)
+            if saved is not None and st.button('Kaydı doğrula ve geri yükle',key='restorebtn15:'+key):
+                try:
+                    if len(saved.getvalue())>1_000_000: raise ValueError('Dosya çok büyük.')
+                    x=json.loads(saved.getvalue())
+                    if x.get('schema')!='15.0-manual-review' or x.get('plan_id')!=plan['id'] or x.get('platform')!=platform:
+                        raise ValueError('Kayıt bu bülten, kolon dizisi veya platforma ait değil.')
+                    restored=aktarim_kayit15(plan,platform,x.get('checked'))
+                    ledger[key]=sorted(set(checked+restored['checked'])); st.rerun()
+                except (ValueError,TypeError,AttributeError) as exc: st.error(str(exc))
+    st.divider()
     if st.session_state.son_uretim_ozeti:
         o=st.session_state.son_uretim_ozeti
         st.json(o.get('optimizasyon',{}))
-        st.download_button('Denetim raporu (JSON)',json.dumps(o,ensure_ascii=False,indent=2,default=str),'spor_toto_v14_3_denetime.json',mime='application/json')
+        st.download_button('Denetim raporu (JSON)',json.dumps(o,ensure_ascii=False,indent=2,default=str),'spor_toto_v15_0_denetime.json',mime='application/json')
     st.divider()
     st.subheader("Geçmiş tahmin kayıtları — kalibrasyon testi")
     st.caption("CSV: fixture_id, kickoff, snapshot, p1, px, p2, result. Tarihler ISO 8601 ve saat dilimi içermeli. Olasılık 0–1. Her maç için maçtan önceki son tek snapshot kullanılır. Bu bölüm kendi kendine geçmiş tahmin üretmez.")
