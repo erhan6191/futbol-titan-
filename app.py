@@ -20,7 +20,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v18.1 — INDEPENDENT MATHEMATICAL AUDIT",
+    page_title="Spor Toto AI Pro v19.0 — ULTIMATE FINAL (ANALIZ)",
     page_icon="🏆",
     layout="wide"
 )
@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v18.1 INDEPENDENT MATHEMATICAL AUDIT</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç; ister kullanıcı onayı, ister üçlü karşılaştırma yöntemini kullan. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve analiz ZIP paketini indir. 6. Sekizinci Bağımsız Matematik Denetiminde ham şablonun 12–15 tam kapsama hesabını incele. 7. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
+KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v19.0 ULTIMATE FINAL</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç; ister kullanıcı onayı, ister üçlü karşılaştırma yöntemini kullan. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve analiz ZIP paketini indir. 6. Sekizinci Bağımsız Matematik Denetiminde ham şablonun 12–15 tam kapsama hesabını incele. 7. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -94,7 +94,7 @@ varsayilan_state = {
     "kalan_kota": "Bilinmiyor",
     "yatirilan_paketler": [],
     "paket_konfig_v161": None,
-    "sema_versiyonu": "18.0",
+    "sema_versiyonu": "19.0",
     "v171_api_proof": None,
     "v17_receipts": {},
     "v17_official_user_csv": None,
@@ -104,7 +104,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "18.0":
+if st.session_state.get("sema_versiyonu") != "19.0":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -119,7 +119,7 @@ if st.session_state.get("sema_versiyonu") != "18.0":
     st.session_state.v17_official_user_csv = None
     st.session_state.v17_official_hash = None
     st.session_state.v171_api_proof = None
-    st.session_state.sema_versiyonu = "18.0"
+    st.session_state.sema_versiyonu = "19.0"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -144,14 +144,14 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
 # ==============================================================================
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v18.1")
+    st.markdown("## 🏆 Spor Toto AI v19.0")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
     st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v18_0_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v19_0_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -161,7 +161,7 @@ with st.sidebar:
         st.caption(f"📊 Kalan Günlük API Kotası: **{st.session_state.kalan_kota}**")
 
     st.markdown("---")
-    st.markdown("### 🎯 1. Garanti & Ekonomik Daraltma Motoru")
+    st.markdown("### 🎯 1. Senaryo Kapsama & Ekonomik Daraltma Motoru")
     garanti_secimi = st.selectbox(
         "Senaryo içi isabet / kapsama hedefi:",
         [
@@ -175,7 +175,7 @@ with st.sidebar:
     garanti_derecesi = int(garanti_secimi.split()[0])
 
     kapsama_evreni_modu = st.radio(
-        "🔒 Garanti Kapsama Evreni:",
+        "🔒 Senaryo Kapsama Evreni:",
         [
             "🛡️ Kesin Şablon Evreni (tam kapsama hedefi)",
             "🧬 Hibrit Ekonomi (G2 koşullu evren)",
@@ -189,7 +189,7 @@ with st.sidebar:
 
     if garanti_derecesi == 15 and mutlak_sablon_garantisi:
         hedef_kapsama_orani = 100.0
-        st.caption("🛡️ **15 Garanti Koruması:** Kesin Şablon modunda kapsama oranı otomatik olarak **%100 Tam Kapsama**'ya kilitlenmiştir.")
+        st.caption("🛡️ **15/15 Şablon Kapsama Koruması:** Kesin Şablon modunda kapsama oranı otomatik olarak **%100 Tam Kapsama**'ya kilitlenmiştir.")
     else:
         tasarruf_profili = st.select_slider(
             "🌱 Akıllı Tasarruf Modu (Kapsama Oranı):",
@@ -1886,7 +1886,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
     if cost>Decimal(str(butce)):
         raise ValueError('Bütçe aşıldı.')
     rows=[{'order':i+1,'fixture_id':str(m['id']),'match':str(m['mac']), 'date':m.get('tarih'), 'time':m.get('saat')} for i,m in enumerate(maclar)]
-    manifest={"version":"18.1 INDEPENDENT MATHEMATICAL AUDIT RC", "mode":"ANALYSIS_ONLY_NOT_A_BET",
+    manifest={"version":"19.0 ULTIMATE FINAL ANALYSIS ONLY", "mode":"ANALYSIS_ONLY_NOT_A_BET",
               "bulletin_verification":"NOT_INDEPENDENTLY_VERIFIED",
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
@@ -1901,7 +1901,7 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
               "crowd_proxy_not_payout_forecast":True,
               "txt_sha256":hashlib.sha256(raw).hexdigest()}
     # v18.1: Bağımsız denetim için orijinal ham şablon ve raporlanan dört değer pakete bağlanır.
-    manifest['version']='18.1 INDEPENDENT MATHEMATICAL AUDIT RC'
+    manifest['version']='19.0 ULTIMATE FINAL ANALYSIS ONLY'
     if ozet.get('g_sablon') is not None:
         original_template=v181_template_canonical(ozet['g_sablon'])
         original_size=math.prod(map(len,original_template))
@@ -2536,7 +2536,7 @@ def v181_exact_audit(raw, template, expected=None, max_universe=300000):
     worst_coords = np.unravel_index(worst_flat, dims)
     witness = ''.join(t[i][int(worst_coords[i])] for i in range(15))
     return {
-        'audit_version': '18.1 INDEPENDENT EXACT FULL-UNIVERSE',
+        'audit_version': '19.0 INDEPENDENT EXACT FULL-UNIVERSE',
         'algorithm': 'EXACT_MIXED_RADIX_HAMMING_MIN_PLUS_FULL_ENUMERATION',
         'scope': 'RAW_TEMPLATE_CARTESIAN_UNIVERSE_ONLY',
         'input_txt_sha256': hashlib.sha256(raw).hexdigest(),
@@ -2920,7 +2920,7 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
                'Tam bağımsız sayım yok veya kontrol başarısız.',blocking=False)
     errors=[x['code']+': '+x['detail'] for x in checks if x['status']=='FAIL']
     eligible=not errors
-    result={'version':'18.1 INDEPENDENT MATHEMATICAL AUDIT RC','scope':'ANALYSIS_ONLY',
+    result={'version':'19.0 ULTIMATE FINAL ANALYSIS ONLY','scope':'ANALYSIS_ONLY',
             'checked_at_utc':now.isoformat(), 'bulletin_signature':signature,
             'manifest_sha256':hashlib.sha256(manifest_bytes).hexdigest() if isinstance(manifest_bytes,(bytes,bytearray)) else None,
             'txt_sha256':hashlib.sha256(raw).hexdigest() if isinstance(raw,(bytes,bytearray)) else None,
@@ -3017,7 +3017,7 @@ tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, 
     "🧪 5. Backtest & Kalibrasyon",
     "🧠 6. Anti-Public & Çeşitlilik",
     "✅ 7. Kabul ve Güvenilirlik",
-    "🧮 8. v18.1 Bağımsız Matematik Denetimi"
+    "🧮 8. v19.0 Bağımsız Matematik Denetimi"
 ])
 
 # ------------------------------------------------------------------------------
@@ -3027,7 +3027,7 @@ guncel_uretim_imzasi = None
 public173_ctx=None
 v173_active_weight=0.0
 with tab_uretim:
-    with st.expander('🧾 v18.1 — Bülten kabul şekli',expanded=True):
+    with st.expander('🧾 v19.0 — Bülten kabul şekli',expanded=True):
         st.warning('Bu uygulama resmî bülteni, resmî kapanışı veya ödeme işlemini bağımsız doğrulayamaz. Otomatik oynama ve ödeme kapalıdır.')
         v1802_mode=st.radio('Bülten kabul yöntemi',
             ['Benim liste onayım (CSV/metin/API zorunlu değil)', 'Eski üçlü karşılaştırma (CSV + metin + API)'],
@@ -3952,7 +3952,7 @@ with tab_takip:
 # SEKME 3: B SİSTEMİNDEN ENTEGRE EDİLEN GÜVENLİ & KOLAY OTOMATİK KUPON YATIRMA MERKEZİ
 # ------------------------------------------------------------------------------
 with tab_otomasyon:
-    st.subheader('🛡️ v17 Güvenli Kupon İnceleme ve İşlem Kayıt Merkezi')
+    st.subheader('🛡️ v19.0 — Kupon İnceleme ve Kullanıcı İşlem Kayıtları')
     st.error('CANLI SİTE OTOMASYONU KAPALI. v16.1 bookmarklet / F12 tıklayıcı güvenli bulunmadığı için kaldırıldı. Bu ekran hiçbir sitede işaretleme, giriş, ödeme veya bahis gönderimi yapmaz.')
     st.caption('Kayıtlar yalnızca kullanıcı beyanıdır; gerçek satın alım ispatı değildir. Resmî makbuz doğrulaması yapılmaz.')
     output17=st.session_state.uretilen_kuponlar
@@ -3969,10 +3969,9 @@ with tab_otomasyon:
             st.warning(f'Doğrulanmış analiz paketi oluşturulamıyor: {exc}')
         else:
             st.success(f"Analiz paketi: {paket_info17['columns']} tekil kolon, {len(paket_info17['matches'])} maç. SHA-256: {paket_info17['txt_sha256'][:20]}…")
-            st.download_button('📦 Analiz kolonları ve manifest (ZIP)',paket_zip17,
-                file_name=f"SPOR_TOTO_V17_ANALIZ_{paket_info17['txt_sha256'][:10]}.zip",mime='application/zip')
+            st.info('v19.0: Bu sekme yalnız önizleme ve kullanıcı beyanı kayıtları içindir. Tüm kolon indirmeleri 7. Kabul Merkezi PASS/USER_ACCEPTED sonrasındadır.')
             st.dataframe(pd.DataFrame([{'Sıra':x['order'],'Maç':x['match'],'API ID':x['fixture_id']} for x in paket_info17['matches']]),hide_index=True,use_container_width=True)
-            st.info('v18 denetimli paket ve kabul raporu yalnızca 7. sekmeden üretilir.')
+            st.info('v19.0: Denetimli ZIP ve tek TXT dosyaları yalnızca 7. Kabul Merkezi bölümünden indirilir.')
             st.info('Yatırma kararı veriyorsanız resmî site/işlem detaylarıyla 15 satır, her kolon, tutar ve misli manuel teyit edilmelidir. Bu uygulama işlemin kabul edildiğini iddia etmez.')
             with st.expander('🧾 Elle kaydedilen işlem referansları (doğrulanmamış)',expanded=False):
                 receipt17=st.text_input('Resmî makbuz / işlem referansı (kendi kaydınız)',key='v17_receipt_input')
@@ -4010,13 +4009,8 @@ with tab_txt153:
         st.metric('Geçerli ve benzersiz kolon',f"{info17['columns']:,}")
         st.caption(f"Tahmini maliyet: {info17['cost_assumption_tl']} TL (birim fiyat kullanıcı varsayımı)")
         st.code('TXT SHA-256: '+info17['txt_sha256'])
-        st.download_button('📥 Tüm kolonları TEK TXT olarak indir (ANALİZ)',raw17,
-                           file_name=f"SPOR_TOTO_V17_ANALIZ_{info17['columns']}K_{info17['txt_sha256'][:10]}.txt",
-                           mime='text/plain',type='primary',use_container_width=True)
-        st.download_button('📦 TXT + 15 Maç Manifesti (ZIP)',zip17,
-                           file_name=f"SPOR_TOTO_V17_ANALIZ_PAKET_{info17['txt_sha256'][:10]}.zip",
-                           mime='application/zip',use_container_width=True)
-        st.info('Denetimli 1X2/102 ZIP üretimi için 7. Kabul Merkezi sekmesini kullanın.')
+        st.info('v19.0 güvenlik kuralı: Kolonların tek TXT veya ZIP indirmesi için 7. sekmede A01–A10 kabul raporunun başarılı olması gerekir. Bu sekme yalnız önizleme gösterir.')
+        st.info('Tüm kolonların doğrulanmış 1X2/102 TXT ve ZIP çıktıları için 7. Kabul Merkezi sekmesini kullanın.')
 
         with st.expander('İlk 20 kolon',expanded=True):
             st.code('\n'.join(raw17.decode().splitlines()[:20]),language='text')
@@ -4160,7 +4154,7 @@ with tab_antipublic:
 # SEKME 7: v18.0 ACCEPTANCE & RELIABILITY CENTER
 # ------------------------------------------------------------------------------
 with tab_acceptance:
-    st.subheader('✅ v18.1 — Kabul ve Güvenilirlik Merkezi')
+    st.subheader('✅ v19.0 — Kabul ve Güvenilirlik Merkezi')
     st.error('GERÇEK PARAYLA OTOMATİK OYNAMA / ÖDEME YETKİSİ YOK. Bu sistem yalnızca analiz paketi ve doğrulama raporu üretir.')
     st.caption('Yazılım çekirdek testleri canlı bahis sitesi veya resmî veri otantikliği testi değildir. '
                'Tek başına CSV kaynağının URL bilgisi, resmî kaynağın gerçekten doğrulandığını kanıtlamaz.')
@@ -4195,21 +4189,28 @@ with tab_acceptance:
                         'Resmî kaynak doğrulaması her iki yolda da yapılmış sayılmaz.')
             st.download_button('📄 Kabul raporu JSON olarak indir',
                 json.dumps(v18_report,ensure_ascii=False,indent=2).encode('utf-8'),
-                file_name='SPOR_TOTO_V18_KABUL_RAPORU.json',mime='application/json',key='v18_report_download')
+                file_name='SPOR_TOTO_V19_KABUL_RAPORU.json',mime='application/json',key='v18_report_download')
             if v18_report['analysis_package_eligible']:
                 st.success('YEREL ANALİZ KABULÜ: Zorunlu yazılım kontrolleri geçti. Kullanıcı beyanı ile resmî doğrulama aynı şey değildir; canlı oyun onayı yoktur.')
                 try:
                     audit18=v18_kabul_zip(raw18,manifest18,v18_report)
                     validate18=v18_zip_kontrol(audit18)
-                    st.download_button('📦 v18.1 denetimli analiz paketi (1X2 + 102 + SHA-256 + ham şablon)',audit18,
-                        file_name=f"SPOR_TOTO_V181_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
-                        mime='application/zip',type='primary',use_container_width=True,key='v18_archive_download')
+                    st.download_button('📦 v19.0 DENETİMLİ ANALİZ PAKETİ (ZIP)',audit18,
+                        file_name=f"SPOR_TOTO_V190_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
+                        mime='application/zip',type='primary',use_container_width=True,key='v19_archive_download')
+                    # Tek TXT indirme, yalnız AYNI kabul kapısından geçen dosya ile yapılır.
+                    st.download_button('📥 Tüm kolonları TEK TXT indir (1-X-2, ANALİZ)',raw18,
+                        file_name=f"SPOR_TOTO_V190_ANALIZ_{info18['columns']}K_{validate18['txt_sha256'][:12]}.txt",
+                        mime='text/plain',use_container_width=True,key='v19_approved_txt')
+                    st.download_button('📥 Spor Toto 1-0-2 TXT indir (ANALİZ)',v171_toto_0_txt(raw18),
+                        file_name=f"SPOR_TOTO_V190_102_ANALIZ_{info18['columns']}K_{validate18['txt_sha256'][:12]}.txt",
+                        mime='text/plain',use_container_width=True,key='v19_approved_102')
                     st.code(f"TXT SHA-256: {validate18['txt_sha256']}")
                 except (ValueError,TypeError,KeyError,zipfile.BadZipFile) as exc:
                     st.error('Denetimli ZIP üretimi veya kendi kendine testi başarısız: '+str(exc))
             else:
                 st.error('KABUL ENGELİ: Zorunlu koşullar geçilmedi. 1. sekmeden veri ve kolonları yenileyin.')
-    st.markdown('#### 📂 Daha önce indirilmiş v18 analiz ZIP dosyasını kontrol et')
+    st.markdown('#### 📂 Daha önce indirilmiş v19/v18 analiz ZIP dosyasını kontrol et')
     incoming18=st.file_uploader('Yalnızca v18 denetimli analiz ZIP',type=['zip'],key='v18_audit_upload')
     if incoming18 is not None:
         try:
@@ -4228,7 +4229,7 @@ with tab_acceptance:
 # SEKME 8: v18.1 — HAM EVRENİN TAM VE BAĞIMSIZ HESABI
 # ------------------------------------------------------------------------------
 with tab_math181:
-    st.subheader('🧮 v18.1 — Bağımsız Matematiksel Denetim')
+    st.subheader('🧮 v19.0 — Bağımsız Matematiksel Denetim')
     st.info('Bu modül üretim motorunu çağırmaz. Ham şablondaki HER senaryo için en yakın kolonun 0–15 isabetini tam olarak hesaplar. Resmî bülten veya kâr garantisi değildir.')
     live_summary=st.session_state.get('son_uretim_ozeti')
     live_columns=st.session_state.get('uretilen_kuponlar')
@@ -4249,13 +4250,13 @@ with tab_math181:
             st.download_button('📄 Bağımsız tam matematik raporu (JSON)',json.dumps(exact_report,ensure_ascii=False,indent=2).encode('utf-8'),
                 file_name='SPOR_TOTO_V181_BAGIMSIZ_MATEMATIK_RAPORU.json',mime='application/json',key='v181_session_report')
             st.download_button('📋 Orijinal 15 satırlık ham şablon (JSON)',json.dumps(exact_report['template'],ensure_ascii=False,indent=2).encode('utf-8'),
-                file_name='SPOR_TOTO_V181_HAM_SABLON.json',mime='application/json',key='v181_template_export')
+                file_name='SPOR_TOTO_V190_HAM_SABLON.json',mime='application/json',key='v181_template_export')
         except (ValueError,TypeError,KeyError,UnicodeError,OverflowError) as exc:
             st.error('Tam matematik denetimi başarısız: '+str(exc))
     else:
         st.warning('Oturumda kolon/ham şablon yok. Önce 1. sekmeden güncel kuponları üretin.')
     st.markdown('#### Dışa aktarılan analiz ZIP dosyasını tam sayım ile sınama')
-    uploaded181=st.file_uploader('v18.1 veya eski v18.x denetimli analiz ZIP',type=['zip'],key='v181_audit_zip')
+    uploaded181=st.file_uploader('v19.0 veya eski v18.x denetimli analiz ZIP',type=['zip'],key='v181_audit_zip')
     old_template181=st.file_uploader('Yalnız eski ZIP için orijinal 15 satırlık ham şablon (JSON); yeni ZIP gerekmez',type=['json'],key='v181_template_json')
     if uploaded181 is not None:
         try:
@@ -4270,7 +4271,7 @@ with tab_math181:
                 st.dataframe(pd.DataFrame([{'Hedef':k,'Kapsama %':round(out181['exact_percent'][k],6),'Senaryo':out181['exact_count'][k]}
                     for k in ('tam_15','en_az_14','en_az_13','en_az_12')]),hide_index=True,use_container_width=True)
             st.download_button('📄 Bu ZIP için bağımsız raporu indir',json.dumps(out181,ensure_ascii=False,indent=2).encode('utf-8'),
-                file_name='SPOR_TOTO_V181_ZIP_DENETIM_RAPORU.json',mime='application/json',key='v181_zip_report')
+                file_name='SPOR_TOTO_V190_ZIP_DENETIM_RAPORU.json',mime='application/json',key='v181_zip_report')
         except (ValueError,TypeError,KeyError,UnicodeError,zipfile.BadZipFile,OverflowError) as exc:
             st.error('Denetim engellendi: '+str(exc))
     st.caption('Büyük evren tam sayımı 300.000 ham senaryoya kadar desteklenir. Kapsama yalnız şablon evrenindedir; bülten doğruluğunu, tahmin kalibrasyonunu veya ödeme sonucunu kanıtlamaz.')
