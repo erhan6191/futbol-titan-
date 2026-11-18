@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = """<html lang='tr'><meta charset='utf-8'><h1>Spor Toto AI Pro v19.0 ULTIMATE FINAL</h1><p>Yalnızca analiz amaçlıdır; otomatik kupon doldurma, ödeme ve yatırma kapalıdır. 12–15 hedefleri yalnızca koşullu senaryo evreni için geçerlidir.</p><p>1. API ile 15 maç seç; ister kullanıcı onayı, ister üçlü karşılaştırma yöntemini kullan. 2. Tahminlerin gerçek API alım saatini kontrol et. 3. Şablon, bütçe ve 12–15 koşullu kapsama hedefini belirle. 4. Kolonları hesapla. 5. Yedinci Kabul Merkezinde denetim raporunu ve analiz ZIP paketini indir. 6. Sekizinci Bağımsız Matematik Denetiminde ham şablonun 12–15 tam kapsama hesabını incele. 7. Paketleri yalnızca analiz amaçlı kullan; resmî siteye kupon yatırma, ödeme ve makbuz teyidi mevcut değildir.</p></html>"""
+KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v19.0 Kolay Kullanım</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v19.0 — Kolay Kullanım</h1><p>Motor ve hesaplama kuralları orijinal v19.0'dır. Sadece ekran düzeni sadeleştirilmiştir.</p><ol><li>Sol menüye API-Football anahtarınızı girin.</li><li>Sol menüde kolon birim fiyatını ve toplam bütçeyi kontrol edin. Diğer ayarlar başlangıçta gizli olup orijinal değerleriyle aktiftir.</li><li><b>1. Maçlar ve Kolonlar:</b> günleri seçin, maçları yükleyin, resmî bülten sırasına göre 15 maç ekleyin, sırayı onaylayın ve <b>Analizi Başlat</b> düğmesine basın.</li><li><b>Bütçeme Göre Otomatik Kur</b> ardından <b>KAPSAMA HESAPLA</b> düğmesine basın. İsteğe bağlı alternatif şablonlar katlanır paneldedir.</li><li>Birinci sekmenin başındaki <b>BÜLTEN ONAYI</b> bölümünü açıp 15 maç sırasını gözden geçirerek onayınızı kaydedin.</li><li><b>2. Dosyaları İndir:</b> A01–A10 kabul kontrolü uygun olduğunda tüm kolonların TXT/ZIP analiz dosyalarını indirin.</li><li><b>3. Sonuç Takibi:</b> maçların sonuçlarını ve kuponların durumunu inceleyin.</li><li>Teknik önizleme, geçmiş tahmin testi, Anti-Public ve bağımsız matematik denetimi için <b>Gelişmiş Araçlar</b> bölümünü açın.</li></ol><p class='note'><b>Önemli:</b> 12–15 kapsama hedefleri yalnız tanımlı koşullu şablon senaryolarına ilişkindir. Gerçek maç sonuçları veya kazanç garanti edilmez. Canlı kupon yatırma, ödeme, resmî kapanış ve makbuz doğrulaması yoktur.</p></body></html>"
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -145,8 +145,9 @@ KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
 # ==============================================================================
 with st.sidebar:
     st.markdown("## 🏆 Spor Toto AI v19.0")
+    st.caption("KOLAY KULLANIM ARAYÜZÜ — motor v19.0 ile aynı")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı")
-    st.warning("Deneysel analiz: matematiksel kapsama, gerçek maç isabeti veya kâr garantisi değildir.")
+    st.caption("Analiz amaçlıdır; gerçek maç isabeti veya kazanç garantisi yoktur.")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
@@ -156,58 +157,14 @@ with st.sidebar:
         use_container_width=True
     )
 
+    st.markdown("### 1) API anahtarınızı girin")
     api_key = st.text_input("🔑 API-Football Anahtarı:", type="password")
     if api_key:
         st.caption(f"📊 Kalan Günlük API Kotası: **{st.session_state.kalan_kota}**")
 
     st.markdown("---")
-    st.markdown("### 🎯 1. Senaryo Kapsama & Ekonomik Daraltma Motoru")
-    garanti_secimi = st.selectbox(
-        "Senaryo içi isabet / kapsama hedefi:",
-        [
-            "15 hedef (tam eşleşme)",
-            "14 hedef (1 hata)",
-            "13 hedef (2 hata)",
-            "12 hedef (3 hata)"
-        ],
-        index=0
-    )
-    garanti_derecesi = int(garanti_secimi.split()[0])
-
-    kapsama_evreni_modu = st.radio(
-        "🔒 Senaryo Kapsama Evreni:",
-        [
-            "🛡️ Kesin Şablon Evreni (tam kapsama hedefi)",
-            "🧬 Hibrit Ekonomi (G2 koşullu evren)",
-            "📐 Filtreli & Şartlı Evren (yalnız kalan senaryolar)"
-        ],
-        index=0,
-        help="Kesin şablon: ham senaryolar. Hibrit: yalnız G2 koşullu evren. Filtreli: kalan senaryolar. Bütçe modunda üst sınır geçerlidir; analiz modlarında maliyet yalnız raporlanır. Hedef ancak bağımsız denetimle doğrulanır."
-    )
-    mutlak_sablon_garantisi = ("Kesin Şablon" in kapsama_evreni_modu)
-    hibrit_ekonomi_modu = ("Hibrit Ekonomi" in kapsama_evreni_modu)
-
-    if garanti_derecesi == 15 and mutlak_sablon_garantisi:
-        hedef_kapsama_orani = 100.0
-        st.caption("🛡️ **15/15 Şablon Kapsama Koruması:** Kesin Şablon modunda kapsama oranı otomatik olarak **%100 Tam Kapsama**'ya kilitlenmiştir.")
-    else:
-        tasarruf_profili = st.select_slider(
-            "🌱 Akıllı Tasarruf Modu (Kapsama Oranı):",
-            options=[
-                "🔥 %85 koşullu olasılık kütlesi hedefi",
-                "⚖️ %93 koşullu olasılık kütlesi hedefi",
-                "🛡️ Tam Kapsama (%100 hedef)"
-            ],
-            value="🛡️ Tam Kapsama (%100 hedef)",
-            help="%85/%93: model altında koşullu olasılık kütlesi. %100: evrendeki tüm senaryolar. Bütçe hedefi engelleyebilir."
-        )
-        if "85" in tasarruf_profili:
-            hedef_kapsama_orani = 85.0
-        elif "93" in tasarruf_profili:
-            hedef_kapsama_orani = 93.0
-        else:
-            hedef_kapsama_orani = 100.0
-
+    st.markdown("### 2) Bütçenizi belirleyin")
+    st.caption("Diğer bütün teknik ayarlar orijinal varsayılanlarıyla çalışır. İhtiyaç olursa aşağıdan açabilirsiniz.")
     uretim_modu = st.radio("Üretim modu", ["Bütçe kontrollü", "Matematiksel minimum (analiz)", "12–15 karşılaştırma (analiz)"], index=0,
         help="Minimum ve karşılaştırma yalnızca maliyet/kapsama analizi yapar; bütçe sınırı yoktur. Optimum yalnızca ispat varsa gösterilir.")
     kolon_fiyati = st.number_input("Kolon Birim Fiyatı (TL):", min_value=1.0, value=10.0, step=1.0)
@@ -216,186 +173,238 @@ with st.sidebar:
     butce_kilidi_aktif = uretim_modu == "Bütçe kontrollü"
     max_kolon_limiti = hedef_kolon_sayisi if butce_kilidi_aktif else None
     limit_metni = f"En fazla {max_kolon_limiti:,} kolon" if max_kolon_limiti is not None else "Bütçesiz analiz (oynama talimatı değildir)"
-    st.caption(limit_metni)
-    arsiv_upload = st.file_uploader("İsteğe bağlı geçmiş maç arşivi (CSV)", type=["csv"], key="history14", help="date,home,away,hg,ag; yalnız tamamlanmış maçlar, takım adları API ile aynı olmalıdır. Her lig için ayrı model önerilir.")
-    st.caption("Kolon fiyatı ve oynanma oranları otomatik doğrulanmaz. Arşiv yoksa piyasa/API; arşiv varsa DC/Elo deneysel model. Ağırlıklar kalibre edilmemiştir. Geçmiş tahmin testleri 5. sekmededir.")
+    st.caption("Bütçe sınırı: " + limit_metni)
 
-    aninda_otomatik_hesapla = st.toggle(
-        "⚡ Tablo & Menü Değişikliklerinde Anında Senkronize Et (<= 4.000 Ham Kolon)",
-        value=False,
-        help="Açık olduğunda 4.000 kolona kadar olan şablonlarda yaptığınız değişiklikler anında hesaplanır. Daha geniş şablonlarda arayüzün takılmaması için '⚡ KAPSAMA HESAPLA' butonuna basarak tek tıkla üretebilirsiniz."
-    )
+    with st.expander("⚙️ GELİŞMİŞ AYARLAR — isteğe bağlı", expanded=False):
+        st.markdown("---")
+        st.markdown("### 🎯 1. Senaryo Kapsama & Ekonomik Daraltma Motoru")
+        garanti_secimi = st.selectbox(
+            "Senaryo içi isabet / kapsama hedefi:",
+            [
+                "15 hedef (tam eşleşme)",
+                "14 hedef (1 hata)",
+                "13 hedef (2 hata)",
+                "12 hedef (3 hata)"
+            ],
+            index=0
+        )
+        garanti_derecesi = int(garanti_secimi.split()[0])
 
-    st.markdown("---")
-    st.markdown("### 🧠 2. Sendika & Çift Kademeli Şart Motoru")
-    strateji_modu = st.radio(
-        "Yapay Zeka Oyun Stili:",
-        [
-            "⚖️ Dengeli (Log-Olasılık)",
-            "🛡️ Favori Ağırlıklı (model senaryosu)",
-            "🔍 Belirsizlik incelemesi (sıkı banko eşiği)"
-        ]
-    )
+        kapsama_evreni_modu = st.radio(
+            "🔒 Senaryo Kapsama Evreni:",
+            [
+                "🛡️ Kesin Şablon Evreni (tam kapsama hedefi)",
+                "🧬 Hibrit Ekonomi (G2 koşullu evren)",
+                "📐 Filtreli & Şartlı Evren (yalnız kalan senaryolar)"
+            ],
+            index=0,
+            help="Kesin şablon: ham senaryolar. Hibrit: yalnız G2 koşullu evren. Filtreli: kalan senaryolar. Bütçe modunda üst sınır geçerlidir; analiz modlarında maliyet yalnız raporlanır. Hedef ancak bağımsız denetimle doğrulanır."
+        )
+        mutlak_sablon_garantisi = ("Kesin Şablon" in kapsama_evreni_modu)
+        hibrit_ekonomi_modu = ("Hibrit Ekonomi" in kapsama_evreni_modu)
 
-    # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
-    ev_katsayisi = 0.0  # v16 eski vekil (model == halk) puanlama devre dışı.
-    st.caption("v17.3: Halk oranları, model olasılığından AYRIDIR. Tam ve zamanında CSV yoksa etkisi sıfırdır.")
-    v173_opt_in = st.checkbox("🔍 Anti-Public deneysel puanlamayı etkinleştir (yalnız doğrulanmış biçimli halk CSV)",value=False,key='v173_enable',
-        help="Halk tercihi kullanıcının sağladığı kaynak açıklamasıdır; kaynağın otantikliği doğrulanmaz. Gerçek kazanç veya tahmin gücü garantisi yoktur.")
-    v173_weight = st.slider('Kalabalıktan ayrışma puanı ağırlığı (deneysel)',0.00,0.25,0.08,0.01,key='v173_weight',
-        help='0 = yalnız model skoru. Yalnız tam 15 maçlık güncel kullanıcı CSV dosyasıyla aktiftir. Kalibre edilmemiştir.')
-    risk_banko_p = st.slider("Banko inceleme eşiği (%)", 40, 90, 65, key="banko16_p")
-    risk_gap = st.slider("Halk-model farkı uyarısı (puan)", 5, 30, 15, key="banko16_gap")
-    risk_spread = st.slider("Piyasa sapması uyarısı (puan)", 1.0, 10.0, 2.5, 0.5, key="banko16_spread")
-
-    grup_guvence_aktif = st.toggle("🌟 Çift Kademeli Güvence (G1 & G2) Filtresi", value=True)
-    if grup_guvence_aktif:
-        otonom_grup_limiti = st.checkbox("🤖 G1/G2 Sınırlarını Otomatik Ölçekle", value=True)
-        if not otonom_grup_limiti:
-            g1_manuel = st.slider("🌟 G1 (Ağır Favoriler) Min-Maks Sürpriz:", 0, 10, (0, 3))
-            g2_manuel = st.slider("🔥 G2 (Plase/Ortada) Min-Maks Sürpriz:", 0, 12, (0, 5))
+        if garanti_derecesi == 15 and mutlak_sablon_garantisi:
+            hedef_kapsama_orani = 100.0
+            st.caption("🛡️ **15/15 Şablon Kapsama Koruması:** Kesin Şablon modunda kapsama oranı otomatik olarak **%100 Tam Kapsama**'ya kilitlenmiştir.")
         else:
-            g1_manuel, g2_manuel = None, None
-    else:
-        otonom_grup_limiti = False
-        g1_manuel, g2_manuel = (0, 15), (0, 15)
+            tasarruf_profili = st.select_slider(
+                "🌱 Akıllı Tasarruf Modu (Kapsama Oranı):",
+                options=[
+                    "🔥 %85 koşullu olasılık kütlesi hedefi",
+                    "⚖️ %93 koşullu olasılık kütlesi hedefi",
+                    "🛡️ Tam Kapsama (%100 hedef)"
+                ],
+                value="🛡️ Tam Kapsama (%100 hedef)",
+                help="%85/%93: model altında koşullu olasılık kütlesi. %100: evrendeki tüm senaryolar. Bütçe hedefi engelleyebilir."
+            )
+            if "85" in tasarruf_profili:
+                hedef_kapsama_orani = 85.0
+            elif "93" in tasarruf_profili:
+                hedef_kapsama_orani = 93.0
+            else:
+                hedef_kapsama_orani = 100.0
 
-    st.markdown("---")
-    st.markdown("### 🔬 3. Matematiksel Optimizasyon ve Yapısal Filtreler")
-    ortogonal_anahtar_aktif = st.toggle(
-        "🔑 Karma örtme (GF(2)/GF(3)) + kaynak sınırlı yedek",
-        value=True,
-        help="Tam Kartezyen evrende karma koset araması; kaynak sınırında yedek yöntem. Filtreli evrende mevcut motor kullanılır; optimum yalnızca ispatla gösterilir."
-    )
-    akilli_merkez = st.toggle("🧮 MILP (küçük evren) + karma örtme / yerel arama", value=True)
-    arama_derinligi = st.radio("Matematiksel arama profili", ["Dengeli", "Derin"], index=0, help="Derin profil daha çok karma alfabe ve yerel arama denemesi yapar. Süre sınırlıdır; minimum ispatı yalnız doğrulanmış alt sınır veya kesin çözümle verilir.")
-    log_zarf_aktif = st.toggle("📐 Normalize Shannon Log-Olasılık (Altın Koridor) Zarfı", value=True)
-    kademe_filtre_aktif = st.toggle("📊 3 Kademeli (Favori/Plase/Sürpriz) Bütçesi", value=True)
-    kati_filtre_kilidi = st.toggle(
-        "🔒 Katı Filtre Kilidi (esnetme yok)",
-        value=True,
-        help="Açık olduğunda, çok dar filtreler girdiğinizde sistem filtreyi sessizce devre dışı bırakıp kupon sayısını şişirmez; seçtiğiniz şartlara sadık kalır."
-    )
-    homojen_bulten = st.toggle("⚖️ Alt/Üst Bülten Homojenlik Filtresi", value=False)
-    entropi_filtresi = st.toggle("🌀 Yapay/Simetrik Dizilim Elemesi", value=False)
-    tuzak_koruma = st.toggle("🚨 Kırılgan Halk Tuzaklarını & Kararsızları Çifteye Al", value=True)
+        arsiv_upload = st.file_uploader("İsteğe bağlı geçmiş maç arşivi (CSV)", type=["csv"], key="history14", help="date,home,away,hg,ag; yalnız tamamlanmış maçlar, takım adları API ile aynı olmalıdır. Her lig için ayrı model önerilir.")
+        st.caption("Kolon fiyatı ve oynanma oranları otomatik doğrulanmaz. Arşiv yoksa piyasa/API; arşiv varsa DC/Elo deneysel model. Ağırlıklar kalibre edilmemiştir. Geçmiş tahmin testleri Gelişmiş Araçlar bölümündedir.")
 
-    if garanti_derecesi == 15:
-        benzerlik_elemesi = 1
-        st.caption("🔒 15 hedefinde Hamming alt sınırı 1; gerçek sonuç için garanti değildir.")
-    else:
-        benzerlik_elemesi = st.select_slider(
-            "🔍 Kuponlar Arası Min. Farklı Maç (Hamming):",
-            options=[1, 2, 3, 4],
-            value=1,
-            help="Tam matematiksel garanti (%100 örtme ve en az kolon) için '1' önerilir. 2 veya üzeri seçildiğinde kuponlar birbirinden uzaklaşır ancak yakın kombinasyonlar elenebilir."
+        aninda_otomatik_hesapla = st.toggle(
+            "⚡ Tablo & Menü Değişikliklerinde Anında Senkronize Et (<= 4.000 Ham Kolon)",
+            value=False,
+            help="Açık olduğunda 4.000 kolona kadar olan şablonlarda yaptığınız değişiklikler anında hesaplanır. Daha geniş şablonlarda arayüzün takılmaması için '⚡ KAPSAMA HESAPLA' butonuna basarak tek tıkla üretebilirsiniz."
         )
 
-    ai_filtre_modu = st.toggle("🤖 Şablon-Duyarlı Otonom İstatistik Sınırları", value=True)
-
-    range_1, range_x, range_2 = (3, 10), (1, 7), (1, 8)
-    range_fav, range_plase, range_surpriz = (5, 13), (1, 8), (0, 5)
-    max_ardisik_1, max_ardisik_x, max_ardisik_2 = 6, 4, 4
-    banko_siniri, cifte_sans_siniri = 58, 42
-
-    if not ai_filtre_modu:
-        with st.expander("⚙️ Manuel Filtre Ayarları", expanded=True):
-            range_1 = st.slider("Ev Sahibi (1) Adedi", 0, 15, (3, 10))
-            range_x = st.slider("Beraberlik (X) Adedi", 0, 15, (1, 7))
-            range_2 = st.slider("Deplasman (2) Adedi", 0, 15, (1, 8))
-            range_fav = st.slider("1. Tercih (Favori) Adedi", 0, 15, (5, 13))
-            range_plase = st.slider("2. Tercih (Plase) Adedi", 0, 15, (1, 8))
-            range_surpriz = st.slider("3. Tercih (Ağır Sürpriz) Adedi", 0, 10, (0, 5))
-            max_ardisik_1 = st.slider("Üst Üste Maks. '1'", 2, 15, 6)
-            max_ardisik_x = st.slider("Üst Üste Maks. 'X'", 2, 15, 4)
-            max_ardisik_2 = st.slider("Üst Üste Maks. '2'", 2, 15, 4)
-            banko_siniri = st.number_input("Banko Sınırı (%)", 35, 95, 58)
-            cifte_sans_siniri = st.number_input("Çifte Şans Sınırı (%)", 30, 80, 42)
-
-    st.markdown("---")
-    st.markdown("### 💾 4. Haftalık Bülten Yedeği")
-    if st.session_state.analiz_verisi is not None:
-        yedek_paket = {
-            "versiyon": "17.3",
-            "secilen_15_mac": st.session_state.secilen_15_mac,
-            "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
-            "analiz_verisi": st.session_state.analiz_verisi,
-            "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
-            "uretilen_kuponlar": st.session_state.uretilen_kuponlar.tolist() if st.session_state.uretilen_kuponlar is not None else None,
-            "son_uretim_ozeti": st.session_state.son_uretim_ozeti,
-            "canli_sonuclar": st.session_state.canli_sonuclar,
-            "canli_skor_metni": st.session_state.canli_skor_metni,
-            "yatirilan_paketler": st.session_state.yatirilan_paketler
-        }
-        st.download_button(
-            "📥 Haftalık Oturumu Kaydet (.JSON)",
-            data=json.dumps(
-                yedek_paket,
-                ensure_ascii=False,
-                indent=2,
-                default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
-            ).encode("utf-8"),
-            file_name=f"spor_toto_v17_3_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
-            mime="application/json",
-            use_container_width=True
+        st.markdown("---")
+        st.markdown("### 🧠 2. Sendika & Çift Kademeli Şart Motoru")
+        strateji_modu = st.radio(
+            "Yapay Zeka Oyun Stili:",
+            [
+                "⚖️ Dengeli (Log-Olasılık)",
+                "🛡️ Favori Ağırlıklı (model senaryosu)",
+                "🔍 Belirsizlik incelemesi (sıkı banko eşiği)"
+            ]
         )
 
-    if st.session_state.get('v172_restore_notice'):
-        st.warning(st.session_state.v172_restore_notice)
-    yuklenen_oturum = st.file_uploader("📂 Kayıtlı Oturumu Yükle (.JSON):", type=["json"])
-    if yuklenen_oturum is not None:
-        if st.button("♻️ Oturumu Geri Yükle", use_container_width=True):
-            try:
-                veri_json = json.loads(yuklenen_oturum.getvalue().decode("utf-8"))
-                ids=veri_json.get('secilen_mac_idleri',[]); av=veri_json.get('analiz_verisi') or []
-                if len(ids)!=15 or len(set(ids))!=15 or len(av)!=15 or set(ids)!={v['id'] for v in av}: raise ValueError('Bülten kimlikleri geçersiz.')
-                if veri_json.get('uretilen_kuponlar'):
-                    arr=np.asarray(veri_json['uretilen_kuponlar'])
-                    if arr.ndim!=2 or arr.shape[1]!=15 or not np.isin(arr,['1','X','2']).all(): raise ValueError('Geçersiz kolon kaydı')
-                st.session_state.uretilen_kuponlar=None
-                st.session_state.tablo_df=None;st.session_state.tablo_baz_df=None
+        # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
+        ev_katsayisi = 0.0  # v16 eski vekil (model == halk) puanlama devre dışı.
+        st.caption("v17.3: Halk oranları, model olasılığından AYRIDIR. Tam ve zamanında CSV yoksa etkisi sıfırdır.")
+        v173_opt_in = st.checkbox("🔍 Anti-Public deneysel puanlamayı etkinleştir (yalnız doğrulanmış biçimli halk CSV)",value=False,key='v173_enable',
+            help="Halk tercihi kullanıcının sağladığı kaynak açıklamasıdır; kaynağın otantikliği doğrulanmaz. Gerçek kazanç veya tahmin gücü garantisi yoktur.")
+        v173_weight = st.slider('Kalabalıktan ayrışma puanı ağırlığı (deneysel)',0.00,0.25,0.08,0.01,key='v173_weight',
+            help='0 = yalnız model skoru. Yalnız tam 15 maçlık güncel kullanıcı CSV dosyasıyla aktiftir. Kalibre edilmemiştir.')
+        risk_banko_p = st.slider("Banko inceleme eşiği (%)", 40, 90, 65, key="banko16_p")
+        risk_gap = st.slider("Halk-model farkı uyarısı (puan)", 5, 30, 15, key="banko16_gap")
+        risk_spread = st.slider("Piyasa sapması uyarısı (puan)", 1.0, 10.0, 2.5, 0.5, key="banko16_spread")
 
-                st.session_state.secilen_mac_idleri = ids
-                # Eski JSON'larda secilen_15_mac bulunmuyordu: mac sirasini tahmin etmeyiz.
-                yeniden_secim=veri_json.get('secilen_15_mac')
-                if isinstance(yeniden_secim,list) and len(yeniden_secim)==15:
-                    if [int(x['id']) for x in yeniden_secim]!=[int(x) for x in ids] or any(
-                        not all(str(x.get(k,'')).strip() for k in ('ev','dep','tarih','saat')) for x in yeniden_secim):
-                        raise ValueError('Yedek 15 mac ayrintilari eksik veya sirasi farkli.')
-                    restored=[]
-                    for m in yeniden_secim:
-                        mm=dict(m)
-                        mm['karsilasma']=f"{mm['ev']} - {mm['dep']}"
-                        mm['label']=mm.get('label') or mm['karsilasma']
-                        restored.append(mm)
-                    st.session_state.secilen_15_mac=restored
-                    st.session_state.mac_listesi=list(restored)
-                    st.session_state.v172_restore_notice='15 maç sırası yedekten geri getirildi. Eski tahmin/kuponlar güncel sayılmaz.'
-                else:
-                    in_session=st.session_state.get('secilen_15_mac',[])
-                    if len(in_session)!=15 or [int(m['id']) for m in in_session]!=[int(x) for x in ids]:
-                        st.session_state.secilen_15_mac=[]
-                        st.session_state.mac_listesi=[]
-                    st.session_state.v172_restore_notice='Eski JSON dosyasında 15 maçın tam seçimi bulunmuyor. Maçları resmî sırasıyla yeniden seçin.'
-                st.session_state.v171_api_proof=None
-                st.session_state.analiz_verisi = veri_json.get("analiz_verisi")
-                if veri_json.get("tablo_df"):
-                    yuklenen_df = pd.DataFrame(veri_json["tablo_df"])
-                    st.session_state.tablo_baz_df = yuklenen_df.copy()
-                    st.session_state.tablo_df = yuklenen_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                if veri_json.get("uretilen_kuponlar"):
-                    st.session_state.uretilen_kuponlar = None  # eski üretimi yeniden hesapla
-                st.session_state.son_uretim_ozeti = None # Önceki üretim yeni analize taşınamaz.
-                st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
-                st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
-                st.session_state.yatirilan_paketler = veri_json.get("yatirilan_paketler", [])
-                st.session_state.son_param_imzasi = None
-                st.session_state.son_sol_menu_imzasi = None
-                st.toast("✅ Oturumun 15 maçı ve analiz bilgileri yüklendi; eski kuponlar yeniden üretilmeli!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Yedek dosyası okunamadı: {e}")
+        grup_guvence_aktif = st.toggle("🌟 Çift Kademeli Güvence (G1 & G2) Filtresi", value=True)
+        if grup_guvence_aktif:
+            otonom_grup_limiti = st.checkbox("🤖 G1/G2 Sınırlarını Otomatik Ölçekle", value=True)
+            if not otonom_grup_limiti:
+                g1_manuel = st.slider("🌟 G1 (Ağır Favoriler) Min-Maks Sürpriz:", 0, 10, (0, 3))
+                g2_manuel = st.slider("🔥 G2 (Plase/Ortada) Min-Maks Sürpriz:", 0, 12, (0, 5))
+            else:
+                g1_manuel, g2_manuel = None, None
+        else:
+            otonom_grup_limiti = False
+            g1_manuel, g2_manuel = (0, 15), (0, 15)
+
+        st.markdown("---")
+        st.markdown("### 🔬 3. Matematiksel Optimizasyon ve Yapısal Filtreler")
+        ortogonal_anahtar_aktif = st.toggle(
+            "🔑 Karma örtme (GF(2)/GF(3)) + kaynak sınırlı yedek",
+            value=True,
+            help="Tam Kartezyen evrende karma koset araması; kaynak sınırında yedek yöntem. Filtreli evrende mevcut motor kullanılır; optimum yalnızca ispatla gösterilir."
+        )
+        akilli_merkez = st.toggle("🧮 MILP (küçük evren) + karma örtme / yerel arama", value=True)
+        arama_derinligi = st.radio("Matematiksel arama profili", ["Dengeli", "Derin"], index=0, help="Derin profil daha çok karma alfabe ve yerel arama denemesi yapar. Süre sınırlıdır; minimum ispatı yalnız doğrulanmış alt sınır veya kesin çözümle verilir.")
+        log_zarf_aktif = st.toggle("📐 Normalize Shannon Log-Olasılık (Altın Koridor) Zarfı", value=True)
+        kademe_filtre_aktif = st.toggle("📊 3 Kademeli (Favori/Plase/Sürpriz) Bütçesi", value=True)
+        kati_filtre_kilidi = st.toggle(
+            "🔒 Katı Filtre Kilidi (esnetme yok)",
+            value=True,
+            help="Açık olduğunda, çok dar filtreler girdiğinizde sistem filtreyi sessizce devre dışı bırakıp kupon sayısını şişirmez; seçtiğiniz şartlara sadık kalır."
+        )
+        homojen_bulten = st.toggle("⚖️ Alt/Üst Bülten Homojenlik Filtresi", value=False)
+        entropi_filtresi = st.toggle("🌀 Yapay/Simetrik Dizilim Elemesi", value=False)
+        tuzak_koruma = st.toggle("🚨 Kırılgan Halk Tuzaklarını & Kararsızları Çifteye Al", value=True)
+
+        if garanti_derecesi == 15:
+            benzerlik_elemesi = 1
+            st.caption("🔒 15 hedefinde Hamming alt sınırı 1; gerçek sonuç için garanti değildir.")
+        else:
+            benzerlik_elemesi = st.select_slider(
+                "🔍 Kuponlar Arası Min. Farklı Maç (Hamming):",
+                options=[1, 2, 3, 4],
+                value=1,
+                help="Tam matematiksel garanti (%100 örtme ve en az kolon) için '1' önerilir. 2 veya üzeri seçildiğinde kuponlar birbirinden uzaklaşır ancak yakın kombinasyonlar elenebilir."
+            )
+
+        ai_filtre_modu = st.toggle("🤖 Şablon-Duyarlı Otonom İstatistik Sınırları", value=True)
+
+        range_1, range_x, range_2 = (3, 10), (1, 7), (1, 8)
+        range_fav, range_plase, range_surpriz = (5, 13), (1, 8), (0, 5)
+        max_ardisik_1, max_ardisik_x, max_ardisik_2 = 6, 4, 4
+        banko_siniri, cifte_sans_siniri = 58, 42
+
+        if not ai_filtre_modu:
+            with st.expander("⚙️ Manuel Filtre Ayarları", expanded=True):
+                range_1 = st.slider("Ev Sahibi (1) Adedi", 0, 15, (3, 10))
+                range_x = st.slider("Beraberlik (X) Adedi", 0, 15, (1, 7))
+                range_2 = st.slider("Deplasman (2) Adedi", 0, 15, (1, 8))
+                range_fav = st.slider("1. Tercih (Favori) Adedi", 0, 15, (5, 13))
+                range_plase = st.slider("2. Tercih (Plase) Adedi", 0, 15, (1, 8))
+                range_surpriz = st.slider("3. Tercih (Ağır Sürpriz) Adedi", 0, 10, (0, 5))
+                max_ardisik_1 = st.slider("Üst Üste Maks. '1'", 2, 15, 6)
+                max_ardisik_x = st.slider("Üst Üste Maks. 'X'", 2, 15, 4)
+                max_ardisik_2 = st.slider("Üst Üste Maks. '2'", 2, 15, 4)
+                banko_siniri = st.number_input("Banko Sınırı (%)", 35, 95, 58)
+                cifte_sans_siniri = st.number_input("Çifte Şans Sınırı (%)", 30, 80, 42)
+
+
+    with st.expander("💾 Oturumu kaydet / geri yükle", expanded=False):
+        st.markdown("---")
+        st.markdown("### 💾 4. Haftalık Bülten Yedeği")
+        if st.session_state.analiz_verisi is not None:
+            yedek_paket = {
+                "versiyon": "17.3",
+                "secilen_15_mac": st.session_state.secilen_15_mac,
+                "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
+                "analiz_verisi": st.session_state.analiz_verisi,
+                "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
+                "uretilen_kuponlar": st.session_state.uretilen_kuponlar.tolist() if st.session_state.uretilen_kuponlar is not None else None,
+                "son_uretim_ozeti": st.session_state.son_uretim_ozeti,
+                "canli_sonuclar": st.session_state.canli_sonuclar,
+                "canli_skor_metni": st.session_state.canli_skor_metni,
+                "yatirilan_paketler": st.session_state.yatirilan_paketler
+            }
+            st.download_button(
+                "📥 Haftalık Oturumu Kaydet (.JSON)",
+                data=json.dumps(
+                    yedek_paket,
+                    ensure_ascii=False,
+                    indent=2,
+                    default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
+                ).encode("utf-8"),
+                file_name=f"spor_toto_v17_3_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                mime="application/json",
+                use_container_width=True
+            )
+
+        if st.session_state.get('v172_restore_notice'):
+            st.warning(st.session_state.v172_restore_notice)
+        yuklenen_oturum = st.file_uploader("📂 Kayıtlı Oturumu Yükle (.JSON):", type=["json"])
+        if yuklenen_oturum is not None:
+            if st.button("♻️ Oturumu Geri Yükle", use_container_width=True):
+                try:
+                    veri_json = json.loads(yuklenen_oturum.getvalue().decode("utf-8"))
+                    ids=veri_json.get('secilen_mac_idleri',[]); av=veri_json.get('analiz_verisi') or []
+                    if len(ids)!=15 or len(set(ids))!=15 or len(av)!=15 or set(ids)!={v['id'] for v in av}: raise ValueError('Bülten kimlikleri geçersiz.')
+                    if veri_json.get('uretilen_kuponlar'):
+                        arr=np.asarray(veri_json['uretilen_kuponlar'])
+                        if arr.ndim!=2 or arr.shape[1]!=15 or not np.isin(arr,['1','X','2']).all(): raise ValueError('Geçersiz kolon kaydı')
+                    st.session_state.uretilen_kuponlar=None
+                    st.session_state.tablo_df=None;st.session_state.tablo_baz_df=None
+
+                    st.session_state.secilen_mac_idleri = ids
+                    # Eski JSON'larda secilen_15_mac bulunmuyordu: mac sirasini tahmin etmeyiz.
+                    yeniden_secim=veri_json.get('secilen_15_mac')
+                    if isinstance(yeniden_secim,list) and len(yeniden_secim)==15:
+                        if [int(x['id']) for x in yeniden_secim]!=[int(x) for x in ids] or any(
+                            not all(str(x.get(k,'')).strip() for k in ('ev','dep','tarih','saat')) for x in yeniden_secim):
+                            raise ValueError('Yedek 15 mac ayrintilari eksik veya sirasi farkli.')
+                        restored=[]
+                        for m in yeniden_secim:
+                            mm=dict(m)
+                            mm['karsilasma']=f"{mm['ev']} - {mm['dep']}"
+                            mm['label']=mm.get('label') or mm['karsilasma']
+                            restored.append(mm)
+                        st.session_state.secilen_15_mac=restored
+                        st.session_state.mac_listesi=list(restored)
+                        st.session_state.v172_restore_notice='15 maç sırası yedekten geri getirildi. Eski tahmin/kuponlar güncel sayılmaz.'
+                    else:
+                        in_session=st.session_state.get('secilen_15_mac',[])
+                        if len(in_session)!=15 or [int(m['id']) for m in in_session]!=[int(x) for x in ids]:
+                            st.session_state.secilen_15_mac=[]
+                            st.session_state.mac_listesi=[]
+                        st.session_state.v172_restore_notice='Eski JSON dosyasında 15 maçın tam seçimi bulunmuyor. Maçları resmî sırasıyla yeniden seçin.'
+                    st.session_state.v171_api_proof=None
+                    st.session_state.analiz_verisi = veri_json.get("analiz_verisi")
+                    if veri_json.get("tablo_df"):
+                        yuklenen_df = pd.DataFrame(veri_json["tablo_df"])
+                        st.session_state.tablo_baz_df = yuklenen_df.copy()
+                        st.session_state.tablo_df = yuklenen_df.copy()
+                        st.session_state.tablo_versiyon += 1
+                    if veri_json.get("uretilen_kuponlar"):
+                        st.session_state.uretilen_kuponlar = None  # eski üretimi yeniden hesapla
+                    st.session_state.son_uretim_ozeti = None # Önceki üretim yeni analize taşınamaz.
+                    st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
+                    st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
+                    st.session_state.yatirilan_paketler = veri_json.get("yatirilan_paketler", [])
+                    st.session_state.son_param_imzasi = None
+                    st.session_state.son_sol_menu_imzasi = None
+                    st.toast("✅ Oturumun 15 maçı ve analiz bilgileri yüklendi; eski kuponlar yeniden üretilmeli!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Yedek dosyası okunamadı: {e}")
 
 
 # ==============================================================================
@@ -3009,16 +3018,27 @@ def v18_zip_kontrol(zip_bytes):
             'txt_sha256':m['txt_sha256'],'matches':len(m['matches']),
             'analyzed_at':report.get('checked_at_utc')}
 
-tab_uretim, tab_takip, tab_otomasyon, tab_txt153, tab_backtest, tab_antipublic, tab_acceptance, tab_math181 = st.tabs([
-    "🎛️ 1. Bülten ve Senaryo Analizi",
-    "📡 2. Canlı Sonuç ve Kapsama Takibi",
-    "🛡️ 3. Denetimli Paket ve İşlem Kayıtları",
-    "📥 4. Analiz TXT + Manifest",
-    "🧪 5. Backtest & Kalibrasyon",
-    "🧠 6. Anti-Public & Çeşitlilik",
-    "✅ 7. Kabul ve Güvenilirlik",
-    "🧮 8. v19.0 Bağımsız Matematik Denetimi"
+st.markdown("### 🏆 Spor Toto AI Pro — Kolay Kullanım")
+_secili = len(st.session_state.secilen_15_mac)
+_analiz_var = st.session_state.analiz_verisi is not None
+_kolon_var = st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0
+st.caption(f"Durum: {_secili}/15 maç seçildi  •  Analiz: {'Hazır' if _analiz_var else 'Bekliyor'}  •  Kolonlar: {'Hazır' if _kolon_var else 'Henüz yok'}")
+st.info("**Kısa yol:** 15 maç seç → **Analizi Başlat** → **Bütçeme Göre Otomatik Kur** → **KAPSAMA HESAPLA** → üstteki bülten onayını tamamla → **2. Dosyaları İndir**. Sonuçlar için 3. sekmeyi açın.")
+
+# Günlük işler 3 sekmede. Diğer 5 özgün bölüm silinmedi; yalnız ileri araçlara taşındı.
+tab_uretim, tab_acceptance, tab_takip = st.tabs([
+    "⚽ 1. Maçlar ve Kolonlar",
+    "📥 2. Dosyaları İndir",
+    "📡 3. Sonuç Takibi"
 ])
+with st.expander("🔬 GELİŞMİŞ ARAÇLAR — teknik inceleme, önizleme ve testler", expanded=False):
+    tab_txt153, tab_otomasyon, tab_backtest, tab_antipublic, tab_math181 = st.tabs([
+        "📋 TXT Önizleme",
+        "🛡️ İşlem Kayıtları",
+        "🧪 Geçmiş Tahmin Testleri",
+        "🧠 Anti-Public",
+        "🧮 Bağımsız Matematik Denetimi"
+    ])
 
 # ------------------------------------------------------------------------------
 # SEKME 1: PROFESYONEL MAÇ KONTROL PANELİ VE SENDİKA MOTORU
@@ -3027,7 +3047,7 @@ guncel_uretim_imzasi = None
 public173_ctx=None
 v173_active_weight=0.0
 with tab_uretim:
-    with st.expander('🧾 v19.0 — Bülten kabul şekli',expanded=True):
+    with st.expander('✅ BÜLTEN ONAYI — 15 maç seçtikten sonra tamamlayın',expanded=(len(st.session_state.secilen_15_mac)==15)):
         st.warning('Bu uygulama resmî bülteni, resmî kapanışı veya ödeme işlemini bağımsız doğrulayamaz. Otomatik oynama ve ödeme kapalıdır.')
         v1802_mode=st.radio('Bülten kabul yöntemi',
             ['Benim liste onayım (CSV/metin/API zorunlu değil)', 'Eski üçlü karşılaştırma (CSV + metin + API)'],
@@ -3298,55 +3318,55 @@ with tab_uretim:
                 st.session_state.tablo_baz_df = ilk_df.copy()
                 st.session_state.tablo_df = ilk_df.copy()
 
-            st.markdown("#### 🎛️ Profesyonel Şablon & Akıllı Bütçe Optimizasyon Masası")
-            st.caption("AI Dinamik modda zorunlu ilk dört banko kaldırıldı. Bütçe ve sabit adetli hazır şablonlar farklı kurallarla çalışır; risk tablosunda her birini ayrıca inceleyin.")
-            tb0, tb1, tb2, tb3, tb4 = st.columns([1.6, 1.15, 1.15, 1.15, 0.85])
-            with tb0:
-                if st.button(f"🎯 Bütçeme Göre Otomatik Kur ({hedef_butce_tl:,.0f} TL)", type="primary", use_container_width=True):
-                    oto_durum = butceye_gore_sablon_optimize_et(
-                        veriler, hedef_kolon_sayisi, garanti_derecesi,
-                        mutlak_mod=mutlak_sablon_garantisi, hibrit_mod=hibrit_ekonomi_modu, tuzak_aktif=tuzak_koruma
-                    )
-                    yeni_df = tablo_verisi_olustur(
-                        veriler, on_limitler, tuzak_koruma, mod="butce_oto", ozel_durumlar=oto_durum
-                    )
-                    st.session_state.tablo_baz_df = yeni_df.copy()
-                    st.session_state.tablo_df = yeni_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                    st.session_state.son_param_imzasi = None
-                    st.rerun()
-            with tb1:
-                if st.button("🌱 Ekonomik (5B-6Ç-4K)", use_container_width=True):
-                    yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="super_eko_5b_6c_4k")
-                    st.session_state.tablo_baz_df = yeni_df.copy()
-                    st.session_state.tablo_df = yeni_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                    st.session_state.son_param_imzasi = None
-                    st.rerun()
-            with tb2:
-                if st.button("🤖 AI Dinamik (sabit banko yok)", use_container_width=True):
-                    yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="ai")
-                    st.session_state.tablo_baz_df = yeni_df.copy()
-                    st.session_state.tablo_df = yeni_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                    st.session_state.son_param_imzasi = None
-                    st.rerun()
-            with tb3:
-                if st.button("💎 Sendika (3B-6Ç-6K)", use_container_width=True):
-                    yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="sendika_3b_6c_6k")
-                    st.session_state.tablo_baz_df = yeni_df.copy()
-                    st.session_state.tablo_df = yeni_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                    st.session_state.son_param_imzasi = None
-                    st.rerun()
-            with tb4:
-                if st.button("🔒 Banko stres testi (risk veto)", use_container_width=True):
-                    yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="15_banko")
-                    st.session_state.tablo_baz_df = yeni_df.copy()
-                    st.session_state.tablo_df = yeni_df.copy()
-                    st.session_state.tablo_versiyon += 1
-                    st.session_state.son_param_imzasi = None
-                    st.rerun()
+            st.markdown("#### 🎯 Kupon Şablonunu Oluştur")
+            st.caption("Önerilen kolay yöntem: önce bütçenize göre otomatik şablon kurun, sonra aşağıdaki 'KAPSAMA HESAPLA' düğmesine basın.")
+            if st.button(f"🎯 Bütçeme Göre Otomatik Kur ({hedef_butce_tl:,.0f} TL)", type="primary", use_container_width=True):
+                oto_durum = butceye_gore_sablon_optimize_et(
+                    veriler, hedef_kolon_sayisi, garanti_derecesi,
+                    mutlak_mod=mutlak_sablon_garantisi, hibrit_mod=hibrit_ekonomi_modu, tuzak_aktif=tuzak_koruma
+                )
+                yeni_df = tablo_verisi_olustur(
+                    veriler, on_limitler, tuzak_koruma, mod="butce_oto", ozel_durumlar=oto_durum
+                )
+                st.session_state.tablo_baz_df = yeni_df.copy()
+                st.session_state.tablo_df = yeni_df.copy()
+                st.session_state.tablo_versiyon += 1
+                st.session_state.son_param_imzasi = None
+                st.rerun()
+            with st.expander("⚙️ Diğer şablon yöntemleri (isteğe bağlı)", expanded=False):
+                tb1, tb2, tb3, tb4 = st.columns(4)
+                with tb1:
+                    if st.button("🌱 Ekonomik (5B-6Ç-4K)", use_container_width=True):
+                        yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="super_eko_5b_6c_4k")
+                        st.session_state.tablo_baz_df = yeni_df.copy()
+                        st.session_state.tablo_df = yeni_df.copy()
+                        st.session_state.tablo_versiyon += 1
+                        st.session_state.son_param_imzasi = None
+                        st.rerun()
+                with tb2:
+                    if st.button("🤖 AI Dinamik (sabit banko yok)", use_container_width=True):
+                        yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="ai")
+                        st.session_state.tablo_baz_df = yeni_df.copy()
+                        st.session_state.tablo_df = yeni_df.copy()
+                        st.session_state.tablo_versiyon += 1
+                        st.session_state.son_param_imzasi = None
+                        st.rerun()
+                with tb3:
+                    if st.button("💎 Sendika (3B-6Ç-6K)", use_container_width=True):
+                        yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="sendika_3b_6c_6k")
+                        st.session_state.tablo_baz_df = yeni_df.copy()
+                        st.session_state.tablo_df = yeni_df.copy()
+                        st.session_state.tablo_versiyon += 1
+                        st.session_state.son_param_imzasi = None
+                        st.rerun()
+                with tb4:
+                    if st.button("🔒 Banko stres testi (risk veto)", use_container_width=True):
+                        yeni_df = tablo_verisi_olustur(veriler, on_limitler, tuzak_koruma, mod="15_banko")
+                        st.session_state.tablo_baz_df = yeni_df.copy()
+                        st.session_state.tablo_df = yeni_df.copy()
+                        st.session_state.tablo_versiyon += 1
+                        st.session_state.son_param_imzasi = None
+                        st.rerun()
 
             df_edit = st.data_editor(
                 st.session_state.tablo_baz_df,
@@ -3767,7 +3787,7 @@ with tab_uretim:
                 m5.metric("Simülasyon: 12+", f"%{mc['genel_12_arti']:.1f}", "Tahmin; gerçekleşmiş başarı değil")
                 with m6:
                     st.write("")
-                    st.info('TXT + imza denetimi için 4. sekmeyi kullanın.')
+                    st.info('TXT + imza denetimi için 2. Dosyaları İndir bölümünü kullanın.')
 
                 st.caption(
                     f"🔬 **Deterministik Senaryo Kapsama Denetimi:** "
@@ -3969,9 +3989,9 @@ with tab_otomasyon:
             st.warning(f'Doğrulanmış analiz paketi oluşturulamıyor: {exc}')
         else:
             st.success(f"Analiz paketi: {paket_info17['columns']} tekil kolon, {len(paket_info17['matches'])} maç. SHA-256: {paket_info17['txt_sha256'][:20]}…")
-            st.info('v19.0: Bu sekme yalnız önizleme ve kullanıcı beyanı kayıtları içindir. Tüm kolon indirmeleri 7. Kabul Merkezi PASS/USER_ACCEPTED sonrasındadır.')
+            st.info('v19.0: Bu sekme yalnız önizleme ve kullanıcı beyanı kayıtları içindir. Tüm kolon indirmeleri 2. Dosyaları İndir bölümündeki kabul kontrollerinden sonradır.')
             st.dataframe(pd.DataFrame([{'Sıra':x['order'],'Maç':x['match'],'API ID':x['fixture_id']} for x in paket_info17['matches']]),hide_index=True,use_container_width=True)
-            st.info('v19.0: Denetimli ZIP ve tek TXT dosyaları yalnızca 7. Kabul Merkezi bölümünden indirilir.')
+            st.info('v19.0: Denetimli ZIP ve tek TXT dosyaları yalnızca 2. Dosyaları İndir bölümünden indirilir.')
             st.info('Yatırma kararı veriyorsanız resmî site/işlem detaylarıyla 15 satır, her kolon, tutar ve misli manuel teyit edilmelidir. Bu uygulama işlemin kabul edildiğini iddia etmez.')
             with st.expander('🧾 Elle kaydedilen işlem referansları (doğrulanmamış)',expanded=False):
                 receipt17=st.text_input('Resmî makbuz / işlem referansı (kendi kaydınız)',key='v17_receipt_input')
@@ -4009,8 +4029,8 @@ with tab_txt153:
         st.metric('Geçerli ve benzersiz kolon',f"{info17['columns']:,}")
         st.caption(f"Tahmini maliyet: {info17['cost_assumption_tl']} TL (birim fiyat kullanıcı varsayımı)")
         st.code('TXT SHA-256: '+info17['txt_sha256'])
-        st.info('v19.0 güvenlik kuralı: Kolonların tek TXT veya ZIP indirmesi için 7. sekmede A01–A10 kabul raporunun başarılı olması gerekir. Bu sekme yalnız önizleme gösterir.')
-        st.info('Tüm kolonların doğrulanmış 1X2/102 TXT ve ZIP çıktıları için 7. Kabul Merkezi sekmesini kullanın.')
+        st.info('v19.0 güvenlik kuralı: Kolonların tek TXT veya ZIP indirmesi için 2. Dosyaları İndir bölümünde A01–A10 kabul raporunun başarılı olması gerekir. Bu sekme yalnız önizleme gösterir.')
+        st.info('Tüm kolonların doğrulanmış 1X2/102 TXT ve ZIP çıktıları için 2. Dosyaları İndir sekmesini kullanın.')
 
         with st.expander('İlk 20 kolon',expanded=True):
             st.code('\n'.join(raw17.decode().splitlines()[:20]),language='text')
@@ -4050,7 +4070,7 @@ with tab_backtest:
                 histcsv=pd.DataFrame(outrows).to_csv(index=False).encode('utf-8-sig')
                 st.download_button('📥 Bu 15 maçın gerçek maç öncesi tahminlerini CSV indir',
                     histcsv,file_name='SPOR_TOTO_V172_ON_TAHMIN_15MAC.csv',mime='text/csv',key='v172_save_prematch')
-                st.caption('Sonuç sütunu bilerek boş bırakılır. Maçlar bittikten sonra 90dk sonuçlarını resmî kayıtlara göre 1/X/2 girip bu arşivi 5. sekmeye tekrar yükleyin. Blend, kalibre edilmemiş mevcut birleşik modeldir.')
+                st.caption('Sonuç sütunu bilerek boş bırakılır. Maçlar bittikten sonra 90dk sonuçlarını resmî kayıtlara göre 1/X/2 girip bu arşivi Gelişmiş Araçlar > Geçmiş Tahmin Testleri bölümüne tekrar yükleyin. Blend, kalibre edilmemiş mevcut birleşik modeldir.')
             except (KeyError,TypeError,ValueError) as exc:
                 st.info('Maç öncesi arşiv oluşturulamadı: '+str(exc))
     uploaded172=st.file_uploader('Geçmiş, maç öncesi tahmin kayıtları CSV',type=['csv'],key='v172_history_file')
