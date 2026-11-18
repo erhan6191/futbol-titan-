@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v19.0 Kolay Kullanım</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v19.0 — Kolay Kullanım</h1><p>Motor ve hesaplama kuralları orijinal v19.0'dır. Sadece ekran düzeni sadeleştirilmiştir.</p><ol><li>Sol menüye API-Football anahtarınızı girin.</li><li>Sol menüde kolon birim fiyatını ve toplam bütçeyi kontrol edin. Diğer ayarlar başlangıçta gizli olup orijinal değerleriyle aktiftir.</li><li><b>1. Maçlar ve Kolonlar:</b> günleri seçin, maçları yükleyin, resmî bülten sırasına göre 15 maç ekleyin, sırayı onaylayın ve <b>Analizi Başlat</b> düğmesine basın.</li><li><b>Bütçeme Göre Otomatik Kur</b> ardından <b>KAPSAMA HESAPLA</b> düğmesine basın. İsteğe bağlı alternatif şablonlar katlanır paneldedir.</li><li>Birinci sekmenin başındaki <b>BÜLTEN ONAYI</b> bölümünü açıp 15 maç sırasını gözden geçirerek onayınızı kaydedin.</li><li><b>2. Dosyaları İndir:</b> A01–A10 kabul kontrolü uygun olduğunda tüm kolonların TXT/ZIP analiz dosyalarını indirin.</li><li><b>3. Sonuç Takibi:</b> maçların sonuçlarını ve kuponların durumunu inceleyin.</li><li>Teknik önizleme, geçmiş tahmin testi, Anti-Public ve bağımsız matematik denetimi için <b>Gelişmiş Araçlar</b> bölümünü açın.</li></ol><p class='note'><b>Önemli:</b> 12–15 kapsama hedefleri yalnız tanımlı koşullu şablon senaryolarına ilişkindir. Gerçek maç sonuçları veya kazanç garanti edilmez. Canlı kupon yatırma, ödeme, resmî kapanış ve makbuz doğrulaması yoktur.</p></body></html>"
+KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v19.0 Kolay Kullanım</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v19.0 — Kolay Kullanım</h1><p>Motor ve hesaplama kuralları orijinal v19.0'dır. Günlük kullanımda bütçe kontrollü mod varsayılandır; bütçesiz analizler gelişmiş ayarlarda ayrıca açılmalıdır.</p><ol><li>Sol menüye API-Football anahtarınızı girin.</li><li>Sol menüde kolon fiyatını ve toplam bütçeyi belirleyin. Örnek: 7.500 TL / 10 TL = en çok 750 nihai kolon. Bütçe kilidinin AÇIK olduğunu kontrol edin. Diğer ayarlar başlangıçta gizli kalır.</li><li><b>1. Maçlar ve Kolonlar:</b> günleri seçin, maçları yükleyin, resmî bülten sırasına göre 15 maç ekleyin, sırayı onaylayın ve <b>Analizi Başlat</b> düğmesine basın.</li><li><b>Bütçeme Göre Otomatik Kur</b> ardından <b>KAPSAMA HESAPLA</b> düğmesine basın. <b>Ham şablon maliyeti</b> yalnızca teorik tüm kombinasyonların tutarıdır; <b>Nihai kolon maliyeti</b> sonuç hesaplandıktan sonra gösterilir ve bütçe kilidi açıkken üst sınırı aşamaz. Kapsama hedefi bütçeyle sağlanamayabilir.</li><li>Birinci sekmenin başındaki <b>BÜLTEN ONAYI</b> bölümünü açıp 15 maç sırasını gözden geçirerek onayınızı kaydedin.</li><li><b>2. Dosyaları İndir:</b> A01–A10 kabul kontrolü uygun olduğunda tüm kolonların TXT/ZIP analiz dosyalarını indirin.</li><li><b>3. Sonuç Takibi:</b> maçların sonuçlarını ve kuponların durumunu inceleyin.</li><li>Teknik önizleme, geçmiş tahmin testi, Anti-Public ve bağımsız matematik denetimi için <b>Gelişmiş Araçlar</b> bölümünü açın.</li></ol><p class='note'><b>Önemli:</b> 12–15 kapsama hedefleri yalnız tanımlı koşullu şablon senaryolarına ilişkindir. Gerçek maç sonuçları veya kazanç garanti edilmez. Canlı kupon yatırma, ödeme, resmî kapanış ve makbuz doğrulaması yoktur.</p></body></html>"
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -164,18 +164,34 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 2) Bütçenizi belirleyin")
-    st.caption("Diğer bütün teknik ayarlar orijinal varsayılanlarıyla çalışır. İhtiyaç olursa aşağıdan açabilirsiniz.")
-    uretim_modu = st.radio("Üretim modu", ["Bütçe kontrollü", "Matematiksel minimum (analiz)", "12–15 karşılaştırma (analiz)"], index=0,
-        help="Minimum ve karşılaştırma yalnızca maliyet/kapsama analizi yapar; bütçe sınırı yoktur. Optimum yalnızca ispat varsa gösterilir.")
+    st.caption("Hesaplama/denetim motoru aynıdır. Bütçesiz analizler normal kullanımda kapalıdır.")
     kolon_fiyati = st.number_input("Kolon Birim Fiyatı (TL):", min_value=1.0, value=10.0, step=1.0)
-    hedef_butce_tl = st.number_input("Üst bütçe / şablon kurma referansı (TL):", min_value=0.0,max_value=500000.0,value=2500.0,step=50.0)
-    hedef_kolon_sayisi = int(hedef_butce_tl // kolon_fiyati)
-    butce_kilidi_aktif = uretim_modu == "Bütçe kontrollü"
-    max_kolon_limiti = hedef_kolon_sayisi if butce_kilidi_aktif else None
-    limit_metni = f"En fazla {max_kolon_limiti:,} kolon" if max_kolon_limiti is not None else "Bütçesiz analiz (oynama talimatı değildir)"
-    st.caption("Bütçe sınırı: " + limit_metni)
+    hedef_butce_tl = st.number_input("Toplam Bütçem / Üst Sınır (TL):", min_value=0.0, max_value=500000.0, value=7500.0, step=50.0)
+    hedef_kolon_sayisi = int(Decimal(str(hedef_butce_tl)) // Decimal(str(kolon_fiyati)))
+    st.caption(f"Bu bütçeyle en fazla **{hedef_kolon_sayisi:,} adet nihai kolon** oluşturulabilir. (Kapsama garantisi değildir.)")
+    _butce_kilit_uyarisi = st.empty()  # Gelismis ayarların altına değil, bütçe alanına yazılır.
 
     with st.expander("⚙️ GELİŞMİŞ AYARLAR — isteğe bağlı", expanded=False):
+        st.markdown("### 🔬 Gelişmiş / bütçesiz analiz modu")
+        _butcesiz_mod_izin = st.toggle(
+            "⚠️ Bütçesiz analiz modlarını ayrıca aç (normalde KAPALI)",
+            value=False, key="v19_kolay_butcesiz_analiz_izin",
+            help="Yalnız teorik kıyaslama içindir. Açıp bütçesiz analiz seçerseniz 7.500 TL gibi bir bütçe artık üretimi sınırlamaz; kabul/TXT paketleri yine bütçe denetimi uygular."
+        )
+        if _butcesiz_mod_izin:
+            uretim_modu = st.radio(
+                "Deneysel üretim / inceleme modu",
+                ["Bütçe kontrollü", "Matematiksel minimum (analiz)", "12–15 karşılaştırma (analiz)"],
+                index=0, key="v19_kolay_uretim_modu_ileri",
+                help="Matematiksel minimum ve 12–15 karşılaştırma, belirlenen bütçeden bağımsız analiz yapar."
+            )
+        else:
+            uretim_modu = "Bütçe kontrollü"
+        butce_kilidi_aktif = (uretim_modu == "Bütçe kontrollü")
+        max_kolon_limiti = hedef_kolon_sayisi if butce_kilidi_aktif else None
+        limit_metni = (f"En fazla {max_kolon_limiti:,} nihai kolon"
+                       if max_kolon_limiti is not None else "BÜTÇESİZ analiz — tutar üst sınır değildir")
+
         st.markdown("---")
         st.markdown("### 🎯 1. Senaryo Kapsama & Ekonomik Daraltma Motoru")
         garanti_secimi = st.selectbox(
@@ -319,6 +335,17 @@ with st.sidebar:
                 banko_siniri = st.number_input("Banko Sınırı (%)", 35, 95, 58)
                 cifte_sans_siniri = st.number_input("Çifte Şans Sınırı (%)", 30, 80, 42)
 
+
+    if butce_kilidi_aktif:
+        _butce_kilit_uyarisi.success(
+            f"🔒 BÜTÇE KİLİDİ AÇIK: Üretim üst sınırı **{hedef_butce_tl:,.0f} TL** / "
+            f"**{hedef_kolon_sayisi:,} kolon**."
+        )
+    else:
+        _butce_kilit_uyarisi.error(
+            "🚨 BÜTÇESİZ ANALİZ AÇIK! Girdiğiniz tutar şu an bir üretim limiti değildir. "
+            "Bütçe koruması için gelişmiş ayarlardaki analiz iznini kapatın."
+        )
 
     with st.expander("💾 Oturumu kaydet / geri yükle", expanded=False):
         st.markdown("---")
@@ -3023,7 +3050,11 @@ _secili = len(st.session_state.secilen_15_mac)
 _analiz_var = st.session_state.analiz_verisi is not None
 _kolon_var = st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0
 st.caption(f"Durum: {_secili}/15 maç seçildi  •  Analiz: {'Hazır' if _analiz_var else 'Bekliyor'}  •  Kolonlar: {'Hazır' if _kolon_var else 'Henüz yok'}")
-st.info("**Kısa yol:** 15 maç seç → **Analizi Başlat** → **Bütçeme Göre Otomatik Kur** → **KAPSAMA HESAPLA** → üstteki bülten onayını tamamla → **2. Dosyaları İndir**. Sonuçlar için 3. sekmeyi açın.")
+if butce_kilidi_aktif:
+    st.success(f"🔒 **BÜTÇE KORUMASI AKTİF** | Bütçe: **{hedef_butce_tl:,.0f} TL** | Birim fiyat: **{kolon_fiyati:,.2f} TL** | En fazla **{hedef_kolon_sayisi:,} nihai kolon**")
+else:
+    st.error("🚨 **BÜTÇESİZ MATEMATİKSEL ANALİZ MODU** — Aşağıdaki ham tutarlar harcama sınırı değildir. Bütçeye dönmek için sol menü > Gelişmiş Ayarlar > Bütçesiz analiz iznini kapatın.")
+st.info("**Kısa yol:** 15 maç seç → **Analizi Başlat** → **Bütçeme Göre Otomatik Kur** → **KAPSAMA HESAPLA** → **Nihai kolon / maliyet özetini kontrol et** → bülten onayı → **2. Dosyaları İndir**.")
 
 # Günlük işler 3 sekmede. Diğer 5 özgün bölüm silinmedi; yalnız ileri araçlara taşındı.
 tab_uretim, tab_acceptance, tab_takip = st.tabs([
@@ -3578,9 +3609,20 @@ with tab_uretim:
                     f"{durum_etiketi} | **Mod:** {evren_etiketi} | **Şablon:** **{banko_say}** Banko, **{cifte_say}** Çifte, **{kapali_say}** Kapalı | "
                     f"**🌟 G1:** {len(g1_indeksleri)} Maç ({g1_aralik[0]}-{g1_aralik[1]}) | "
                     f"**🔥 G2:** {len(g2_indeksleri)} Maç ({g2_aralik[0]}-{g2_aralik[1]})\n\n"
-                    f"🧮 **Ham Şablon:** `{ham_kolon_sayisi:,} Kolon ({ham_kolon_sayisi * kolon_fiyati:,.0f} TL)`  ➔  "
-                    f"{limit_metni}; gerçekleşen kapsama hesap sonrasında gösterilir."
+                    f"🔒 **Aktif üretim sınırı:** {limit_metni}; gerçekleşen kapsama hesap sonrasında gösterilir."
                 )
+                st.caption(
+                    f"📐 HAM ŞABLON (yalnızca teorik): **{ham_kolon_sayisi:,} kombinasyon** × "
+                    f"{kolon_fiyati:,.2f} TL = **{ham_kolon_sayisi * kolon_fiyati:,.0f} TL**. "
+                    "Bu sayı **üretilmiş kupon veya ödenecek tutar değildir**."
+                )
+                if butce_kilidi_aktif and ham_kolon_sayisi > hedef_kolon_sayisi:
+                    st.warning(
+                        f"⚠️ Teorik şablon bütçenizin üzerinde. Sistem yalnızca **{hedef_kolon_sayisi:,} nihai kolon** "
+                        "sınırı içinde çözüm arar; hedef kapsama bu bütçeyle sağlanamayabilir."
+                    )
+                elif not butce_kilidi_aktif:
+                    st.error("🚨 Şu anda bütçesiz analizdesiniz. 7.500 TL gibi girilmiş bir tutar sonuç sayısını sınırlamaz.")
             with col_buton:
                 st.write("")
                 uretim_tetikle = st.button(
@@ -3681,6 +3723,16 @@ with tab_uretim:
                             sablon=g_sablon,
                             ortogonal_aktif=ortogonal_anahtar_aktif,veriler=s_veriler,arama_derinligi=arama_derinligi
                         )
+                        # Ek UI emniyet kapısı: motor/kapsama çıktısı bütçe sınırını aşarsa kaydetme.
+                        if butce_kilidi_aktif and (
+                            len(garanti) > hedef_kolon_sayisi or
+                            Decimal(len(garanti)) * Decimal(str(kolon_fiyati)) > Decimal(str(hedef_butce_tl))
+                        ):
+                            st.error("🚫 BÜTÇE KORUMASI: Hesaplanan kolon sayısı üst sınırı aştı. "
+                                     "Sonuç kaydedilmedi; parametrelerinizi kontrol edin.")
+                            st.session_state.uretilen_kuponlar = None
+                            st.session_state.son_uretim_ozeti = None
+                            st.stop()
                         aktif_meta = dict(gelismis_garanti_ve_budama_uygula.meta)
                         karsilastirma = []
                         if uretim_modu.startswith("12–15"):
@@ -3745,6 +3797,21 @@ with tab_uretim:
                 mc = ozet["mc"]
                 if ozet.get("karsilastirma"): st.dataframe(pd.DataFrame(ozet["karsilastirma"]),hide_index=True,use_container_width=True)
                 meta=ozet.get('optimizasyon',{})
+                # Ham şablon maliyeti ile GERÇEK üretilen nihai kolon tutarını ayır.
+                _son_maliyet = Decimal(len(garanti)) * Decimal(str(kolon_fiyati))
+                _kalan_butce = Decimal(str(hedef_butce_tl)) - _son_maliyet
+                _b1, _b2, _b3 = st.columns(3)
+                _b1.metric("✅ Üretilen NİHAİ kolon", f"{len(garanti):,}")
+                _b2.metric("💰 Nihai kolon maliyeti (varsayım)", f"{_son_maliyet:,.2f} TL")
+                _b3.metric("🔒 Girilen bütçe üst sınırı", f"{hedef_butce_tl:,.2f} TL")
+                if butce_kilidi_aktif and _kalan_butce >= 0 and not degisiklik_bekliyor:
+                    st.success(f"✅ Bütçe sınırı aşılmadı. Hesaplanan bakiye: {_kalan_butce:,.2f} TL. "
+                               "Bu değer maliyet varsayımıdır, ödeme yapıldığı anlamına gelmez.")
+                elif not butce_kilidi_aktif:
+                    st.warning("⚠️ Bu kolonlar BÜTÇESİZ ANALİZ modunda hesaplandı. "
+                               "Bu tutar bütçe içinde olma veya paket indirme onayı değildir.")
+                elif _kalan_butce < 0:
+                    st.error("🚫 Girdiğiniz bütçe aşılıyor. Mevcut çıktıyı kullanmayın; bütçe kontrollü modda yeniden hesaplayın.")
                 if degisiklik_bekliyor or (max_kolon_limiti is not None and len(garanti)>max_kolon_limiti):
                     st.warning('Önceki üretim gösteriliyor; ayarlar/bütçe değişti. Yeniden hesaplayın.')
                 if not meta.get('hedef_tam',False): st.warning('İstenen kapsama hedefi doğrulanmadı veya eski rapor. Kesin garanti yok.')
