@@ -73,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v19.0 Kolay Kullanım</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v19.0 — Kolay Kullanım</h1><p>Motor ve hesaplama kuralları orijinal v19.0'dır. Günlük kullanımda bütçe kontrollü mod varsayılandır; bütçesiz analizler gelişmiş ayarlarda ayrıca açılmalıdır.</p><ol><li>Sol menüye API-Football anahtarınızı girin.</li><li>Sol menüde kolon fiyatını ve toplam bütçeyi belirleyin. Örnek: 7.500 TL / 10 TL = en çok 750 nihai kolon. Bütçe kilidinin AÇIK olduğunu kontrol edin. Diğer ayarlar başlangıçta gizli kalır.</li><li><b>1. Maçlar ve Kolonlar:</b> günleri seçin, maçları yükleyin, resmî bülten sırasına göre 15 maç ekleyin, sırayı onaylayın ve <b>Analizi Başlat</b> düğmesine basın.</li><li><b>Bütçeme Göre Otomatik Kur</b> ardından <b>KAPSAMA HESAPLA</b> düğmesine basın. <b>Ham şablon maliyeti</b> yalnızca teorik tüm kombinasyonların tutarıdır; <b>Nihai kolon maliyeti</b> sonuç hesaplandıktan sonra gösterilir ve bütçe kilidi açıkken üst sınırı aşamaz. Kapsama hedefi bütçeyle sağlanamayabilir.</li><li>Birinci sekmenin başındaki <b>BÜLTEN ONAYI</b> bölümünü açıp 15 maç sırasını gözden geçirerek onayınızı kaydedin.</li><li><b>2. Dosyaları İndir:</b> A01–A10 kabul kontrolü uygun olduğunda tüm kolonların TXT/ZIP analiz dosyalarını indirin.</li><li><b>3. Sonuç Takibi:</b> maçların sonuçlarını ve kuponların durumunu inceleyin.</li><li>Teknik önizleme, geçmiş tahmin testi, Anti-Public ve bağımsız matematik denetimi için <b>Gelişmiş Araçlar</b> bölümünü açın.</li></ol><p class='note'><b>Önemli:</b> 12–15 kapsama hedefleri yalnız tanımlı koşullu şablon senaryolarına ilişkindir. Gerçek maç sonuçları veya kazanç garanti edilmez. Canlı kupon yatırma, ödeme, resmî kapanış ve makbuz doğrulaması yoktur.</p></body></html>"
+KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v19.0 Kolay Kullanım</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v19.0 — Kolay Kullanım</h1><p>Motor ve hesaplama kuralları orijinal v19.0'dır. Günlük kullanımda bütçe kontrollü mod varsayılandır; bütçesiz analizler gelişmiş ayarlarda ayrıca açılmalıdır.</p><ol><li>Sol menüye API-Football anahtarınızı girin.</li><li>Sol menüde kolon fiyatını ve toplam bütçeyi belirleyin. Örnek: 7.500 TL / 10 TL = en çok 750 nihai kolon. Bütçe kilidinin AÇIK olduğunu kontrol edin. Diğer ayarlar başlangıçta gizli kalır.</li><li><b>1. Maçlar ve Kolonlar:</b> günleri seçin, maçları yükleyin, resmî bülten sırasına göre 15 maç ekleyin, sırayı onaylayın ve <b>Analizi Başlat</b> düğmesine basın.</li><li><b>Bütçeme Göre Otomatik Kur</b> tıklanınca banko risk vetosu artık şablon aramasının başında hesaba katılır. Riskli bankolar nedeniyle tam bütçeye sığan ham şablon kurulamıyorsa ekran <b>asgari risk-uyumlu ham kolon</b> sayısını ve nedeni açıkça gösterir. Sonra <b>KAPSAMA HESAPLA</b> düğmesine basın. <b>Ham şablon maliyeti</b> teorik kombinasyonların tutarıdır; <b>Nihai kolon maliyeti</b> ayrıca gösterilir. Nihai üretim bütçeyle sınırlıdır ancak 12–15 kapsama hedefi garanti değildir.</li><li>Birinci sekmenin başındaki <b>BÜLTEN ONAYI</b> bölümünü açıp 15 maç sırasını gözden geçirerek onayınızı kaydedin.</li><li><b>2. Dosyaları İndir:</b> A01–A10 kabul kontrolü uygun olduğunda tüm kolonların TXT/ZIP analiz dosyalarını indirin.</li><li><b>3. Sonuç Takibi:</b> maçların sonuçlarını ve kuponların durumunu inceleyin.</li><li>Teknik önizleme, geçmiş tahmin testi, Anti-Public ve bağımsız matematik denetimi için <b>Gelişmiş Araçlar</b> bölümünü açın.</li></ol><p class='note'><b>Önemli:</b> 12–15 kapsama hedefleri yalnız tanımlı koşullu şablon senaryolarına ilişkindir. Gerçek maç sonuçları veya kazanç garanti edilmez. Canlı kupon yatırma, ödeme, resmî kapanış ve makbuz doğrulaması yoktur.</p></body></html>"
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -89,6 +89,7 @@ varsayilan_state = {
     "son_uretim_ozeti": None,
     "son_param_imzasi": None,
     "son_sol_menu_imzasi": None,
+    "v19_oto_sablon_raporu": None,
     "canli_sonuclar": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
@@ -869,20 +870,60 @@ def akilli_cifte_sec(v):
 
 
 def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, mutlak_mod=True, hibrit_mod=False, tuzak_aktif=True):
-    # Muhafazakâr ham şablon DP: her ham kolon bütçeye sığar. Daraltma potansiyeli ayrıca raporlanır.
-    limit=max(1,min(160000,int(hedef_kolon))) # sıfır bütçede üretim motoru boş sonuç döndürür
-    dp={1:(0.,[])}
+    """Risk vetosunu ÖNCEDEN uygulayarak bütçeye uygun ham şablon arar.
+
+    Bir maçın risk kontrolü bankoyu yasaklıyorsa en az çifte seçilir. Riskli
+    banko kuralı ASLA otomatik gevşetilmez. Risk nedeniyle ham şablon bütçeye
+    sığmıyorsa en dar *güvenlik uyumlu* şablon gösterilir, koşullu nihai kolon
+    sayısı ayrıca mevcut bütçe kilidiyle sınırlandırılır. Sonuç meta'sı UI'dadır.
+    """
+    limit = max(0, min(160000, int(hedef_kolon)))
+    min_k = []
     for v in veriler:
-        probs=sorted([v[k]/100 for k in ('1','X','2')],reverse=True)
-        new={}
-        for n,(score,path) in dp.items():
-            for k in (1,2,3):
-                m=n*k
-                if m>limit: continue
-                val=score+math.log(max(1e-12,sum(probs[:k])))
-                if m not in new or val>new[m][0]:new[m]=(val,path+[k])
-        dp=new
-    return max(dp.values(),key=lambda x:x[0])[1]
+        en_b_secim = max(("1", "X", "2"), key=lambda k: v[k])
+        risk = banko_risk16(v, [en_b_secim],
+                            p_threshold=risk_banko_p,
+                            gap_threshold=risk_gap,
+                            spread_threshold=risk_spread)
+        min_k.append(2 if risk["reasons"] else 1)
+
+    min_ham = math.prod(min_k)
+    # Güvenlik kısıtı bile bütçeyi aşıyorsa, yalnızca 'ham şablon' olarak
+    # uygulanabilir en dar yapıyı ver.  Bütçeye uygunmuş gibi bir iddia yok.
+    if min_ham > limit:
+        butceye_gore_sablon_optimize_et.meta = {
+            "uygun": False, "minimum_ham": min_ham,
+            "hedef_ham": limit, "riskli_banko": sum(k == 2 for k in min_k),
+            "secim_ham": min_ham, "neden": "risk_banko_vetosu"
+        }
+        return min_k
+
+    # Olasılık kütlesini maksimize eden DP. Durum anahtarı ham kombinasyon
+    # adedidir; veto nedeniyle 1 seçilemeyen maçlar için yalnız (2,3) denenir.
+    dp = {1: (0.0, ())}
+    for i, v in enumerate(veriler):
+        probs = sorted((max(0., float(v[k])) for k in ("1", "X", "2")), reverse=True)
+        den = max(1e-12, sum(probs))
+        new = {}
+        for n, (score, path) in dp.items():
+            for k in range(min_k[i], 4):
+                m = n * k
+                if m > limit:
+                    continue
+                val = score + math.log(max(1e-12, sum(probs[:k]) / den))
+                if m not in new or val > new[m][0]:
+                    new[m] = (val, path + (k,))
+        dp = new
+        if not dp:
+            raise RuntimeError("Risk kurallarına uygun DP durumu beklenmedik biçimde boşaldı.")
+
+    ham, (score, path) = max(dp.items(), key=lambda kv: (kv[1][0], kv[0]))
+    butceye_gore_sablon_optimize_et.meta = {
+        "uygun": True, "minimum_ham": min_ham,
+        "hedef_ham": limit, "riskli_banko": sum(k == 2 for k in min_k),
+        "secim_ham": ham, "neden": None
+    }
+    return list(path)
 
 
 def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
@@ -3348,6 +3389,12 @@ with tab_uretim:
                 )
                 st.session_state.tablo_baz_df = ilk_df.copy()
                 st.session_state.tablo_df = ilk_df.copy()
+                st.session_state.v19_oto_sablon_raporu = {
+                    **butceye_gore_sablon_optimize_et.meta,
+                    "tablo_versiyon": st.session_state.tablo_versiyon,
+                    "hedef_kolon": hedef_kolon_sayisi,
+                    "butce": str(hedef_butce_tl), "fiyat": str(kolon_fiyati),
+                }
 
             st.markdown("#### 🎯 Kupon Şablonunu Oluştur")
             st.caption("Önerilen kolay yöntem: önce bütçenize göre otomatik şablon kurun, sonra aşağıdaki 'KAPSAMA HESAPLA' düğmesine basın.")
@@ -3362,8 +3409,40 @@ with tab_uretim:
                 st.session_state.tablo_baz_df = yeni_df.copy()
                 st.session_state.tablo_df = yeni_df.copy()
                 st.session_state.tablo_versiyon += 1
+                st.session_state.v19_oto_sablon_raporu = {
+                    **butceye_gore_sablon_optimize_et.meta,
+                    "tablo_versiyon": st.session_state.tablo_versiyon,
+                    "hedef_kolon": hedef_kolon_sayisi,
+                    "butce": str(hedef_butce_tl), "fiyat": str(kolon_fiyati),
+                }
                 st.session_state.son_param_imzasi = None
                 st.rerun()
+
+            _oto_rapor = st.session_state.get("v19_oto_sablon_raporu")
+            if (_oto_rapor and
+                    _oto_rapor.get("tablo_versiyon") == st.session_state.tablo_versiyon and
+                    _oto_rapor.get("hedef_kolon") == hedef_kolon_sayisi and
+                    _oto_rapor.get("butce") == str(hedef_butce_tl) and
+                    _oto_rapor.get("fiyat") == str(kolon_fiyati)):
+                if _oto_rapor["uygun"]:
+                    st.success(
+                        f"✅ **Bütçeye uygun HAM şablon kuruldu:** "
+                        f"{_oto_rapor['secim_ham']:,} kombinasyon / "
+                        f"en çok {hedef_kolon_sayisi:,} kolon sınırı. "
+                        f"Risk nedeniyle yasaklı {_oto_rapor['riskli_banko']} banko zorlanmadı. "
+                        "Nihai kolon adedini belirlemek için KAPSAMA HESAPLA'ya basın."
+                    )
+                else:
+                    st.warning(
+                        f"⚠️ **Şablon bütçeye tam sığamıyor:** "
+                        f"Banko risk kontrolü {_oto_rapor['riskli_banko']} maçta tek tercih kullanımını "
+                        f"engelliyor. Güvenlik kuralı korunarak kurulabilen en dar ham şablon "
+                        f"**{_oto_rapor['minimum_ham']:,} kombinasyon**; "
+                        f"bütçeniz yalnızca **{hedef_kolon_sayisi:,} nihai kolon** karşılıyor. "
+                        "Şablon riskli bankoları açmadan otomatik daraltıldı. "
+                        "KAPSAMA HESAPLA ile bütçe içi nihai kolonlar aranabilir; "
+                        "istenen kapsama hedefi garanti edilemez."
+                    )
             with st.expander("⚙️ Diğer şablon yöntemleri (isteğe bağlı)", expanded=False):
                 tb1, tb2, tb3, tb4 = st.columns(4)
                 with tb1:
