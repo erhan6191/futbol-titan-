@@ -465,7 +465,7 @@ def api_istegi_at(url, api_key, timeout=8, return_quota=False):
 
 
 @st.cache_data(ttl=600, show_spinner=False)
-def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
+def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True, sadece_baslamamis=True):
     url = f"https://v3.football.api-sports.io/fixtures?date={tarih_str}&timezone=Europe/Istanbul"
     gunun_maclari = []
     kalan_kota = None
@@ -474,6 +474,9 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
         for item in data.get("response", []):
             lig_id = item["league"]["id"]
             if sadece_toto_ligleri and lig_id not in DESTEKLENEN_LIGLER:
+                continue
+            durum = str((item.get("fixture", {}).get("status") or {}).get("short") or "NS").strip().upper()
+            if sadece_baslamamis and durum not in ("NS", "TBD"):
                 continue
             f_id = item["fixture"]["id"]
             ev = item["teams"]["home"]["name"]
@@ -484,16 +487,18 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
                 api_tarihi = api_tarihi.replace(tzinfo=ZoneInfo("Europe/Istanbul"))
             saat = api_tarihi.astimezone(ZoneInfo("Europe/Istanbul")).strftime("%H:%M")
             lig_etiket = DESTEKLENEN_LIGLER.get(lig_id, f"{item['league']['country']} - {item['league']['name']}")
+            durum_onek = f"⚠️ [{durum}] " if durum not in ("NS", "TBD") else ""
             gunun_maclari.append({
                 "id": f_id,
                 "lig_id": lig_id,
                 "lig": lig_etiket,
                 "tarih": tarih_str,
                 "saat": saat,
+                "durum": durum,
                 "ev": ev,
                 "dep": dep,
                 "karsilasma": f"{ev} - {dep}",
-                "label": f"[{lig_etiket}] {ev} - {dep} ({tarih_str} {saat})"
+                "label": f"{durum_onek}[{lig_etiket}] {ev} - {dep} ({tarih_str} {saat})"
             })
     except Exception as exc:
         # Hata durumunda boş sonucu önbelleğe alma.
@@ -501,7 +506,7 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
     return gunun_maclari, kalan_kota
 
 
-def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_ligleri=True):
+def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_ligleri=True, sadece_baslamamis=True):
     gun_sayisi = (bit_tarih - bas_tarih).days + 1
     if not 1 <= gun_sayisi <= 14:
         raise ValueError("Bülten taraması 1–14 gün aralığında olmalıdır (API kotası koruması).")
@@ -511,7 +516,7 @@ def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_lig
         for i in range(gun_sayisi):
             g_str = (bas_tarih + timedelta(days=i)).strftime("%Y-%m-%d")
             try:
-                gun_mac, son_kota = gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri)
+                gun_mac, son_kota = gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri, sadece_baslamamis)
                 tum_maclar.extend(gun_mac)
                 if son_kota is not None:
                     st.session_state.kalan_kota = son_kota
@@ -642,14 +647,15 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
         if k_p is not None:
             son_kota = k_p
         if res_pred.get("response") and res_pred["response"][0].get("predictions"):
-            t = res_pred["response"][0]["predictions"]["percent"]
-            p1_raw = float(t["home"].replace("%", ""))
-            px_raw = float(t["draw"].replace("%", ""))
-            p2_raw = float(t["away"].replace("%", ""))
-            ai_1 = p1_raw * 0.85 + 38.0 * 0.15
-            ai_x = px_raw * 0.85 + 30.0 * 0.15
-            ai_2 = p2_raw * 0.85 + 32.0 * 0.15
-            pred_geldi = True
+            t = res_pred["response"][0]["predictions"].get("percent") or {}
+            p1_raw = float(str(t.get("home", "")).replace("%", "").strip())
+            px_raw = float(str(t.get("draw", "")).replace("%", "").strip())
+            p2_raw = float(str(t.get("away", "")).replace("%", "").strip())
+            if all(math.isfinite(x) and x >= 0 for x in (p1_raw, px_raw, p2_raw)) and (p1_raw + px_raw + p2_raw) > 0:
+                ai_1 = p1_raw * 0.85 + 38.0 * 0.15
+                ai_x = px_raw * 0.85 + 30.0 * 0.15
+                ai_2 = p2_raw * 0.85 + 32.0 * 0.15
+                pred_geldi = True
     except Exception as exc:
         hatalar.append(str(exc))
 
@@ -661,11 +667,21 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
             for buro in res_odds["response"][0]["bookmakers"]:
                 for bahis in buro.get("bets", []):
                     if bahis.get("id") == 1 or bahis.get("name") == "Match Winner":
-                        degerler = {v["value"]: float(v["odd"]) for v in bahis.get("values", []) if float(v.get("odd", 0)) > 1.0}
+                        degerler = {}
+                        for val_item in bahis.get("values", []):
+                            try:
+                                odd_f = float(val_item.get("odd"))
+                            except (TypeError, ValueError):
+                                continue
+                            if math.isfinite(odd_f) and odd_f > 1.0 and val_item.get("value") is not None:
+                                degerler[val_item["value"]] = odd_f
                         if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
-                            p1_c, px_c, p2_c = marj_arindir(
-                                degerler["Home"], degerler["Draw"], degerler["Away"]
-                            )
+                            try:
+                                p1_c, px_c, p2_c = marj_arindir(
+                                    degerler["Home"], degerler["Draw"], degerler["Away"]
+                                )
+                            except ValueError:
+                                break
                             odds_list_1.append(p1_c)
                             odds_list_x.append(px_c)
                             odds_list_2.append(p2_c)
@@ -839,6 +855,15 @@ def mac_cikar_v161(fixture_id):
     fid = int(fixture_id)
     st.session_state.secilen_15_mac = [m for m in st.session_state.secilen_15_mac if int(m["id"]) != fid]
     st.session_state["bulten_onay14"] = False
+
+
+def mac_tasi_v161(idx, delta):
+    liste = list(st.session_state.secilen_15_mac)
+    yeni_idx = int(idx) + int(delta)
+    if 0 <= int(idx) < len(liste) and 0 <= yeni_idx < len(liste):
+        liste[int(idx)], liste[yeni_idx] = liste[yeni_idx], liste[int(idx)]
+        st.session_state.secilen_15_mac = liste
+        st.session_state["bulten_onay14"] = False
 
 
 def canli_skorlari_cek(fixture_id_listesi, api_key):
@@ -3028,6 +3053,10 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
     try:
         if not isinstance(maclar,list) or len(maclar)!=15:
             raise ValueError('15 maç gereklidir.')
+        for i_m, m in enumerate(maclar, 1):
+            m_durum = str(m.get('durum') or '').strip().upper()
+            if m_durum and m_durum not in ('NS', 'TBD'):
+                raise ValueError(f"{i_m}. maç ({m.get('ev', '')} - {m.get('dep', '')}) durumu oynanabilir değil: {m_durum}")
         kickoff=[v17_utc(f"{m['tarih']}T{m['saat']}:00+03:00") for m in maclar]
         if min(kickoff)-now<=pd.Timedelta(minutes=5):
             raise ValueError('En erken maç başlamış veya 5 dakikalık emniyet sınırında.')
@@ -3399,8 +3428,12 @@ with tab_uretim:
             with c_ust1:
                 tarih_araligi = st.date_input("📅 Bülten Günleri:", value=(bugun, varsayilan_bitis))
             with c_ust2:
-                st.write("")
                 sadece_toto = st.checkbox("Sadece Popüler Ligler", value=True)
+                sadece_baslamamis = st.checkbox(
+                    "Sadece Başlamamış (NS)",
+                    value=True,
+                    help="Ertelenmiş (PST), iptal (CANC), canlı veya bitmiş maçları havuzdan gizler."
+                )
             with c_ust3:
                 st.write("")
                 if st.button("📥 Seçili Günlerin Maçlarını Yükle", type="primary", use_container_width=True):
@@ -3408,7 +3441,7 @@ with tab_uretim:
                         st.warning("Lütfen önce sol menüden API anahtarınızı girin.")
                     elif isinstance(tarih_araligi, (tuple, list)) and len(tarih_araligi) == 2:
                         try:
-                            yeniler = tarih_araligi_maclarini_getir(tarih_araligi[0], tarih_araligi[1], api_key, sadece_toto)
+                            yeniler = tarih_araligi_maclarini_getir(tarih_araligi[0], tarih_araligi[1], api_key, sadece_toto, sadece_baslamamis)
                         except ValueError as exc:
                             st.error(str(exc))
                         else:
@@ -3471,9 +3504,11 @@ with tab_uretim:
                         else:
                             st.warning("⚠️ Eşleşme bulunamadı. Sağdaki kutudan aratarak seçebilirsiniz.")
                     if st.session_state.eslesmeyen_satirlar:
-                        st.warning(
-                            "⚠️ **Aşağıdaki satırlar otomatik eşleşmedi (Lütfen sağdaki kutudan elle ekleyip sırasını kontrol edin):**\n"
+                        st.error(
+                            "🚨 **Sıra Kayması Uyarısı — Aşağıdaki satırlar otomatik eşleşmedi:**\n"
                             + "\n".join(st.session_state.eslesmeyen_satirlar)
+                            + "\n\nEksik maçı sağdan **➕ Ekle** ile eklediğinizde listenin sonuna eklenir; "
+                              "aşağıdaki **⬆️ / ⬇️** düğmeleriyle resmî bülten sırasına mutlaka taşıyın!"
                         )
 
                 with col_sag:
@@ -3501,11 +3536,31 @@ with tab_uretim:
                         if not st.session_state.secilen_15_mac:
                             st.caption("Henüz maç eklenmedi.")
                         else:
+                            toplam_sec = len(st.session_state.secilen_15_mac)
+                            uygunsuz_durumlar = [
+                                f"{idx_u}. {m['karsilasma']} ({m.get('durum')})"
+                                for idx_u, m in enumerate(st.session_state.secilen_15_mac, 1)
+                                if m.get("durum") and str(m.get("durum")).upper() not in ("NS", "TBD")
+                            ]
+                            if uygunsuz_durumlar:
+                                st.error("⚠️ **Ertelenmiş / İptal / Başlamış Maç Uyarısı:** " + "; ".join(uygunsuz_durumlar))
                             for sec_no, m in enumerate(st.session_state.secilen_15_mac, 1):
-                                sec_yazi, sil_buton = st.columns([6,1],vertical_alignment="center")
-                                sec_yazi.write(f"{sec_no}. {m['karsilasma']} ({m['tarih']} {m['saat']})")
+                                idx_m = sec_no - 1
+                                sec_yazi, yukari_btn, asagi_btn, sil_buton = st.columns([5.1, 0.7, 0.7, 0.8], vertical_alignment="center")
+                                durum_ek = f" ⚠️[{m['durum']}]" if m.get("durum") and str(m.get("durum")).upper() not in ("NS", "TBD") else ""
+                                sec_yazi.write(f"{sec_no}. {m['karsilasma']} ({m['tarih']} {m['saat']}){durum_ek}")
+                                yukari_btn.button(
+                                    "⬆️", key=f"mac_yukari_v19_{m['id']}", help="Bir sıra yukarı taşı",
+                                    disabled=(idx_m == 0), use_container_width=True,
+                                    on_click=mac_tasi_v161, args=(idx_m, -1)
+                                )
+                                asagi_btn.button(
+                                    "⬇️", key=f"mac_asagi_v19_{m['id']}", help="Bir sıra aşağı taşı",
+                                    disabled=(idx_m >= toplam_sec - 1), use_container_width=True,
+                                    on_click=mac_tasi_v161, args=(idx_m, 1)
+                                )
                                 if sil_buton.button("✕", key=f"mac_cikar_v161_{m['id']}",
-                                                    help="Bu maçı listeden çıkar",use_container_width=True):
+                                                    help="Bu maçı listeden çıkar", use_container_width=True):
                                     mac_cikar_v161(m["id"])
                                     st.rerun()
                     s_sayi = len(st.session_state.secilen_15_mac)
@@ -3606,8 +3661,11 @@ with tab_uretim:
                 "garanti": garanti_derecesi, "mutlak_sablon": mutlak_sablon_garantisi,
                 "hibrit_mod": hibrit_ekonomi_modu, "tuzak_koruma": tuzak_koruma,
                 "banko_esikleri": (risk_banko_p, risk_gap, risk_spread),
-                "maclar": [(v.get("id"), v.get("1"), v.get("X"), v.get("2"),
-                            v.get("kaynak"), v.get("piyasa_std"), v.get("buro_sayisi")) for v in veriler],
+                "maclar": sorted(
+                    (int(v.get("id", 0)), v.get("1"), v.get("X"), v.get("2"),
+                     v.get("kaynak"), v.get("piyasa_std"), v.get("buro_sayisi"))
+                    for v in veriler
+                ),
             }, sort_keys=True, default=str)
             _oto_imza = hashlib.sha256(_oto_imza_ham.encode("utf-8")).hexdigest()
             if st.session_state.get("v19_sablon_koru_bir_tur") and st.session_state.tablo_baz_df is not None:
@@ -4090,12 +4148,15 @@ with tab_uretim:
                     if mutlak_sablon_garantisi:
                         hedef_tam_kolonlar, hedef_tam_puanlar, hedef_tam_komp = ham_evren, ham_puanlar, ham_kompozit
                         denetlenecek_hedef_evren = ham_evren
+                        aktif_esnetilenler = []
                     elif hibrit_ekonomi_modu:
                         hedef_tam_kolonlar, hedef_tam_puanlar, hedef_tam_komp = hibrit_evren, hibrit_puanlar, hibrit_kompozit
                         denetlenecek_hedef_evren = hibrit_evren
+                        aktif_esnetilenler = [e for e in esnetilenler if "Hibrit" in e]
                     else:
                         hedef_tam_kolonlar, hedef_tam_puanlar, hedef_tam_komp = None, None, None
                         denetlenecek_hedef_evren = mat
+                        aktif_esnetilenler = [e for e in esnetilenler if "Hibrit" not in e]
 
                     if len(denetlenecek_hedef_evren) > 0:
                         garanti, g_puan, kapsama, budanan_adet, swap_adet = gelismis_garanti_ve_budama_uygula(
@@ -4167,7 +4228,7 @@ with tab_uretim:
                             "denetim_ham": denetim_ham,
                             "s_veriler": s_veriler,
                             "g_sablon": g_sablon,
-                            "esnetilenler": esnetilenler,
+                            "esnetilenler": aktif_esnetilenler,
                             "v173_public_sha256":(public173_ctx or {}).get('sha256') if v173_active_weight>0 else None,
                             "v173_crowd_weight":v173_active_weight,
                             "v173_note":"Crowd proxy is not payout, EV, or true joint popularity"
