@@ -5,12 +5,9 @@ import json
 import re
 import hashlib
 import unicodedata
-import html
 import urllib.parse
 import io
-import csv
 import zipfile
-import itertools
 from decimal import Decimal, InvalidOperation
 from difflib import SequenceMatcher
 from datetime import datetime, timedelta, timezone
@@ -91,11 +88,15 @@ varsayilan_state = {
     "son_sol_menu_imzasi": None,
     "v19_oto_sablon_raporu": None,
     "v19_oto_sablon_imzasi": None,
+    "v19_sablon_koru_bir_tur": False,
+    "v19_ilk_uretim_yapildi": False,
+    "v19_paket_cache": {},
+    "v19_exact_audit_cache": {},
+    "v19_kabul_zip_cache": {},
     "canli_sonuclar": ["⏳ Bekliyor"] * 15,
+    "canli_sonuclar_baz": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
-    "yatirilan_paketler": [],
-    "paket_konfig_v161": None,
     "sema_versiyonu": "19.0",
     "v171_api_proof": None,
     "v17_receipts": {},
@@ -111,8 +112,9 @@ if st.session_state.get("sema_versiyonu") != "19.0":
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
     st.session_state.son_sol_menu_imzasi = None
-    st.session_state.yatirilan_paketler = []
-    st.session_state.paket_konfig_v161 = None
+    st.session_state.v19_paket_cache = {}
+    st.session_state.v19_exact_audit_cache = {}
+    st.session_state.v19_kabul_zip_cache = {}
     # Eski sürüm tahminleri yeni güvenlik rejimine veri kaynağı olarak aktarılmaz.
     st.session_state.analiz_verisi = None
     st.session_state.tablo_df = None
@@ -134,13 +136,7 @@ DESTEKLENEN_LIGLER = {
     71: "🇧🇷 Série A", 128: "🇦🇷 Liga Prof.", 253: "🇺🇸 MLS", 307: "🇸🇦 Pro League"
 }
 
-POPULER_TAKIM_ANAHTARLARI = [
-    "galatasaray", "fenerbahce", "besiktas", "trabzonspor",
-    "real madrid", "barcelona", "manchester city", "arsenal", "liverpool",
-    "bayern", "inter", "juventus", "milan", "psg", "paris saint"
-]
-
-KISIR_LIG_IDLERI = {203, 204, 135, 61, 140, 197}
+V19_API_MAX_AGE_MINUTES = 360
 
 # ==============================================================================
 # SOL MENÜ: SİSTEM, BÜTÇE VE AKILLI TASARRUF PARAMETRELERİ
@@ -276,8 +272,7 @@ with st.sidebar:
         )
 
         # Halk tercihi, parasal EV veya gerçek maç olasılığı değildir.
-        ev_katsayisi = 0.0  # v16 eski vekil (model == halk) puanlama devre dışı.
-        st.caption("v17.3: Halk oranları, model olasılığından AYRIDIR. Tam ve zamanında CSV yoksa etkisi sıfırdır.")
+        st.caption("v19.0: Halk oranları, model olasılığından AYRIDIR. Tam ve zamanında CSV yoksa etkisi sıfırdır.")
         v173_opt_in = st.checkbox("🔍 Anti-Public deneysel puanlamayı etkinleştir (yalnız doğrulanmış biçimli halk CSV)",value=False,key='v173_enable',
             help="Halk tercihi kullanıcının sağladığı kaynak açıklamasıdır; kaynağın otantikliği doğrulanmaz. Gerçek kazanç veya tahmin gücü garantisi yoktur.")
         v173_weight = st.slider('Kalabalıktan ayrışma puanı ağırlığı (deneysel)',0.00,0.25,0.08,0.01,key='v173_weight',
@@ -367,7 +362,7 @@ with st.sidebar:
         st.markdown("### 💾 4. Haftalık Bülten Yedeği")
         if st.session_state.analiz_verisi is not None:
             yedek_paket = {
-                "versiyon": "17.3",
+                "versiyon": "19.0",
                 "secilen_15_mac": st.session_state.secilen_15_mac,
                 "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
                 "analiz_verisi": st.session_state.analiz_verisi,
@@ -375,8 +370,7 @@ with st.sidebar:
                 "uretilen_kuponlar": st.session_state.uretilen_kuponlar.tolist() if st.session_state.uretilen_kuponlar is not None else None,
                 "son_uretim_ozeti": st.session_state.son_uretim_ozeti,
                 "canli_sonuclar": st.session_state.canli_sonuclar,
-                "canli_skor_metni": st.session_state.canli_skor_metni,
-                "yatirilan_paketler": st.session_state.yatirilan_paketler
+                "canli_skor_metni": st.session_state.canli_skor_metni
             }
             st.download_button(
                 "📥 Haftalık Oturumu Kaydet (.JSON)",
@@ -386,7 +380,7 @@ with st.sidebar:
                     indent=2,
                     default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
                 ).encode("utf-8"),
-                file_name=f"spor_toto_v17_3_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                file_name=f"spor_toto_v19_0_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
                 mime="application/json",
                 use_container_width=True
             )
@@ -435,15 +429,18 @@ with st.sidebar:
                         st.session_state.tablo_baz_df = yuklenen_df.copy()
                         st.session_state.tablo_df = yuklenen_df.copy()
                         st.session_state.tablo_versiyon += 1
+                        st.session_state.v19_sablon_koru_bir_tur = True
                     if veri_json.get("uretilen_kuponlar"):
                         st.session_state.uretilen_kuponlar = None  # eski üretimi yeniden hesapla
                     st.session_state.son_uretim_ozeti = None # Önceki üretim yeni analize taşınamaz.
-                    st.session_state.canli_sonuclar = veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15)
-                    st.session_state.canli_skor_metni = veri_json.get("canli_skor_metni", ["-"] * 15)
-                    st.session_state.yatirilan_paketler = veri_json.get("yatirilan_paketler", [])
+                    st.session_state.canli_sonuclar = list(veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15))
+                    st.session_state.canli_sonuclar_baz = list(st.session_state.canli_sonuclar)
+                    st.session_state.canli_skor_metni = list(veri_json.get("canli_skor_metni", ["-"] * 15))
+                    st.session_state["skor_revision14"] = st.session_state.get("skor_revision14", 0) + 1
                     st.session_state.son_param_imzasi = None
                     st.session_state.son_sol_menu_imzasi = None
-                    st.toast("✅ Oturumun 15 maçı ve analiz bilgileri yüklendi; eski kuponlar yeniden üretilmeli!")
+                    st.session_state.v19_ilk_uretim_yapildi = True
+                    st.toast("✅ Oturumun 15 maçı, analiz bilgileri ve şablonunuz yüklendi; kuponlar için KAPSAMA HESAPLA'ya basın.")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Yedek dosyası okunamadı: {e}")
@@ -452,16 +449,18 @@ with st.sidebar:
 # ==============================================================================
 # API, DIXON-COLES / SHIN KALİBRASYONU VE PİYASA KARARSIZLIĞI MOTORU
 # ==============================================================================
-def api_istegi_at(url, api_key, timeout=8):
+def api_istegi_at(url, api_key, timeout=8, return_quota=False):
     headers = {"x-apisports-key": api_key}
     res = requests.get(url, headers=headers, timeout=timeout)
     res.raise_for_status()
     kalan = res.headers.get("x-ratelimit-requests-remaining")
-    if kalan is not None:
-        st.session_state.kalan_kota = kalan
-    payload=res.json()
+    payload = res.json()
     if payload.get("errors"):
         raise RuntimeError(f"API hatası: {payload['errors']}")
+    if return_quota:
+        return payload, kalan
+    if kalan is not None:
+        st.session_state.kalan_kota = kalan
     return payload
 
 
@@ -469,8 +468,9 @@ def api_istegi_at(url, api_key, timeout=8):
 def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
     url = f"https://v3.football.api-sports.io/fixtures?date={tarih_str}&timezone=Europe/Istanbul"
     gunun_maclari = []
+    kalan_kota = None
     try:
-        data = api_istegi_at(url, api_key, timeout=10)
+        data, kalan_kota = api_istegi_at(url, api_key, timeout=10, return_quota=True)
         for item in data.get("response", []):
             lig_id = item["league"]["id"]
             if sadece_toto_ligleri and lig_id not in DESTEKLENEN_LIGLER:
@@ -496,9 +496,9 @@ def gunluk_bulten_cek_cacheli(tarih_str, api_key, sadece_toto_ligleri=True):
                 "label": f"[{lig_etiket}] {ev} - {dep} ({tarih_str} {saat})"
             })
     except Exception as exc:
-        # Hata durumunda boş sonucu 6 saat önbelleğe alma.
+        # Hata durumunda boş sonucu önbelleğe alma.
         raise RuntimeError(f"{tarih_str}: {exc}") from exc
-    return gunun_maclari
+    return gunun_maclari, kalan_kota
 
 
 def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_ligleri=True):
@@ -511,7 +511,10 @@ def tarih_araligi_maclarini_getir(bas_tarih, bit_tarih, api_key, sadece_toto_lig
         for i in range(gun_sayisi):
             g_str = (bas_tarih + timedelta(days=i)).strftime("%Y-%m-%d")
             try:
-                tum_maclar.extend(gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri))
+                gun_mac, son_kota = gunluk_bulten_cek_cacheli(g_str, api_key, sadece_toto_ligleri)
+                tum_maclar.extend(gun_mac)
+                if son_kota is not None:
+                    st.session_state.kalan_kota = son_kota
             except (requests.RequestException, RuntimeError, ValueError) as exc:
                 hatalar.append(str(exc))
             progress.progress((i + 1) / gun_sayisi)
@@ -543,7 +546,7 @@ def olasilik_yumusat(p1, px_val, p2):
     return y1, yx, y2
 
 
-def marj_arindir(odd_1, odd_x, odd_2, lig_id=203):
+def marj_arindir(odd_1, odd_x, odd_2):
     odds=np.array([odd_1,odd_x,odd_2],float)
     if not np.isfinite(odds).all() or np.any(odds<=1): raise ValueError('Geçersiz oran')
     inv=1/odds
@@ -603,8 +606,19 @@ def _dc_elo_tahmin(arsiv, home, away, cutoff):
     return np.array([np.tril(mat,-1).sum(),np.trace(mat),np.triu(mat,1).sum()])*100
 
 
+def _csv_tamponu(file):
+    if isinstance(file, (bytes, bytearray)):
+        return io.BytesIO(file)
+    if hasattr(file, "getvalue"):
+        raw = file.getvalue()
+        return io.BytesIO(raw.encode("utf-8") if isinstance(raw, str) else raw)
+    if hasattr(file, "seek"):
+        file.seek(0)
+    return file
+
+
 def _arsiv_oku(file):
-    df=pd.read_csv(file); required={'date','home','away','hg','ag'}
+    df=pd.read_csv(_csv_tamponu(file)); required={'date','home','away','hg','ag'}
     if not required<=set(df): raise ValueError('Gerekli alanlar: date,home,away,hg,ag')
     df=df[list(required)].copy();df.date=pd.to_datetime(df.date,utc=True,errors='raise')
     for c in ['hg','ag']:
@@ -615,30 +629,18 @@ def _arsiv_oku(file):
     return df.drop_duplicates(['date','home','away']).sort_values('date')
 
 
-def halk_egilimi_simule_et(p1, px_val, p2, mac_adi=""):
-    w1, wx, w2 = (p1 ** 1.38), (px_val ** 1.04), (p2 ** 1.35)
-    if mac_adi and "-" in mac_adi:
-        parcalar = mac_adi.lower().split("-")
-        ev_ad = parcalar[0].strip()
-        dep_ad = parcalar[1].strip() if len(parcalar) > 1 else ""
-        ev_pop = any(t in ev_ad for t in POPULER_TAKIM_ANAHTARLARI)
-        dep_pop = any(t in dep_ad for t in POPULER_TAKIM_ANAHTARLARI)
-        if ev_pop and not dep_pop and p1 >= 42:
-            w1 *= 1.22
-        elif dep_pop and not ev_pop and p2 >= 42:
-            w2 *= 1.22
-    return olasilik_yumusat(w1, wx, w2)
-
-
 @st.cache_data(ttl=900, show_spinner=False)
 def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
     ai_1, ai_x, ai_2 = 38.0, 30.0, 32.0
     hatalar=[]
     pred_geldi = False
     odds_list_1, odds_list_x, odds_list_2 = [], [], []
+    son_kota = None
 
     try:
-        res_pred = api_istegi_at(f"https://v3.football.api-sports.io/predictions?fixture={f_id}", api_key, timeout=6)
+        res_pred, k_p = api_istegi_at(f"https://v3.football.api-sports.io/predictions?fixture={f_id}", api_key, timeout=6, return_quota=True)
+        if k_p is not None:
+            son_kota = k_p
         if res_pred.get("response") and res_pred["response"][0].get("predictions"):
             t = res_pred["response"][0]["predictions"]["percent"]
             p1_raw = float(t["home"].replace("%", ""))
@@ -652,7 +654,9 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
         hatalar.append(str(exc))
 
     try:
-        res_odds = api_istegi_at(f"https://v3.football.api-sports.io/odds?fixture={f_id}", api_key, timeout=6)
+        res_odds, k_o = api_istegi_at(f"https://v3.football.api-sports.io/odds?fixture={f_id}", api_key, timeout=6, return_quota=True)
+        if k_o is not None:
+            son_kota = k_o
         if res_odds.get("response") and res_odds["response"][0].get("bookmakers"):
             for buro in res_odds["response"][0]["bookmakers"]:
                 for bahis in buro.get("bets", []):
@@ -660,7 +664,7 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
                         degerler = {v["value"]: float(v["odd"]) for v in bahis.get("values", []) if float(v.get("odd", 0)) > 1.0}
                         if "Home" in degerler and "Draw" in degerler and "Away" in degerler:
                             p1_c, px_c, p2_c = marj_arindir(
-                                degerler["Home"], degerler["Draw"], degerler["Away"], lig_id=lig_id
+                                degerler["Home"], degerler["Draw"], degerler["Away"]
                             )
                             odds_list_1.append(p1_c)
                             odds_list_x.append(px_c)
@@ -676,7 +680,7 @@ def tek_mac_analiz_cek(f_id, api_key, lig_id=203):
     api=np.array([ai_1,ai_x,ai_2]) if pred_geldi else None
     # Bu fonksiyon cache icinde calistigi icin gercek FETCH zamani cache ile korunur.
     fetched_at = datetime.now(timezone.utc).isoformat().replace('+00:00','Z')
-    return market,api,spread,len(odds_list_1),hatalar,fetched_at
+    return market,api,spread,len(odds_list_1),hatalar,fetched_at,son_kota
 
 
 def hibrit_tahminleri_al(secilen_maclar, api_key):
@@ -689,7 +693,9 @@ def hibrit_tahminleri_al(secilen_maclar, api_key):
     for i, mac in enumerate(secilen_maclar):
         f_id = mac["id"]
         lig_id = mac.get("lig_id", 203)
-        market,api,piyasa_std,bureau,hatalar,remote_fetched_at = tek_mac_analiz_cek(f_id, api_key, lig_id=lig_id)
+        market,api,piyasa_std,bureau,hatalar,remote_fetched_at,son_kota = tek_mac_analiz_cek(f_id, api_key, lig_id=lig_id)
+        if son_kota is not None:
+            st.session_state.kalan_kota = son_kota
         model=None
         if history is not None:
             try:
@@ -883,17 +889,43 @@ def akilli_cifte_sec(v):
     return sorted(['1','X','2'],key=lambda k:v[k],reverse=True)[:2]
 
 
-def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, mutlak_mod=True, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="kati"):
-    """Build budget-adaptive 15-match template, returning 1/2/3 choices per match.
+def _hamming_kure_boyutu(n2, n3, r):
+    ball = 0
+    ust = min(int(r), int(n2) + int(n3))
+    for j in range(ust + 1):
+        for a in range(min(j, int(n2)) + 1):
+            b = j - a
+            if 0 <= b <= int(n3):
+                ball += math.comb(int(n2), a) * math.comb(int(n3), b) * (2 ** b)
+    return max(1, ball)
 
-    risk_politikasi='kati': original absolute risk veto (may cause a plateau).
-    risk_politikasi='butce_uyumlu': favor risk-safe choices via penalty, but allow
-    clearly disclosed single-choice risk exceptions to respect a small budget.
-    Neither policy guarantees 12-15 coverage or returns a paid coupon.
+
+def _tahmini_nihai_kolon(n2, n3, garanti_derecesi, mutlak_mod=True, hibrit_mod=False):
+    raw = (2 ** int(n2)) * (3 ** int(n3))
+    r = max(0, min(3, 15 - int(garanti_derecesi)))
+    evren_carpani = 1.0 if mutlak_mod else (0.72 if hibrit_mod else 0.58)
+    etkin_evren = max(1.0, raw * evren_carpani)
+    if r == 0:
+        return int(math.ceil(etkin_evren))
+    ball = _hamming_kure_boyutu(n2, n3, r)
+    overhead = {1: 1.35, 2: 1.65, 3: 2.05}[r]
+    return max(1, int(math.ceil((etkin_evren / ball) * overhead)))
+
+
+def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, mutlak_mod=True, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="kati"):
+    """Garanti derecesi (12-15) ve evren moduna duyarlı bütçe uyumlu 15 maçlık şablon kurar.
+
+    r = 15 - garanti_derecesi için her (ikili, üçlü) şablonun tahmini nihai kolon sayısı
+    Hamming küresi alt sınırı + muhafazakâr örtme katsayısıyla bütçeye göre kıyaslanır.
+    risk_politikasi='kati': banko risk vetosunu kesin uygular.
+    risk_politikasi='butce_uyumlu': bütçe katı alt sınıra yetmiyorsa riskli bankolara açık uyarı ile izin verir.
     """
     if risk_politikasi not in ("kati", "butce_uyumlu"):
         raise ValueError("Gecersiz banko risk politikasi")
+    r = max(0, min(3, 15 - int(garanti_derecesi)))
     limit = max(0, min(160000, int(hedef_kolon)))
+    raw_cap = limit if (r == 0 and mutlak_mod) else min(60000 if r >= 1 else 160000, max(limit, 60000 if r >= 1 else limit * 2))
+
     riskler = []
     for v in veriler:
         en_b_secim = max(("1", "X", "2"), key=lambda k: v[k])
@@ -905,48 +937,75 @@ def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, mutl
         )["reasons"])
 
     kati_min_k = [2 if reasons else 1 for reasons in riskler]
-    kati_asgari_ham = math.prod(kati_min_k)
-    # If the budget already supports the strict risk floor, never soften it.
-    # Only insufficient budgets require explicit advisory banko exceptions.
-    kati_korunabilir = kati_asgari_ham <= limit
+    kati_n2 = sum(1 for k in kati_min_k if k == 2)
+    kati_asgari_ham = 2 ** kati_n2
+    kati_asgari_tahmini = _tahmini_nihai_kolon(kati_n2, 0, garanti_derecesi, mutlak_mod, hibrit_mod)
+    kati_korunabilir = (kati_asgari_tahmini <= limit) and (kati_asgari_ham <= raw_cap)
     min_k = (kati_min_k if risk_politikasi == "kati" or kati_korunabilir
              else [1] * len(veriler))
-    min_ham = math.prod(min_k)
+    min_n2 = sum(1 for k in min_k if k == 2)
+    min_ham = 2 ** min_n2
+    min_tahmini = _tahmini_nihai_kolon(min_n2, 0, garanti_derecesi, mutlak_mod, hibrit_mod)
 
-    # Budget zero is a true production stop; show a diagnostic template only.
-    if limit == 0 or min_ham > limit:
+    if limit == 0 or min_tahmini > limit or min_ham > raw_cap:
         secim = min_k
         butceye_gore_sablon_optimize_et.meta = {
             "uygun": False, "minimum_ham": min_ham,
             "minimum_kati_ham": kati_asgari_ham,
-            "hedef_ham": limit, "riskli_banko": sum(bool(r) for r in riskler),
+            "minimum_tahmini_nihai": min_tahmini,
+            "hedef_ham": limit, "hedef_garanti": int(garanti_derecesi),
+            "tahmini_nihai": min_tahmini,
+            "riskli_banko": sum(bool(r_i) for r_i in riskler),
             "secim_ham": min_ham, "neden": "sifir_butce" if limit == 0 else "risk_banko_vetosu",
             "risk_politikasi": risk_politikasi, "uyarili_bankolar": []
         }
         return secim
 
-    # DP for maximum approximate selected 1/X/2 probability mass subject to
-    # RAW template limit. Include a small per-risk penalty for single choices
-    # in the user-visible budget adaptive policy; original veto still possible.
-    dp = {1: (0.0, ())}
+    # (ikili_sayisi, uclu_sayisi) durum uzayinda DP: en fazla 136 durum -> milisaniye duzeyinde kesin cozum.
+    dp = {(0, 0): (0.0, ())}
     for i, v in enumerate(veriler):
         probs = sorted((max(0., float(v[k])) for k in ("1", "X", "2")), reverse=True)
         den = max(1e-12, sum(probs))
+        kararsiz_ceza = 0.02 if (tuzak_aktif and float(v.get("piyasa_std", 0.0) or 0.0) >= 2.2) else 0.0
         new = {}
-        for n, (score, path) in dp.items():
+        for (n2, n3), (score, path) in dp.items():
             for k in range(min_k[i], 4):
-                m = n * k
-                if m > limit:
+                nn2 = n2 + (1 if k == 2 else 0)
+                nn3 = n3 + (1 if k == 3 else 0)
+                raw = (2 ** nn2) * (3 ** nn3)
+                if raw > raw_cap:
                     continue
-                penalty = (0.035 * len(riskler[i])) if (risk_politikasi == "butce_uyumlu" and k == 1) else 0.0
+                penalty = (0.035 * len(riskler[i]) + kararsiz_ceza) if (risk_politikasi == "butce_uyumlu" and k == 1) else (kararsiz_ceza if k == 1 else 0.0)
                 val = score + math.log(max(1e-12, sum(probs[:k]) / den)) - penalty
-                if m not in new or val > new[m][0]:
-                    new[m] = (val, path + (k,))
+                st_key = (nn2, nn3)
+                if st_key not in new or val > new[st_key][0]:
+                    new[st_key] = (val, path + (k,))
         dp = new
         if not dp:
             raise RuntimeError("Butce/Banko DP durumu beklenmedik bicimde bosaldi.")
 
-    ham, (score, path) = max(dp.items(), key=lambda kv: (kv[1][0], kv[0]))
+    gecerli = []
+    for (n2, n3), (score, path) in dp.items():
+        est = _tahmini_nihai_kolon(n2, n3, garanti_derecesi, mutlak_mod, hibrit_mod)
+        if est <= limit:
+            raw = (2 ** n2) * (3 ** n3)
+            gecerli.append((score, raw, est, path))
+
+    if not gecerli:
+        secim = min_k
+        butceye_gore_sablon_optimize_et.meta = {
+            "uygun": False, "minimum_ham": min_ham,
+            "minimum_kati_ham": kati_asgari_ham,
+            "minimum_tahmini_nihai": min_tahmini,
+            "hedef_ham": limit, "hedef_garanti": int(garanti_derecesi),
+            "tahmini_nihai": min_tahmini,
+            "riskli_banko": sum(bool(r_i) for r_i in riskler),
+            "secim_ham": min_ham, "neden": "butce_yetersiz",
+            "risk_politikasi": risk_politikasi, "uyarili_bankolar": []
+        }
+        return secim
+
+    score, ham, est_nihai, path = max(gecerli, key=lambda x: (x[0], x[1]))
     uyarili = [
         {"sira": i + 1, "mac": str(v.get("mac", i + 1)), "nedenler": list(riskler[i])}
         for i, (v, k) in enumerate(zip(veriler, path)) if k == 1 and riskler[i]
@@ -954,7 +1013,10 @@ def butceye_gore_sablon_optimize_et(veriler, hedef_kolon, garanti_derecesi, mutl
     butceye_gore_sablon_optimize_et.meta = {
         "uygun": True, "minimum_ham": min_ham,
         "minimum_kati_ham": kati_asgari_ham,
-        "hedef_ham": limit, "riskli_banko": sum(bool(r) for r in riskler),
+        "minimum_tahmini_nihai": min_tahmini,
+        "hedef_ham": limit, "hedef_garanti": int(garanti_derecesi),
+        "tahmini_nihai": est_nihai,
+        "riskli_banko": sum(bool(r_i) for r_i in riskler),
         "secim_ham": ham, "neden": None, "risk_politikasi": risk_politikasi,
         "uyarili_bankolar": uyarili,
     }
@@ -1052,7 +1114,7 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
 
 def halk_verisi_oku16(file, expected_ids):
     """User supplied marginal percentages. No inference of provenance."""
-    d = pd.read_csv(file, dtype={"fixture_id":"string"})
+    d = pd.read_csv(_csv_tamponu(file), dtype={"fixture_id":"string"})
     required = {"fixture_id", "h1", "hx", "h2", "source", "snapshot"}
     if not required <= set(d.columns):
         raise ValueError("Gerekli sütunlar: fixture_id,h1,hx,h2,source,snapshot")
@@ -1109,21 +1171,6 @@ def banko_hata_dagilimi16(probabilities):
         if not np.isfinite(p) or not 0<=p<=1: raise ValueError("Geçersiz olasılık")
         out=np.convolve(out,[p,1-p])
     return out
-
-
-def teshis_etiketi_hesapla(en_b_oran, tuzak_farki, piyasa_std):
-    kirilgan_tuzak_mi = (42 <= en_b_oran <= 57) and (tuzak_farki >= 9)
-    kararsiz_mi = piyasa_std >= 2.2
-    if en_b_oran >= 56 and not kararsiz_mi:
-        return "🔒 Yüksek model olasılığı"
-    elif kararsiz_mi:
-        return "⚠️ Piyasa Kararsız"
-    elif kirilgan_tuzak_mi:
-        return "🚨 Halk Tuzağı"
-    elif en_b_oran >= 43:
-        return "⚡ Plase"
-    else:
-        return "💣 Cadı Kazanı"
 
 
 def tablo_verisi_olustur(veriler, limitler, tuzak_aktif=True, mod="ai", ozel_durumlar=None, risk_politikasi="kati"):
@@ -1254,7 +1301,6 @@ def vektorel_filtrele(
     sablon, mac_verileri, limitler,
     g1_indeksleri, g1_aralik,
     g2_indeksleri, g2_aralik,
-    ev_agirligi=0.20,
     log_zarf_aktif=True,
     kademe_aktif=True,
     entropi_aktif=False,
@@ -1404,27 +1450,48 @@ def _kodla(a):
 
 
 def _en_yakin_isabet(secilen, evren):
-    a,b = _kodla(secilen),_kodla(evren)
-    if not len(a): return np.full(len(b),-1,dtype=np.int8)
-    if not len(b): return np.empty(0,dtype=np.int8)
-    if len(a)*len(b) <= 2_000_000:
-        sonuc=[]
-        for i in range(0,len(b),256):
-            x=b[i:i+256]; best=np.zeros(len(x),dtype=np.int8)
-            for j in range(0,len(a),512):
-                best=np.maximum(best,(x[:,None,:]==a[None,j:j+512,:]).sum(axis=2).max(axis=1))
+    a, b = _kodla(secilen), _kodla(evren)
+    if not len(a):
+        return np.full(len(b), -1, dtype=np.int8)
+    if not len(b):
+        return np.empty(0, dtype=np.int8)
+    if len(a) * len(b) <= 2_000_000:
+        sonuc = []
+        for i in range(0, len(b), 256):
+            x = b[i:i + 256]
+            best = np.zeros(len(x), dtype=np.int8)
+            for j in range(0, len(a), 512):
+                best = np.maximum(best, (x[:, None, :] == a[None, j:j + 512, :]).sum(axis=2).max(axis=1))
             sonuc.extend(best)
-        return np.asarray(sonuc,dtype=np.int8)
-    deg=np.any(a!=a[0],axis=0); m=int(deg.sum())
-    sabit_hata=(b[:,~deg]!=a[0,~deg]).sum(axis=1)
-    if m==0: return (15-sabit_hata).astype(np.int8)
-    d=np.full((3,)*m,16,dtype=np.uint8)
-    d[tuple(a[:,deg].T)]=0
-    for ax in range(m):
-        z=np.moveaxis(d,ax,0)
-        min_z=z.min(axis=0)+1
-        np.minimum(z,min_z[None,...],out=z)
-    return (15-sabit_hata-d[tuple(b[:,deg].T)]).astype(np.int8)
+        return np.asarray(sonuc, dtype=np.int8)
+
+    # Karışık tabanlı min-plus Hamming uzaklık dönüşümü:
+    # Sabit sütunlar doğrudan sayılır; değişken sütunlarda yalnızca gerçek alfabe boyutu (2 veya 3) kullanılır.
+    deg_cols, dims, a_coords, b_coords = [], [], [], []
+    sabit_hata = np.zeros(len(b), dtype=np.int16)
+    for c in range(15):
+        a_col, b_col = a[:, c], b[:, c]
+        if np.all(a_col == a_col[0]):
+            sabit_hata += (b_col != a_col[0])
+            continue
+        present = np.union1d(np.unique(a_col), np.unique(b_col))
+        lut = np.empty(3, dtype=np.intp)
+        for idx_v, val in enumerate(present):
+            lut[int(val)] = idx_v
+        deg_cols.append(c)
+        dims.append(len(present))
+        a_coords.append(lut[a_col])
+        b_coords.append(lut[b_col])
+
+    if not deg_cols:
+        return (15 - sabit_hata).astype(np.int8)
+
+    d = np.full(tuple(dims), 16, dtype=np.uint8)
+    d[tuple(a_coords)] = 0
+    for ax in range(len(dims)):
+        min_z = d.min(axis=ax, keepdims=True)
+        np.minimum(d, min_z + np.uint8(1), out=d)
+    return (15 - sabit_hata - d[tuple(b_coords)].astype(np.int16)).astype(np.int8)
 
 
 def deterministik_garanti_denetle(secilen_kolonlar, hedef_evren):
@@ -1823,7 +1890,7 @@ def gelismis_garanti_ve_budama_uygula(kolonlar,puanlar,kompozit_skor,hedef,
         tries=(800 if derin else 400) if r==3 else (160 if derin else 60)
         seconds=(22. if derin else 12.) if r==3 else (8. if derin else 3.)
         try:
-            trial,karma_deneme=_karma_koset_adayi(engine,max(alt+1,len(best)-1),tries=tries,seconds=seconds)
+            trial,karma_deneme=_karma_koset_adayi(engine,len(best),tries=tries,seconds=seconds)
             if trial is not None and len(trial)<len(best) and len(trial)<=cap and np.all(_en_yakin_isabet(a[trial],a)>=hedef):
                 best=trial;karma_kolon=len(best);yontem+=' + GF(2)/GF(3) karma koset'
             trial,lns_kazanc=_genis_komsuluk_adayi(engine,best,order,rounds=400 if derin else 120,seconds=12. if derin else 5.)
@@ -1871,13 +1938,8 @@ def kupon_dosyasi_coz(dosya):
 
 
 # ==============================================================================
-# B SİSTEMİNDEN ENTEGRE EDİLEN OTOMATİK KUPON YATIRMA MERKEZİ FONKSİYONLARI
+# KOLON METİN DÖNÜŞÜM VE BÜTÜNLÜK FONKSİYONLARI
 # ==============================================================================
-def guvenli_tarayici_asistani_uret(*args, **kwargs):
-    """v17 fail-closed: arbitrary third-party DOM automation is not trusted."""
-    raise RuntimeError("Otomatik işaretleme kapalı: resmî bülten/site DOM doğrulaması yok.")
-
-
 def tum_kolonlar_txt153(kolonlar, ozet, guncel_imza, mac_ids, max_k=None, ayirici=""):
     """Güncel oturumun bütün nihai kolonlarını, sıra değiştirmeden metne çevirir."""
     if not isinstance(ozet, dict) or not guncel_imza or ozet.get("imza") != guncel_imza:
@@ -1962,8 +2024,8 @@ def v17_resmi_bulten_denetle(csv_bayt, secilenler, simdi=None):
             "verification":"USER_SUPPLIED_CONSISTENCY_ONLY"}
 
 
-def v17_tahmin_kalitesi(veriler, simdi=None):
-    """Kaynaksız, bozuk veya bir gün önce hesaplanmış tahmin canlı transfer için yasak."""
+def v17_tahmin_kalitesi(veriler, simdi=None, max_age_minutes=V19_API_MAX_AGE_MINUTES, allow_missing_source=False):
+    """Kaynaksız, bozuk veya zaman aşımına uğramış tahminleri denetler."""
     issues=[]
     if not isinstance(veriler,list) or len(veriler)!=15:
         return ["Tam 15 maçlık tahmin yok."]
@@ -1972,15 +2034,15 @@ def v17_tahmin_kalitesi(veriler, simdi=None):
     now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
     for i,v in enumerate(veriler,1):
         src=str(v.get('kaynak',''))
-        if not src or 'VERİ YOK' in src or 'varsayım' in src.lower():
+        if not allow_missing_source and (not src or 'VERİ YOK' in src or 'varsayım' in src.lower()):
             issues.append(f"{i}. maç: güvenilir tahmin kaynağı yok.")
         try:
             p=np.array([float(v[k]) for k in V17_SONUC],float)
             if not np.isfinite(p).all() or (p<=0).any() or abs(sum(p)-100)>0.5:
                 issues.append(f"{i}. maç: 1/X/2 yüzde dağılımı geçersiz.")
             snap=v17_utc(v['snapshot_utc'])
-            if snap>now or now-snap>pd.Timedelta(minutes=30):
-                issues.append(f"{i}. maç: hesaplama snapshot'ı 30 dakika dışında.")
+            if snap>now + pd.Timedelta(seconds=5) or now-snap>pd.Timedelta(minutes=max_age_minutes):
+                issues.append(f"{i}. maç: hesaplama snapshot'ı {max_age_minutes} dakika dışında.")
         except (KeyError,ValueError,TypeError):
             issues.append(f"{i}. maç: zaman/olasılık alanları eksik.")
     return issues
@@ -1994,7 +2056,9 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
                                     max_k=int(Decimal(str(butce))//Decimal(str(birim_fiyat))), ayirici='')
     if len(maclar)!=15 or [str(x.get('id')) for x in maclar] != [str(x) for x in mac_ids]:
         raise ValueError('Paket maç sırası üretimle farklı.')
-    if strict and (ozet.get('esnetilenler') or not ozet.get('optimizasyon',{}).get('hedef_tam',False)):
+    relaxed = list(ozet.get('esnetilenler') or [])
+    target_met = bool(ozet.get('optimizasyon',{}).get('hedef_tam',False))
+    if strict and (relaxed or not target_met):
         raise ValueError('Filtre esnetilmiş veya hedef kapsama sağlanmamış: kritik dışa aktarım durduruldu.')
     cost=Decimal(count)*Decimal(str(birim_fiyat))
     if cost>Decimal(str(butce)):
@@ -2005,7 +2069,9 @@ def v17_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, but
               "columns":count,"rows_per_column":15,"cost_assumption_tl":str(cost),
               "unit_price_assumption_tl":str(birim_fiyat),"budget_tl":str(butce),
               "model_scope":"conditional scenario coverage, not real-result guarantee",
-              "coverage_target_met":bool(ozet.get('optimizasyon',{}).get('hedef_tam',False)),
+              "coverage_target_met":target_met,
+              "relaxed_filters":relaxed,
+              "partial_or_relaxed_accepted":bool((not strict) and (bool(relaxed) or not target_met)),
               "coverage_selected_universe_percent":ozet.get('optimizasyon',{}).get('kapsama_adet'),
               "coverage_raw_universe_percent":ozet.get('denetim_ham',{}).get({15:'tam_15',14:'en_az_14',13:'en_az_13',12:'en_az_12'}.get(ozet.get('garanti_derecesi',0),'')),
               "target_correct_matches":ozet.get('garanti_derecesi'),
@@ -2092,7 +2158,9 @@ def v171_liste_metin_denetle(metin,maclar):
         if len(match)!=2 or not match[0].strip() or not match[1].strip():
             raise ValueError(f'Satır {i}: Ev Takımı - Deplasman Takımı bekleniyor.')
         home,away=[x.strip() for x in match]
-        if v171_takim_kimlik(home)!=v171_takim_kimlik(m['ev']) or v171_takim_kimlik(away)!=v171_takim_kimlik(m['dep']):
+        ev_uyum = (v171_takim_kimlik(home) == v171_takim_kimlik(m['ev'])) or (bool(metin_temizle(home)) and metin_temizle(home) == metin_temizle(m['ev']))
+        dep_uyum = (v171_takim_kimlik(away) == v171_takim_kimlik(m['dep'])) or (bool(metin_temizle(away)) and metin_temizle(away) == metin_temizle(m['dep']))
+        if not ev_uyum or not dep_uyum:
             raise ValueError(f'Satır {i}: takım isimleri veya ev/deplasman sırası uyuşmuyor ({home} - {away}).')
         names.append([home,away])
     return {'count':15,'match_signature':v171_mac_imzasi(maclar),
@@ -2242,7 +2310,7 @@ V172_REQUIRED = ('match_id','kickoff_utc','snapshot_utc','league','result')
 V172_NUMERIC = tuple(f'{src}_{r}' for src in V172_SOURCES for r in ('1','x','2'))
 
 
-def v172_source_quality(records, simdi=None):
+def v172_source_quality(records, simdi=None, max_age_minutes=V19_API_MAX_AGE_MINUTES, allow_missing_source=False):
     """Arayuzde yeniden hesaplanmis olmasi kaynak alimini yeni yapmaz."""
     now=v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
     out=[]
@@ -2251,9 +2319,9 @@ def v172_source_quality(records, simdi=None):
     for i,r in enumerate(records,1):
         try:
             fetched=v17_utc(r['source_fetched_at'])
-            if fetched>now + pd.Timedelta(seconds=5) or now-fetched>pd.Timedelta(minutes=30):
-                out.append(f'{i}. mac: API veri alim zamani 30 dakikadan eski/gelecekte.')
-            if r.get('source_provenance')!='API_REQUEST_AT':
+            if fetched>now + pd.Timedelta(seconds=5) or now-fetched>pd.Timedelta(minutes=max_age_minutes):
+                out.append(f'{i}. mac: API veri alim zamani {max_age_minutes} dakikadan eski/gelecekte.')
+            if not allow_missing_source and r.get('source_provenance')!='API_REQUEST_AT':
                 out.append(f'{i}. mac: API tahmin/oran kaynagi dogrulanamadi.')
         except (KeyError,ValueError,TypeError):
             out.append(f'{i}. mac: gercek API alis zamani yok (eski oturum olabilir).')
@@ -2741,14 +2809,76 @@ def v181_audit_archive(zip_bytes, external_template=None):
 
 
 
-def v18_sablon_kontrol(raw, ozet, limit=300000):
+def _v19_cache_get_or_set(cache_name, key, fn, max_entries=6):
+    cache = st.session_state.get(cache_name)
+    if not isinstance(cache, dict):
+        cache = {}
+        st.session_state[cache_name] = cache
+    if key in cache:
+        return cache[key]
+    val = fn()
+    if len(cache) >= max_entries:
+        cache.pop(next(iter(cache)))
+    cache[key] = val
+    return val
+
+
+def v19_cached_exact_audit(raw, template, expected=None, max_universe=300000):
+    raw_sha = hashlib.sha256(raw).hexdigest()
+    tpl_sha = v181_template_hash(template)
+    exp_key = json.dumps(expected, sort_keys=True) if expected is not None else None
+    key = (raw_sha, tpl_sha, exp_key, int(max_universe))
+    return _v19_cache_get_or_set(
+        "v19_exact_audit_cache",
+        key,
+        lambda: v181_exact_audit(raw, template, expected=expected, max_universe=max_universe)
+    )
+
+
+def v19_cached_paket_uret(kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, butce, strict=True):
+    key = (
+        str(param_imza),
+        tuple(int(x) for x in mac_ids),
+        str(birim_fiyat),
+        str(butce),
+        bool(strict),
+        len(kolonlar) if kolonlar is not None else 0,
+    )
+    def _build():
+        raw, manifest_bytes, zip_bytes, info = v17_paket_uret(
+            kolonlar, ozet, param_imza, mac_ids, maclar, birim_fiyat, butce, strict=strict
+        )
+        v17_paket_kontrol(raw, manifest_bytes)
+        return raw, manifest_bytes, zip_bytes, info
+    return _v19_cache_get_or_set("v19_paket_cache", key, _build)
+
+
+def v19_cached_kabul_zip(raw, manifest_bytes, report):
+    rep_bytes = json.dumps(report, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    key = (
+        hashlib.sha256(raw).hexdigest(),
+        hashlib.sha256(manifest_bytes).hexdigest(),
+        hashlib.sha256(rep_bytes).hexdigest(),
+    )
+    def _build():
+        audit_zip = v18_kabul_zip(raw, manifest_bytes, report)
+        validate_info = v18_zip_kontrol(audit_zip, skip_recount=True)
+        return audit_zip, validate_info
+    return _v19_cache_get_or_set("v19_kabul_zip_cache", key, _build)
+
+
+def v18_sablon_kontrol(raw, ozet, limit=300000, use_cache=True):
     """v18.1: tüm ham evrende bağımsız 12/13/14/15 tam sayımı."""
     if not isinstance(ozet, dict):
         raise ValueError('Ham şablon özeti gerekli.')
     template = ozet.get('g_sablon')
     if not isinstance(ozet.get('denetim_ham'), dict):
         raise ValueError('Karşılaştırılacak eski ham kapsama yüzdeleri eksik.')
-    audit = v181_exact_audit(raw, template, expected=ozet['denetim_ham'], max_universe=limit)
+    audit = (
+        v19_cached_exact_audit(raw, template, expected=ozet['denetim_ham'], max_universe=limit)
+        if use_cache else
+        v181_exact_audit(raw, template, expected=ozet['denetim_ham'], max_universe=limit)
+    )
     if int(ozet.get('ham_adet', -1)) != audit['scenario_count']:
         raise ValueError('Ham evren büyüklüğü özetle farklı.')
     if audit['mismatches']:
@@ -2792,8 +2922,8 @@ def v1802_onay_kapisi(maclar, tahminler, beyan, simdi=None):
     elif isinstance(maclar,list) and len(maclar)==15:
         if [str(m.get('id')) for m in maclar]!=[str(v.get('id')) for v in tahminler]:
             errors.append('Tahmin ID/sırası bültenle eşleşmiyor.')
-        errors.extend(v17_tahmin_kalitesi(tahminler,simdi=now))
-        errors.extend(v172_source_quality(tahminler,simdi=now))
+        errors.extend(v17_tahmin_kalitesi(tahminler,simdi=now,allow_missing_source=True))
+        errors.extend(v172_source_quality(tahminler,simdi=now,allow_missing_source=True))
     expected=[{'order':i+1,'fixture_id':str(m['id']),
                'match':f"{m['ev']} - {m['dep']}",'date':m['tarih'],'time':m['saat']}
               for i,m in enumerate(maclar)] if signature else []
@@ -2805,7 +2935,7 @@ def v1802_onay_kapisi(maclar, tahminler, beyan, simdi=None):
 
 
 def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
-                     kolon_fiyati, butce, simdi=None, ozet=None):
+                     kolon_fiyati, butce, simdi=None, ozet=None, allow_partial_user_accept=False):
     """Bütün sonuçlar deterministik ve fail-closed. Canlı oynama yetkisi ASLA üretmez."""
     now = v17_utc(simdi) if simdi is not None else pd.Timestamp.now(tz='UTC')
     checks=[]
@@ -2925,12 +3055,21 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
         kaydet('A03','Başlama ve kapanış emniyet sınırı',False,exc)
 
     try:
-        issues=v17_tahmin_kalitesi(tahminler,simdi=now)+v172_source_quality(tahminler,simdi=now)
+        strict_issues=v17_tahmin_kalitesi(tahminler,simdi=now)+v172_source_quality(tahminler,simdi=now)
+        soft_issues=v17_tahmin_kalitesi(tahminler,simdi=now,allow_missing_source=True)+v172_source_quality(tahminler,simdi=now,allow_missing_source=True)
         if isinstance(tahminler,list) and isinstance(maclar,list):
             if [str(x.get('id')) for x in tahminler]!=[str(x.get('id')) for x in maclar]:
-                issues.append('Tahmin ve bülten maç ID sırası uyuşmuyor.')
-        kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',not issues,
-               '; '.join(issues[:6]) if issues else 'Güncel API alım ve hesaplama zamanı mevcut.')
+                strict_issues.append('Tahmin ve bülten maç ID sırası uyuşmuyor.')
+                soft_issues.append('Tahmin ve bülten maç ID sırası uyuşmuyor.')
+        if not strict_issues:
+            kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',True,
+                   'Güncel API alım ve hesaplama zamanı mevcut.')
+        elif manual_mode and not soft_issues:
+            checks.append({'code':'A04','title':'15 maç tahmin kaynağı (bazı maçlarda API oranı eksik — kullanıcı kabulü)',
+                'status':'USER_ACCEPTED','blocking_for_analysis':True,
+                'detail':'; '.join(strict_issues[:4])})
+        else:
+            kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',False,'; '.join(strict_issues[:6]))
     except (KeyError,ValueError,TypeError,AttributeError) as exc:
         kaydet('A04','15 maç tahmin kaynağı ve gerçek API alım zamanı',False,exc)
 
@@ -2973,20 +3112,30 @@ def v18_kabul_raporu(raw, manifest_bytes, kapi, maclar, tahminler, param_imza,
     try:
         if not isinstance(manifest,dict) or not isinstance(ozet,dict):
             raise ValueError('Kapsama özeti ve manifest gerekli.')
-        if ozet.get('imza')!=param_imza or not ozet.get('optimizasyon',{}).get('hedef_tam',False):
-            raise ValueError('Kapsama hedefi doğrulanmadı veya eski parametreler.')
-        if ozet.get('esnetilenler'):
-            raise ValueError('Katı filtre esnetilmiş.')
-        if not manifest.get('coverage_target_met'):
-            raise ValueError('Manifest kapsama hedefi başarısız.')
+        if ozet.get('imza')!=param_imza:
+            raise ValueError('Eski parametrelerle üretilmiş kapsama özeti.')
         key={15:'tam_15',14:'en_az_14',13:'en_az_13',12:'en_az_12'}.get(ozet.get('garanti_derecesi'))
         if key is None: raise ValueError('Geçersiz kapsama hedefi.')
         listed=ozet.get('denetim',{}).get(key)
         if listed is None or abs(float(listed)-float(ozet['optimizasyon']['kapsama_adet']))>1.1:
             raise ValueError('Seçilen senaryo evreni için kapsama raporu tutarsız.')
         if not (0<=float(listed)<=100): raise ValueError('Kapsama yüzdesi aralık dışında.')
-        kaydet('A07','Şartlı evren kapsaması ve katı filtre',True,
-               f'Seçilen evren %{float(listed):.2f} kapsama; gerçek sonuç garantisi değildir.')
+        hedef_ok = bool(ozet.get('optimizasyon',{}).get('hedef_tam',False)) and bool(manifest.get('coverage_target_met'))
+        esnetilmis = bool(ozet.get('esnetilenler'))
+        if hedef_ok and not esnetilmis:
+            kaydet('A07','Şartlı evren kapsaması ve katı filtre',True,
+                   f'Seçilen evren %{float(listed):.2f} kapsama; gerçek sonuç garantisi değildir.')
+        elif allow_partial_user_accept and manifest.get('partial_or_relaxed_accepted'):
+            nedenler=[]
+            if not hedef_ok: nedenler.append(f'kısmi kapsama (%{float(listed):.2f})')
+            if esnetilmis: nedenler.append('esnetilen filtreler: '+', '.join(ozet['esnetilenler']))
+            checks.append({'code':'A07','title':'Şartlı evren kapsaması (kısmi/esnetilmiş — kullanıcı kabulü)',
+                'status':'USER_ACCEPTED','blocking_for_analysis':True,
+                'detail':'Kullanıcı açık onayıyla oluşturuldu: ' + '; '.join(nedenler) + '.'})
+        else:
+            if not hedef_ok:
+                raise ValueError('Kapsama hedefi doğrulanmadı (bütçe yetersiz olabilir; kısmi onay kutusunu işaretleyebilirsiniz).')
+            raise ValueError('Katı filtre esnetilmiş (analiz için kısmi/esnetilmiş onay kutusunu işaretleyebilirsiniz).')
     except (TypeError,KeyError,ValueError,OverflowError) as exc:
         kaydet('A07','Şartlı evren kapsaması ve katı filtre',False,exc)
 
@@ -3073,7 +3222,7 @@ def v18_kabul_zip(raw, manifest_bytes, report):
     return out.getvalue()
 
 
-def v18_zip_kontrol(zip_bytes):
+def v18_zip_kontrol(zip_bytes, skip_recount=False):
     """Disk üstündeki ZIP'in kapalı şemalı dosya bütünlüğü kontrolü; resmî belge değil."""
     if not isinstance(zip_bytes,(bytes,bytearray)) or len(zip_bytes)<300 or len(zip_bytes)>16_000_000:
         raise ValueError('ZIP boyutu geçersiz.')
@@ -3113,9 +3262,11 @@ def v18_zip_kontrol(zip_bytes):
         raise ValueError('Bilinmeyen bülten doğrulama modu.')
     if report.get('manifest_sha256')!=hashlib.sha256(manifest_bytes).hexdigest() or report.get('txt_sha256')!=hashlib.sha256(txt).hexdigest():
         raise ValueError('Kabul raporu TXT veya manifestle uyuşmuyor.')
+    if cmap.get('A07')=='USER_ACCEPTED' and not m.get('partial_or_relaxed_accepted'):
+        raise ValueError('A07 kullanıcı kabulü manifest bayrağıyla eşleşmiyor.')
     if report.get('parameter_signature')!=m.get('parameter_hash'):
         raise ValueError('Parametre imzaları tutarsız.')
-    if m.get('independent_audit_required'):
+    if m.get('independent_audit_required') and not skip_recount:
         audit181=v181_audit_archive(zip_bytes)
         if audit181.get('mismatches'):
             raise ValueError('Tam matematiksel sayım paket iddiasıyla eşleşmiyor.')
@@ -3205,7 +3356,7 @@ with tab_uretim:
                          'closes_at':'','source_url':'https://www.sportoto.gov.tr/spor-toto-listeler','obtained_at':''} for i,m in enumerate(matchlist17)]
                 st.download_button('⬇️ Boş karşılaştırma CSV şablonu',
                     pd.DataFrame(rows17).to_csv(index=False).encode('utf-8-sig'),
-                    file_name='SPOR_TOTO_V172_BULTEN_SABLONU.csv',mime='text/csv')
+                    file_name='SPOR_TOTO_V190_BULTEN_SABLONU.csv',mime='text/csv')
                 st.caption('CSV API listesinden oluşturulur; bağımsız kanıt DEĞİLDİR. Kapanışı, tarihleri ve takım isimlerini resmî kaynaktan karşılaştırın.')
                 if api_key and st.button('🔄 API-Football 15 maçı YENİDEN canlı kontrol et',key='v171_api_revalidate'):
                     try:
@@ -3278,7 +3429,9 @@ with tab_uretim:
                 st.write("")
                 if st.button("🗑️ Sıfırla", use_container_width=True):
                     st.session_state.canli_sonuclar=["⏳ Bekliyor"]*15
+                    st.session_state.canli_sonuclar_baz=["⏳ Bekliyor"]*15
                     st.session_state.canli_skor_metni=["-"]*15
+                    st.session_state["skor_revision14"]=st.session_state.get("skor_revision14",0)+1
                     st.session_state.secilen_mac_idleri=[]
                     st.session_state.mac_listesi = []
                     st.session_state.secilen_15_mac = []
@@ -3291,7 +3444,11 @@ with tab_uretim:
                     st.session_state.son_uretim_ozeti = None
                     st.session_state.son_param_imzasi = None
                     st.session_state.son_sol_menu_imzasi = None
-                    st.session_state.yatirilan_paketler = []
+                    st.session_state.v19_ilk_uretim_yapildi = False
+                    st.session_state.v19_sablon_koru_bir_tur = False
+                    st.session_state.v19_paket_cache = {}
+                    st.session_state.v19_exact_audit_cache = {}
+                    st.session_state.v19_kabul_zip_cache = {}
                     st.rerun()
 
             if st.session_state.mac_listesi:
@@ -3362,7 +3519,9 @@ with tab_uretim:
                     with b_col2:
                         if st.button("🚀 Analizi Başlat", type="primary", disabled=(s_sayi != 15 or not sira_onayi or not api_key), use_container_width=True):
                             st.session_state.canli_sonuclar = ["⏳ Bekliyor"]*15
+                            st.session_state.canli_sonuclar_baz = ["⏳ Bekliyor"]*15
                             st.session_state.canli_skor_metni = ["-"]*15
+                            st.session_state["skor_revision14"] = st.session_state.get("skor_revision14", 0) + 1
                             st.session_state.secilen_mac_idleri = [m["id"] for m in st.session_state.secilen_15_mac]
                             st.session_state.analiz_verisi = hibrit_tahminleri_al(st.session_state.secilen_15_mac, api_key)
                             st.session_state.tablo_baz_df = None
@@ -3372,7 +3531,8 @@ with tab_uretim:
                             st.session_state.son_uretim_ozeti = None
                             st.session_state.son_param_imzasi = None
                             st.session_state.son_sol_menu_imzasi = None
-                            st.session_state.yatirilan_paketler = []
+                            st.session_state.v19_ilk_uretim_yapildi = False
+                            st.session_state.v19_sablon_koru_bir_tur = False
                             st.rerun()
 
         # ======================================================================
@@ -3390,21 +3550,42 @@ with tab_uretim:
                 with st.expander('⚠️ Uyarı ayrıntıları ve çözümü',expanded=False):
                     for issue in _q17[:30]:st.write('• '+issue)
                     st.caption('Tahmin snapshot’ı hesaplama saati; API alım saati ayrı kaydedilir. Yenileme API kotası tüketebilir.')
+                koru_sablon_yenile = st.checkbox(
+                    "🛡️ Yenilerken mevcut şablon işaretlerimi (1/X/2, G1, G2) koru",
+                    value=True, key="v19_refresh_keep_template"
+                )
                 if st.button('🔄 15 MAÇIN TAHMİNLERİNİ API’DEN YENİDEN ÇEK VE HESAPLA',
                              key='v172_refresh_analysis',type='primary',use_container_width=True,
                              disabled=(not api_key or len(st.session_state.secilen_15_mac)!=15)):
                     try:
                         tek_mac_analiz_cek.clear()
                         recalculated=hibrit_tahminleri_al(st.session_state.secilen_15_mac,api_key)
-                        problems=v17_tahmin_kalitesi(recalculated)+v172_source_quality(recalculated)
-                        if problems:raise ValueError('Yenileme kaynaksız/eksik: '+' | '.join(problems[:4]))
+                        problems=v17_tahmin_kalitesi(recalculated, allow_missing_source=True)+v172_source_quality(recalculated, allow_missing_source=True)
+                        if problems:raise ValueError('Yenileme hatalı/eksik: '+' | '.join(problems[:4]))
                     except Exception as exc:
                         st.error(f'Tahmin yenilenemedi, eski kayıtlar değiştirilmedi: {exc}')
                     else:
                         st.session_state.analiz_verisi=recalculated
-                        # Eski kuponlar ve düzenlenmiş tablo ASLA yeni olasılığa taşınmaz.
-                        st.session_state.tablo_baz_df=None
-                        st.session_state.tablo_df=None
+                        if koru_sablon_yenile and st.session_state.tablo_df is not None:
+                            eski_df = st.session_state.tablo_df.copy()
+                            yeni_map = {int(v["id"]): v for v in recalculated}
+                            for r_i, row in eski_df.iterrows():
+                                nv = yeni_map.get(int(row["ID"]))
+                                if nv:
+                                    en_b_s = max(("1", "X", "2"), key=lambda k: nv[k])
+                                    eski_df.at[r_i, "1 (%)"] = nv["1"]
+                                    eski_df.at[r_i, "X (%)"] = nv["X"]
+                                    eski_df.at[r_i, "2 (%)"] = nv["2"]
+                                    eski_df.at[r_i, "Analiz"] = "; ".join(
+                                        banko_risk16(nv, [en_b_s], p_threshold=risk_banko_p, gap_threshold=risk_gap, spread_threshold=risk_spread)["reasons"]
+                                    ) or "Eşik uyarısı yok"
+                            st.session_state.tablo_baz_df = eski_df.copy()
+                            st.session_state.tablo_df = eski_df.copy()
+                            st.session_state.v19_sablon_koru_bir_tur = True
+                        else:
+                            st.session_state.tablo_baz_df=None
+                            st.session_state.tablo_df=None
+                            st.session_state.v19_sablon_koru_bir_tur = False
                         st.session_state.tablo_versiyon+=1
                         st.session_state.uretilen_kuponlar=None
                         st.session_state.son_uretim_ozeti=None
@@ -3412,20 +3593,26 @@ with tab_uretim:
                         st.session_state.son_sol_menu_imzasi=None
                         st.session_state.v171_api_proof=None
                         st.session_state.v172_restore_notice=''
-                        st.toast('Yeni API veri alımıyla 15 tahmin yenilendi. Eski şablon/kuponlar sıfırlandı; bülteni yeniden doğrulayın.')
+                        st.session_state.v19_ilk_uretim_yapildi=True
+                        st.toast('Yeni API veri alımıyla 15 tahmin yenilendi. Eski kuponlar sıfırlandı; KAPSAMA HESAPLA ile yeniden üretin.')
                         st.rerun()
             on_limitler = tam_otonom_analiz(veriler, strateji_modu)
 
-            # Template sync signature changes only for inputs that need a new
-            # automatic template; not for independent final-column filters.
+            # Template sync signature includes guarantee level & universe mode so
+            # changing 12/13/14/15 target or budget rebuilds the template cleanly.
             _oto_imza_ham = json.dumps({
                 "butce": str(hedef_butce_tl), "fiyat": str(kolon_fiyati),
                 "hedef_kolon": hedef_kolon_sayisi, "risk_politikasi": risk_politikasi,
+                "garanti": garanti_derecesi, "mutlak_sablon": mutlak_sablon_garantisi,
+                "hibrit_mod": hibrit_ekonomi_modu, "tuzak_koruma": tuzak_koruma,
                 "banko_esikleri": (risk_banko_p, risk_gap, risk_spread),
                 "maclar": [(v.get("id"), v.get("1"), v.get("X"), v.get("2"),
                             v.get("kaynak"), v.get("piyasa_std"), v.get("buro_sayisi")) for v in veriler],
             }, sort_keys=True, default=str)
             _oto_imza = hashlib.sha256(_oto_imza_ham.encode("utf-8")).hexdigest()
+            if st.session_state.get("v19_sablon_koru_bir_tur") and st.session_state.tablo_baz_df is not None:
+                st.session_state.v19_oto_sablon_imzasi = _oto_imza
+                st.session_state.v19_sablon_koru_bir_tur = False
             _onceki_oto_imza = st.session_state.get("v19_oto_sablon_imzasi")
             _ilk_sablon = st.session_state.tablo_baz_df is None
             _butce_ayari_degisti = (_onceki_oto_imza != _oto_imza)
@@ -3447,9 +3634,8 @@ with tab_uretim:
                     st.session_state.son_param_imzasi = None
                     st.session_state.uretilen_kuponlar = None
                     st.session_state.son_uretim_ozeti = None
-                    st.session_state.yatirilan_paketler = []
-                    st.session_state.paket_konfig_v161 = None
-                    st.toast("🔄 Bütçe/fiyat/risk ayarı değişti; şablon yeniden kuruldu. Eski nihai kolonlar temizlendi.")
+                    st.session_state.v19_ilk_uretim_yapildi = True
+                    st.toast("🔄 Bütçe/hedef/risk ayarı değişti; şablon yeniden kuruldu. Eski nihai kolonlar temizlendi.")
                 st.session_state.v19_oto_sablon_imzasi = _oto_imza
                 st.session_state.v19_oto_sablon_raporu = {
                     **butceye_gore_sablon_optimize_et.meta,
@@ -3483,6 +3669,7 @@ with tab_uretim:
                 st.session_state.son_param_imzasi = None
                 st.session_state.uretilen_kuponlar = None
                 st.session_state.son_uretim_ozeti = None
+                st.session_state.v19_ilk_uretim_yapildi = True
                 st.rerun()
 
             _oto_rapor = st.session_state.get("v19_oto_sablon_raporu")
@@ -3493,9 +3680,15 @@ with tab_uretim:
                     _oto_rapor.get("fiyat") == str(kolon_fiyati)):
                 _kati_alt = _oto_rapor.get("minimum_kati_ham", _oto_rapor["minimum_ham"])
                 if _oto_rapor["uygun"]:
+                    _g_lbl = _oto_rapor.get("hedef_garanti", garanti_derecesi)
+                    _est_lbl = _oto_rapor.get("tahmini_nihai", _oto_rapor["secim_ham"])
+                    _ek_bilgi = (
+                        f" | {_g_lbl} hedefinde tahmini nihai kolon: ~{_est_lbl:,}"
+                        if _g_lbl < 15 else ""
+                    )
                     st.success(
                         f"✅ **Bütçeye göre güncel HAM şablon:** "
-                        f"{_oto_rapor['secim_ham']:,} kombinasyon (bütçe sınırı: "
+                        f"{_oto_rapor['secim_ham']:,} kombinasyon{_ek_bilgi} (bütçe sınırı: "
                         f"{hedef_kolon_sayisi:,} kolon). "
                         "Nihai kolon ve kapsama sonucunu görmek için KAPSAMA HESAPLA'ya basın."
                     )
@@ -3536,6 +3729,7 @@ with tab_uretim:
                         st.session_state.tablo_df = yeni_df.copy()
                         st.session_state.tablo_versiyon += 1
                         st.session_state.son_param_imzasi = None
+                        st.session_state.v19_ilk_uretim_yapildi = True
                         st.rerun()
                 with tb2:
                     if st.button("🤖 AI Dinamik (sabit banko yok)", use_container_width=True):
@@ -3544,6 +3738,7 @@ with tab_uretim:
                         st.session_state.tablo_df = yeni_df.copy()
                         st.session_state.tablo_versiyon += 1
                         st.session_state.son_param_imzasi = None
+                        st.session_state.v19_ilk_uretim_yapildi = True
                         st.rerun()
                 with tb3:
                     if st.button("💎 Sendika (3B-6Ç-6K)", use_container_width=True):
@@ -3552,6 +3747,7 @@ with tab_uretim:
                         st.session_state.tablo_df = yeni_df.copy()
                         st.session_state.tablo_versiyon += 1
                         st.session_state.son_param_imzasi = None
+                        st.session_state.v19_ilk_uretim_yapildi = True
                         st.rerun()
                 with tb4:
                     if st.button("🔒 Banko stres testi (risk veto)", use_container_width=True):
@@ -3560,6 +3756,7 @@ with tab_uretim:
                         st.session_state.tablo_df = yeni_df.copy()
                         st.session_state.tablo_versiyon += 1
                         st.session_state.son_param_imzasi = None
+                        st.session_state.v19_ilk_uretim_yapildi = True
                         st.rerun()
 
             df_edit = st.data_editor(
@@ -3591,13 +3788,36 @@ with tab_uretim:
             girilen_siralar = [int(x) for x in df_edit["Sıra"].tolist() if pd.notna(x)]
             sira_hatasi_var = sorted(girilen_siralar) != list(range(1, 16))
 
-            sirali = df_edit.sort_values("Sıra").reset_index(drop=True)
+            sirali = df_edit.sort_values("Sıra", kind="stable").reset_index(drop=True)
             yeni_ids = [int(x) for x in sirali["ID"].tolist()]
-            if yeni_ids != st.session_state.secilen_mac_idleri:
-                st.session_state.canli_sonuclar=["⏳ Bekliyor"]*15
-                st.session_state.canli_skor_metni=["-"]*15
-            st.session_state.secilen_mac_idleri = yeni_ids
-            id_analiz_haritasi = {m["id"]: m for m in veriler}
+            if not sira_hatasi_var and yeni_ids != st.session_state.secilen_mac_idleri:
+                eski_ids = [int(x) for x in st.session_state.secilen_mac_idleri]
+                if len(eski_ids) == 15 and set(eski_ids) == set(yeni_ids):
+                    eski_pos = {mid: i for i, mid in enumerate(eski_ids)}
+                    st.session_state.canli_sonuclar = [st.session_state.canli_sonuclar[eski_pos[mid]] for mid in yeni_ids]
+                    st.session_state.canli_sonuclar_baz = list(st.session_state.canli_sonuclar)
+                    st.session_state.canli_skor_metni = [st.session_state.canli_skor_metni[eski_pos[mid]] for mid in yeni_ids]
+                else:
+                    st.session_state.canli_sonuclar = ["⏳ Bekliyor"] * 15
+                    st.session_state.canli_sonuclar_baz = ["⏳ Bekliyor"] * 15
+                    st.session_state.canli_skor_metni = ["-"] * 15
+                st.session_state["skor_revision14"] = st.session_state.get("skor_revision14", 0) + 1
+                st.session_state.secilen_mac_idleri = yeni_ids
+                # secilen_15_mac ve analiz_verisi yeni bulten sirasina senkronize edilir (A04/A05 uyumu).
+                if len(st.session_state.secilen_15_mac) == 15 and {int(m["id"]) for m in st.session_state.secilen_15_mac} == set(yeni_ids):
+                    sec_map = {int(m["id"]): m for m in st.session_state.secilen_15_mac}
+                    st.session_state.secilen_15_mac = [sec_map[mid] for mid in yeni_ids]
+                if len(veriler) == 15 and {int(v["id"]) for v in veriler} == set(yeni_ids):
+                    an_map = {int(v["id"]): dict(v) for v in veriler}
+                    yeni_veriler = []
+                    for b_no, mid in enumerate(yeni_ids, 1):
+                        item = an_map[mid]
+                        item["bulten_no"] = b_no
+                        yeni_veriler.append(item)
+                    st.session_state.analiz_verisi = yeni_veriler
+                    veriler = yeni_veriler
+
+            id_analiz_haritasi = {int(m["id"]): m for m in veriler}
             olasilik_hata_satirlari=[]
             for _, _pr in sirali.iterrows():
                 try:
@@ -3615,7 +3835,7 @@ with tab_uretim:
             bos_mac_var = False
 
             for idx_r, r in sirali.iterrows():
-                sec = [k for k, b in [("1", r["1"]), ("X", r["X"]), ("2", r["2"])] if b]
+                sec = [k for k, b in [("1", bool(r["1"])), ("X", bool(r["X"])), ("2", bool(r["2"]))] if b]
                 if not sec:
                     bos_mac_var = True
                 elif len(sec) == 1:
@@ -3625,14 +3845,22 @@ with tab_uretim:
                 else:
                     kapali_say += 1
 
-                if r["🌟 G1"] and len(sec) > 1:
+                if bool(r["🌟 G1"]) and len(sec) > 1:
                     g1_indeksleri.append(idx_r)
-                if r["🔥 G2"] and len(sec) > 1:
+                if bool(r["🔥 G2"]) and len(sec) > 1:
                     g2_indeksleri.append(idx_r)
 
-                y1, yx, y2 = olasilik_yumusat(r["1 (%)"], r["X (%)"], r["2 (%)"])
-                h1, hx, h2 = y1, yx, y2
                 kaynak_m = id_analiz_haritasi.get(int(r["ID"]), {})
+                try:
+                    _p1_in = float(r["1 (%)"]) if pd.notna(r["1 (%)"]) else float(kaynak_m.get("1", 34))
+                    _px_in = float(r["X (%)"]) if pd.notna(r["X (%)"]) else float(kaynak_m.get("X", 33))
+                    _p2_in = float(r["2 (%)"]) if pd.notna(r["2 (%)"]) else float(kaynak_m.get("2", 33))
+                    if not np.isfinite([_p1_in, _px_in, _p2_in]).all():
+                        raise ValueError("Sonlu değil")
+                except (ValueError, TypeError):
+                    _p1_in, _px_in, _p2_in = float(kaynak_m.get("1", 34)), float(kaynak_m.get("X", 33)), float(kaynak_m.get("2", 33))
+                y1, yx, y2 = olasilik_yumusat(_p1_in, _px_in, _p2_in)
+                h1, hx, h2 = y1, yx, y2
                 piyasa_std_val = kaynak_m.get("piyasa_std", 0.0)
                 tuzak_farki_val = 0.0
 
@@ -3696,7 +3924,7 @@ with tab_uretim:
                     })
                     st.dataframe(hata_tablosu,hide_index=True,use_container_width=True,height=300)
                 st.caption("Tablo maçların bağımsız olduğu varsayımına dayanır; modeller kalibre edilmediyse yüzdeler gerçekleşme frekansı değildir. Halk oranı, beklenen kâr veya gerçek maç olasılığı garantisi değildir.")
-                st.download_button("Risk incelemesini indir (CSV)",pd.DataFrame(risk_rows16).to_csv(index=False).encode('utf-8-sig'),"SPOR_TOTO_V17_RISK.csv",mime="text/csv",key="risk_export16")
+                st.download_button("Risk incelemesini indir (CSV)",pd.DataFrame(risk_rows16).to_csv(index=False).encode('utf-8-sig'),"SPOR_TOTO_V190_RISK.csv",mime="text/csv",key="risk_export16")
 
             if grup_guvence_aktif:
                 if otonom_grup_limiti:
@@ -3720,7 +3948,6 @@ with tab_uretim:
                 "kapsama": hedef_kapsama_orani,
                 "max_k": max_kolon_limiti,
                 "uretim_modu": uretim_modu, "kolon_fiyati": kolon_fiyati,
-                "ev": ev_katsayisi,
                 "v173_public_sha":(public173_ctx or {}).get('sha256'),
                 "v173_opt_in":v173_opt_in,"v173_weight":v173_weight,
                 "strateji": strateji_modu,
@@ -3814,7 +4041,8 @@ with tab_uretim:
                 and ham_kolon_sayisi <= 4000
             )
             ilk_acilis_uretim = (
-                st.session_state.uretilen_kuponlar is None
+                not st.session_state.get("v19_ilk_uretim_yapildi", False)
+                and st.session_state.uretilen_kuponlar is None
                 and not bos_mac_var
                 and not sira_hatasi_var
                 and not v173_blocked
@@ -3822,14 +4050,11 @@ with tab_uretim:
             )
 
             if degisiklik_bekliyor or bos_mac_var or sira_hatasi_var or oran_hatasi_var or v173_blocked or ham_kolon_sayisi > 300_000 or max_kolon_limiti == 0:
-                if degisiklik_bekliyor:
-                    st.session_state.yatirilan_paketler = []
-                    st.session_state.paket_konfig_v161 = None
                 st.session_state.uretilen_kuponlar = None
                 st.session_state.son_uretim_ozeti = None
             if max_kolon_limiti == 0:
                 st.info("Sıfır bütçe: aktif kolon yok.")
-            if max_kolon_limiti != 0 and not bos_mac_var and not sira_hatasi_var and not oran_hatasi_var and not v173_blocked and ham_kolon_sayisi<=300_000 and (uretim_tetikle or otomatik_hizli_yenile or (ilk_acilis_uretim and not st.session_state.get('son_param_imzasi'))):
+            if max_kolon_limiti != 0 and not bos_mac_var and not sira_hatasi_var and not oran_hatasi_var and not v173_blocked and ham_kolon_sayisi<=300_000 and (uretim_tetikle or otomatik_hizli_yenile or ilk_acilis_uretim):
                 with st.spinner("⚡ Garantili kuponlar ve deterministik denetim hesaplanıyor..."):
                     if ai_filtre_modu:
                         limitler = tam_otonom_analiz(s_veriler, strateji_modu, aktif_sablon=g_sablon)
@@ -3852,7 +4077,6 @@ with tab_uretim:
                         g1_aralik=g1_aralik,
                         g2_indeksleri=g2_indeksleri if grup_guvence_aktif else [],
                         g2_aralik=g2_aralik,
-                        ev_agirligi=ev_katsayisi,
                         log_zarf_aktif=log_zarf_aktif,
                         kademe_aktif=kademe_filtre_aktif,
                         entropi_aktif=entropi_filtresi,
@@ -3922,6 +4146,7 @@ with tab_uretim:
                         if len(garanti)==0: st.warning("Bütçe veya koşullar nedeniyle geçerli kolon üretilemedi.")
                         st.session_state.son_param_imzasi = param_imzasi
                         st.session_state.son_sol_menu_imzasi = sol_menu_imzasi
+                        st.session_state.v19_ilk_uretim_yapildi = True
                         degisiklik_bekliyor = False
                         st.session_state.uretilen_kuponlar = garanti
                         st.session_state.son_uretim_ozeti = {
@@ -4067,14 +4292,17 @@ with tab_takip:
 
         if api_key and len(st.session_state.secilen_mac_idleri) == 15:
             if st.button("🔄 Canlı Skorları API'den Çek (90-Dk Resmi Kural Korumalı)", type="primary", use_container_width=True):
-                st.session_state.canli_sonuclar, st.session_state.canli_skor_metni = canli_skorlari_cek(
+                yeni_s, yeni_m = canli_skorlari_cek(
                     st.session_state.secilen_mac_idleri, api_key
                 )
+                st.session_state.canli_sonuclar = list(yeni_s)
+                st.session_state.canli_sonuclar_baz = list(yeni_s)
+                st.session_state.canli_skor_metni = list(yeni_m)
                 st.session_state["skor_revision14"]=st.session_state.get("skor_revision14",0)+1
                 st.rerun()
 
         if st.session_state.tablo_df is not None:
-            m_isim = st.session_state.tablo_df.sort_values("Sıra")["Karşılaşma"].tolist()
+            m_isim = st.session_state.tablo_df.sort_values("Sıra", kind="stable")["Karşılaşma"].tolist()
         elif st.session_state.analiz_verisi:
             m_isim = [v["mac"] for v in st.session_state.analiz_verisi]
         else:
@@ -4085,7 +4313,7 @@ with tab_takip:
                 "No": list(range(1, 16)),
                 "Maç": m_isim,
                 "Skor": st.session_state.canli_skor_metni,
-                "Sonuç": st.session_state.canli_sonuclar
+                "Sonuç": st.session_state.canli_sonuclar_baz
             }),
             column_config={
                 "Sonuç": st.column_config.SelectboxColumn(
@@ -4117,13 +4345,18 @@ with tab_takip:
             res = np.array(sonuc_df["Sonuç"].tolist())
             kesin_mask = np.isin(res, ["1", "X", "2"])
             kura_mask = (res == "🎲 Kura (1/X/2)")
-            oynanan = int(np.sum(kesin_mask))
+            sonuclanan_mask = kesin_mask | kura_mask
+            kura_sayisi = int(np.sum(kura_mask))
+            oynanan = int(np.sum(sonuclanan_mask))
 
             if oynanan > 0:
                 dogru_kesin = np.sum(aktif_k[:, kesin_mask] == res[kesin_mask], axis=1) if np.any(kesin_mask) else np.zeros(len(aktif_k), dtype=int)
-                dogru = dogru_kesin
+                dogru = dogru_kesin + kura_sayisi
                 hata = oynanan - dogru
                 maks_h = 15 - hata
+
+                if kura_sayisi > 0:
+                    st.info(f"🎲 **{kura_sayisi} maç Kura (1/X/2) olarak işaretli:** Resmî kura varsayımıyla bu maç(lar) tüm kolonlarda doğru kabul edildi.")
 
                 if "Oturumdaki" in kaynak and st.session_state.son_uretim_ozeti is not None:
                     aktif_sablon_list = st.session_state.son_uretim_ozeti.get("g_sablon", [])
@@ -4147,13 +4380,12 @@ with tab_takip:
 
                 en_yuksek_derece = int(np.max(maks_h))
                 hedef_kuponlar = aktif_k[maks_h == en_yuksek_derece]
-                bekleyen_indeksler = np.where(~kesin_mask)[0]
+                bekleyen_indeksler = np.where(~sonuclanan_mask)[0]
 
                 if len(bekleyen_indeksler) > 0 and len(hedef_kuponlar) > 0:
                     with st.expander(f"Kalan {len(bekleyen_indeksler)} Maç: {en_yuksek_derece} Adayı İçin Açık Sonuç Analizi", expanded=False):
                         hedge_satirlar = []
                         toplam_aday = len(hedef_kuponlar)
-                        son_mac_acik_riskler = []
                         for b_idx in bekleyen_indeksler:
                             sutun_b = hedef_kuponlar[:, b_idx]
                             k_1 = int(np.sum(sutun_b == "1"))
@@ -4166,8 +4398,6 @@ with tab_takip:
                                 acik_risk.append("X")
                             if k_2 == 0:
                                 acik_risk.append("2")
-                            if len(bekleyen_indeksler) == 1:
-                                son_mac_acik_riskler = acik_risk
                             hedge_satirlar.append({
                                 "Maç No": b_idx + 1,
                                 "Karşılaşma": m_isim[b_idx],
@@ -4211,10 +4441,10 @@ with tab_otomasyon:
         st.info('Önce 1. sekmede analiz kuponlarını oluşturun.')
     else:
         try:
-            paket_raw17,paket_m17,paket_zip17,paket_info17=v17_paket_uret(
+            _strict_preview = not bool(st.session_state.get("v19_partial_cov_ack", False))
+            paket_raw17,paket_m17,paket_zip17,paket_info17=v19_cached_paket_uret(
                 output17,summary17,guncel_uretim_imzasi,st.session_state.secilen_mac_idleri,
-                summary17['s_veriler'],kolon_fiyati,hedef_butce_tl,strict=True)
-            v17_paket_kontrol(paket_raw17,paket_m17)
+                summary17['s_veriler'],kolon_fiyati,hedef_butce_tl,strict=_strict_preview)
         except Exception as exc:
             st.warning(f'Doğrulanmış analiz paketi oluşturulamıyor: {exc}')
         else:
@@ -4248,11 +4478,11 @@ with tab_txt153:
     else:
         st.warning('Seçilen bülten kabul yöntemi tamamlanmadı. ANALİZ çıktıları için onay/kanıtları kontrol edin.')
     try:
-        raw17,manifest17,zip17,info17=v17_paket_uret(
+        _strict_txt = not bool(st.session_state.get("v19_partial_cov_ack", False))
+        raw17,manifest17,zip17,info17=v19_cached_paket_uret(
             st.session_state.uretilen_kuponlar,txt17_ozet,guncel_uretim_imzasi,
             st.session_state.secilen_mac_idleri,txt17_ozet['s_veriler'] if txt17_ozet else [],
-            kolon_fiyati,hedef_butce_tl,strict=True)
-        v17_paket_kontrol(raw17,manifest17)
+            kolon_fiyati,hedef_butce_tl,strict=_strict_txt)
     except (ValueError,TypeError,KeyError,InvalidOperation) as exc:
         st.info('TXT üretimi durduruldu: '+str(exc))
     else:
@@ -4272,12 +4502,12 @@ with tab_txt153:
 # SEKME 5: v17.2 TARIHSEL TAHMIN DENETIMI -- yalnız gercek pre-match snapshot
 # ------------------------------------------------------------------------------
 with tab_backtest:
-    st.subheader('🧪 v17.2 — Geçmiş Tahmin Başarısı & Kalibrasyon')
+    st.subheader('🧪 v19.0 — Geçmiş Tahmin Başarısı & Kalibrasyon')
     st.warning('Gerçek sonuçlardan geriye dönük tahmin türetilmez. Yalnız maç başlamadan en az 30 dakika önce kaydedilmiş 1/X/2 olasılıkları değerlendirilir. CSV kullanıcı beyanıdır; sonuçlar ve snapshot kaynağı bağımsız doğrulanmaz.')
     st.caption('CSV zorunlu: match_id,kickoff_utc,snapshot_utc,league,result; kaynaklar için market_1,market_x,market_2 veya api_1,api_x,api_2 veya model_1,model_x,model_2 veya blend_1,blend_x,blend_2. Her kaynak yüzdeleri 100 etmeli. Sonuç normal süre 1/X/2 (0 kabul edilir). Saatler +03:00 veya Z içermeli.')
     tpl172='match_id,kickoff_utc,snapshot_utc,league,result,market_1,market_x,market_2,api_1,api_x,api_2,model_1,model_x,model_2,blend_1,blend_x,blend_2\n'
     st.download_button('⬇️ Boş tarihsel tahmin CSV şablonu',tpl172.encode('utf-8-sig'),
-                       file_name='SPOR_TOTO_V172_BACKTEST_SABLONU.csv',mime='text/csv',key='v172_blank')
+                       file_name='SPOR_TOTO_V190_BACKTEST_SABLONU.csv',mime='text/csv',key='v172_blank')
     # Güncel tahminleri maç başlamadan arşivleyin; 90dk sonuçlarını daha sonra doldurun.
     if st.session_state.analiz_verisi is not None:
         with st.expander('📥 Gelecek backtest için maç öncesi tahmin arşivi oluştur',expanded=False):
@@ -4299,7 +4529,7 @@ with tab_backtest:
                         'result':'','blend_1':v['1'],'blend_x':v['X'],'blend_2':v['2']})
                 histcsv=pd.DataFrame(outrows).to_csv(index=False).encode('utf-8-sig')
                 st.download_button('📥 Bu 15 maçın gerçek maç öncesi tahminlerini CSV indir',
-                    histcsv,file_name='SPOR_TOTO_V172_ON_TAHMIN_15MAC.csv',mime='text/csv',key='v172_save_prematch')
+                    histcsv,file_name='SPOR_TOTO_V190_ON_TAHMIN_15MAC.csv',mime='text/csv',key='v172_save_prematch')
                 st.caption('Sonuç sütunu bilerek boş bırakılır. Maçlar bittikten sonra 90dk sonuçlarını resmî kayıtlara göre 1/X/2 girip bu arşivi Gelişmiş Araçlar > Geçmiş Tahmin Testleri bölümüne tekrar yükleyin. Blend, kalibre edilmemiş mevcut birleşik modeldir.')
             except (KeyError,TypeError,ValueError) as exc:
                 st.info('Maç öncesi arşiv oluşturulamadı: '+str(exc))
@@ -4336,7 +4566,7 @@ with tab_backtest:
             if leagues172:
                 with st.expander('Lig bazında sonuçlar (en az 10 maç)'):
                     st.dataframe(pd.DataFrame(leagues172),hide_index=True,use_container_width=True)
-            report172={'version':'17.2 SAFE BETA','status':'HISTORICAL_USER_SUPPLIED_UNVERIFIED',
+            report172={'version':'19.0 ANALYSIS ONLY','status':'HISTORICAL_USER_SUPPLIED_UNVERIFIED',
                 'rows':len(parsed172),'sources':sources172,'metrics':overview172,
                 'chronological_calibration':calib172,'leagues':leagues172,
                 'paired':paired172,'input_sha256':hashlib.sha256(uploaded172.getvalue()).hexdigest(),
@@ -4345,14 +4575,14 @@ with tab_backtest:
                          'Kalibrasyon parametreleri canli tahmin motoruna uygulanmamistir.']}
             st.download_button('📄 Backtest raporunu JSON indir',
                 json.dumps(report172,ensure_ascii=False,indent=2,default=str).encode('utf-8'),
-                file_name='SPOR_TOTO_V172_BACKTEST_RAPORU.json',mime='application/json',key='v172_report_out')
+                file_name='SPOR_TOTO_V190_BACKTEST_RAPORU.json',mime='application/json',key='v172_report_out')
 
 
 # ------------------------------------------------------------------------------
-# SEKME 6: v17.3 ANTI-PUBLIC PRO -- diagnoz + agirlik etkisi, grafik YOK
+# SEKME 6: v19.0 ANTI-PUBLIC PRO -- diagnoz + agirlik etkisi, grafik YOK
 # ------------------------------------------------------------------------------
 with tab_antipublic:
-    st.subheader('🧠 v17.3 — Anti-Public & Portföy Çeşitliliği')
+    st.subheader('🧠 v19.0 — Anti-Public & Portföy Çeşitliliği')
     st.warning('Halk tercihi veri seti size ait bir CSV kaydıdır. Kaynağın otantikliği, kayıt saatinin doğruluğu ve piyasa güncelliği bağımsız doğrulanmaz. '
                'Halk oranları tek-maç marjinalleridir; 15 maçlık ortak kupon dağılımı, ikramiye paylaşımı, net EV veya kazanç tahmini değildir.')
     st.caption('1. sekmede Banko Riski & Halk Tercihi bölümüne fixture_id,h1,hx,h2,source,snapshot dosyasını yükleyin. '
@@ -4388,14 +4618,14 @@ with tab_antipublic:
             st.dataframe(pd.DataFrame(_report173['top_rows']),hide_index=True,use_container_width=True)
             st.download_button('📥 Anti-Public sıralama denetimini CSV indir',
                 pd.DataFrame(_report173['top_rows']).to_csv(index=False).encode('utf-8-sig'),
-                file_name='SPOR_TOTO_V173_ANTI_PUBLIC_INCELEME.csv',mime='text/csv')
+                file_name='SPOR_TOTO_V190_ANTI_PUBLIC_INCELEME.csv',mime='text/csv')
             _audit173={k:v for k,v in _report173.items() if k!='top_rows'}
-            _audit173.update({'model_version':'17.3 SAFE BETA','parameter_signature':guncel_uretim_imzasi,
+            _audit173.update({'model_version':'19.0 ANALYSIS ONLY','parameter_signature':guncel_uretim_imzasi,
                 'public_csv_sha256':_sha173,'independent_authentication':False,
                 'coverage_unchanged_by_report':True,'source':'user_supplied_csv'})
             st.download_button('📄 Anti-Public denetim özetini JSON indir',
                 json.dumps(_audit173,ensure_ascii=False,indent=2).encode('utf-8'),
-                file_name='SPOR_TOTO_V173_ANTI_PUBLIC_RAPOR.json',mime='application/json')
+                file_name='SPOR_TOTO_V190_ANTI_PUBLIC_RAPOR.json',mime='application/json')
         except Exception as _exc173:
             st.error('Anti-Public portföy denetimi durduruldu: '+str(_exc173))
 
@@ -4412,18 +4642,27 @@ with tab_acceptance:
     if st.session_state.uretilen_kuponlar is None or not st.session_state.son_uretim_ozeti:
         st.warning('Önce 1. sekmeden güncel 15 maçın analizini ve kolonları oluşturun.')
     else:
+        o18=st.session_state.son_uretim_ozeti
+        _kismi_veya_esnek = bool(o18.get('esnetilenler')) or (not o18.get('optimizasyon',{}).get('hedef_tam',False))
+        kismi_kapsama_onay = False
+        if _kismi_veya_esnek:
+            st.warning("⚠️ Bu üretim bütçe sınırı veya esnetilmiş filtreler nedeniyle tam kapsama hedefini (%100) sağlamıyor. Aşağıdaki onayı işaretlerseniz kısmi kapsama kaydıyla analiz dosyalarını indirebilirsiniz.")
+            kismi_kapsama_onay = st.checkbox(
+                "Kısmi kapsama / esnetilen filtre uyarısını okudum; analiz dosyalarını yine de oluştur.",
+                value=False, key="v19_partial_cov_ack"
+            )
         try:
-            o18=st.session_state.son_uretim_ozeti
-            raw18,manifest18,_,info18=v17_paket_uret(
+            raw18,manifest18,_,info18=v19_cached_paket_uret(
                 st.session_state.uretilen_kuponlar,o18,guncel_uretim_imzasi,
-                st.session_state.secilen_mac_idleri,o18['s_veriler'],kolon_fiyati,hedef_butce_tl,strict=True)
+                st.session_state.secilen_mac_idleri,o18['s_veriler'],kolon_fiyati,hedef_butce_tl,
+                strict=(not kismi_kapsama_onay))
         except (ValueError,TypeError,KeyError,OverflowError,InvalidOperation) as exc:
             st.error('Kabul testi için geçerli temel TXT paketi üretilemedi: '+str(exc))
         else:
             v18_report=v18_kabul_raporu(raw18,manifest18,v171_current_gate,
                 st.session_state.secilen_15_mac,st.session_state.analiz_verisi,
                 guncel_uretim_imzasi,kolon_fiyati,hedef_butce_tl,
-                ozet=o18)
+                ozet=o18, allow_partial_user_accept=kismi_kapsama_onay)
             st.dataframe(pd.DataFrame([{'Kod':r['code'],'Kontrol':r['title'],
                                        'Durum':r['status'],'Ayrıntı':r['detail']}
                                       for r in v18_report['checks']]),hide_index=True,use_container_width=True)
@@ -4443,8 +4682,7 @@ with tab_acceptance:
             if v18_report['analysis_package_eligible']:
                 st.success('YEREL ANALİZ KABULÜ: Zorunlu yazılım kontrolleri geçti. Kullanıcı beyanı ile resmî doğrulama aynı şey değildir; canlı oyun onayı yoktur.')
                 try:
-                    audit18=v18_kabul_zip(raw18,manifest18,v18_report)
-                    validate18=v18_zip_kontrol(audit18)
+                    audit18, validate18 = v19_cached_kabul_zip(raw18, manifest18, v18_report)
                     st.download_button('📦 v19.0 DENETİMLİ ANALİZ PAKETİ (ZIP)',audit18,
                         file_name=f"SPOR_TOTO_V190_ANALIZ_KABUL_{validate18['txt_sha256'][:12]}.zip",
                         mime='application/zip',type='primary',use_container_width=True,key='v19_archive_download')
@@ -4491,14 +4729,14 @@ with tab_math181:
             if not guncel_uretim_imzasi or live_summary.get('imza') != guncel_uretim_imzasi:
                 raise ValueError('Üretim ayarları değişmiş; yeniden üretim gerekli.')
             exact_raw,_=tum_kolonlar_txt153(live_columns,live_summary,guncel_uretim_imzasi,ids)
-            exact_report=v181_exact_audit(exact_raw,live_summary['g_sablon'],expected=live_summary.get('denetim_ham'))
+            exact_report=v19_cached_exact_audit(exact_raw,live_summary['g_sablon'],expected=live_summary.get('denetim_ham'))
             st.success(f"TAM MATEMATİK DENETİMİ: {exact_report['scenario_count']:,} senaryo, {exact_report['unique_columns']:,} tekil kolon.") if not exact_report['mismatches'] else st.error('Eski rapor yüzdeleri ile tam sayım uyuşmuyor; analiz paketini kullanmayın.')
             st.dataframe(pd.DataFrame([{'Hedef':k,'Karşılanan senaryo':exact_report['exact_count'][k],
                 'Toplam':exact_report['scenario_count'],'Kapsama %':round(exact_report['exact_percent'][k],6)}
                 for k in ('tam_15','en_az_14','en_az_13','en_az_12')]),hide_index=True,use_container_width=True)
             st.caption('En düşük en iyi isabet: '+str(exact_report['minimum_best_hits'])+' / 15. En zayıf senaryo örneği: '+exact_report['worst_case_example'])
             st.download_button('📄 Bağımsız tam matematik raporu (JSON)',json.dumps(exact_report,ensure_ascii=False,indent=2).encode('utf-8'),
-                file_name='SPOR_TOTO_V181_BAGIMSIZ_MATEMATIK_RAPORU.json',mime='application/json',key='v181_session_report')
+                file_name='SPOR_TOTO_V190_BAGIMSIZ_MATEMATIK_RAPORU.json',mime='application/json',key='v181_session_report')
             st.download_button('📋 Orijinal 15 satırlık ham şablon (JSON)',json.dumps(exact_report['template'],ensure_ascii=False,indent=2).encode('utf-8'),
                 file_name='SPOR_TOTO_V190_HAM_SABLON.json',mime='application/json',key='v181_template_export')
         except (ValueError,TypeError,KeyError,UnicodeError,OverflowError) as exc:
