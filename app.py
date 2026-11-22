@@ -17,7 +17,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v20.0 — OTOPILOT PRO (ANALIZ)",
+    page_title="Spor Toto AI Pro v20.1 — 3'LU OTOPILOT PRO (ANALIZ)",
     page_icon="🏆",
     layout="wide"
 )
@@ -70,7 +70,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v20.0 Otopilot Pro</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v20.0 — OTOPİLOT PRO</h1><p>Hata yapma riskini en aza indiren tek tıkla kendi kendini ayarlayan Otopilot motoru + v19.1 sürpriz/ikramiye filtreleri ve v19.0 A01–A10 tam matematiksel denetim sistemi bir aradadır.</p><ol><li>Sol menüde <b>🟢 Otopilot (Otomatik &amp; Hatasız)</b> modunun seçili olduğunu kontrol edin.</li><li>API-Football anahtarınızı, bütçenizi (varsayılan 5.000 TL / 500 kolon) ve oyun tarzınızı (<i>Yüksek İkramiye / Sürpriz</i> veya <i>Dengeli Sendika</i>) seçin.</li><li><b>ADIM 1:</b> Bülten günlerini yükleyin, resmî 15 maçı seçip sırayı onaylayın.</li><li><b>ADIM 2 (İsteğe Bağlı):</b> Varsa Nesine/İddaa 15 satırlık halk oynanma yüzdelerini yapıştırın; 15/15 girilirse Anti-Public ve Tuzak Koruması otomatik açılır.</li><li><b>ADIM 3:</b> <b>🚀 TEK TIKLA OTOPİLOTU BAŞLAT</b> düğmesine basın. Sistem oranları çeker, birden çok stratejiyi yarıştırır, filtreleri kendi dengeler, bütçenize tam sığan en güçlü kupon setini ve Sürpriz Stres Testini hazırlar.</li><li><b>ADIM 4:</b> Aynı ekranda 15 maç sırasını son kez onaylayıp A01–A10 denetimli <b>1-0-2 TXT</b>, <b>1-X-2 TXT</b> ve <b>ZIP</b> dosyalarınızı indirin.</li><li>Tüm ince ayarları elle yönetmek isterseniz sol menüden <b>🔧 Uzman Modu</b>na geçebilirsiniz.</li></ol><p class='note'><b>Önemli:</b> Kapsama hedefleri ve simülasyonlar yalnız tanımlı model/şablon senaryolarına ilişkindir. Gerçek müsabaka sonuçları veya ikramiye garantisi yoktur; canlı site oynama/ödeme kapalıdır.</p></body></html>"
+KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v20.1 — 3'lü Otopilot Pro</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v20.1 — 3'LÜ OTOPİLOT PRO (14 / 13 / 12 GARANTİ)</h1><p>Tek tıkla aynı bütçe içinde <b>14 Garanti</b>, <b>13 Garanti</b> ve <b>12 Garanti</b> sistemlerinin üçünü birden zorunlu kapalı maç (sürpriz) korumasıyla hazırlar; aralarından hangisini oynayacağınıza anında siz karar verirsiniz.</p><ol><li>Sol menüde <b>🟢 Otopilot</b> modunu, API-Football anahtarınızı ve bütçenizi (varsayılan 5.000 TL / 500 kolon) belirleyin.</li><li><b>ADIM 1:</b> Bülten günlerini yükleyip resmî 15 maçı seçin ve sırayı onaylayın.</li><li><b>ADIM 2 (İsteğe Bağlı):</b> Varsa Nesine/İddaa 15 satırlık halk oynanma yüzdelerini yapıştırın.</li><li><b>ADIM 3:</b> <b>🚀 TEK TIKLA 3'LÜ OTOPİLOTU BAŞLAT (14 / 13 / 12 GARANTİ)</b> düğmesine basın. Sistem üç garanti derecesi için de en güçlü kapalı-maç korumalı şablonları hazırlar.</li><li><b>3'lü Karşılaştırma Paneli</b>nden <b>🥇 14 Garanti</b>, <b>🥈 13 Garanti</b> veya <b>🥉 12 Garanti</b> seçeneklerinden istediğinize tıklayın — stres testi, şablon ve indirme dosyaları beklemeden anında güncellenir.</li><li><b>ADIM 4:</b> Son sıra onayını verip A01–A10 denetimli <b>1-0-2 TXT</b>, <b>1-X-2 TXT</b> ve <b>ZIP</b> dosyalarınızı indirin.</li></ol><p class='note'><b>Önemli:</b> Kapsama hedefleri ve simülasyonlar yalnız tanımlı model/şablon senaryolarına ilişkindir. Gerçek müsabaka sonuçları veya ikramiye garantisi yoktur.</p></body></html>"
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -97,9 +97,11 @@ varsayilan_state = {
     "canli_sonuclar_baz": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
-    "sema_versiyonu": "20.0",
+    "sema_versiyonu": "20.1",
     "v20_otopilot_aktif_ayar": None,
     "v20_otopilot_raporu": None,
+    "v20_otopilot_paketler": None,
+    "v20_otopilot_secili_garanti": None,
     "v20_otopilot_halk_raw": "",
     "v171_api_proof": None,
     "v17_receipts": {},
@@ -110,7 +112,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "20.0":
+if st.session_state.get("sema_versiyonu") != "20.1":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -128,7 +130,9 @@ if st.session_state.get("sema_versiyonu") != "20.0":
     st.session_state.v171_api_proof = None
     st.session_state.v20_otopilot_aktif_ayar = None
     st.session_state.v20_otopilot_raporu = None
-    st.session_state.sema_versiyonu = "20.0"
+    st.session_state.v20_otopilot_paketler = None
+    st.session_state.v20_otopilot_secili_garanti = None
+    st.session_state.sema_versiyonu = "20.1"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -210,6 +214,37 @@ if "v191_profil_baslatildi" not in st.session_state:
     _v191_profil_uygula("🎯 Sürpriz & İkramiye Avcısı (13 Hedef • Filtreli Evren)")
     st.session_state["v191_profil_baslatildi"] = True
 
+def _v201_paket_aktive_et(g_sec, rerun_safe=False):
+    """Seçilen garanti paketini (14, 13 veya 12) tüm oturum durumuna anında uygular."""
+    paketler = st.session_state.get("v20_otopilot_paketler")
+    if not isinstance(paketler, dict) or g_sec not in paketler:
+        return
+    p = paketler[g_sec]
+    st.session_state.v20_otopilot_secili_garanti = int(g_sec)
+    st.session_state.v20_otopilot_aktif_ayar = dict(p["aktif_ayar"])
+    st.session_state.tablo_baz_df = p["df"].copy()
+    st.session_state.tablo_df = p["df"].copy()
+    st.session_state.tablo_versiyon += 1
+    st.session_state.uretilen_kuponlar = p["garanti"]
+    st.session_state.son_uretim_ozeti = p["ozet"]
+    st.session_state.son_sol_menu_imzasi = p["sol_imza"]
+    st.session_state.son_param_imzasi = p["param_imza"]
+    st.session_state.v19_ilk_uretim_yapildi = True
+    st.session_state.v19_sablon_koru_bir_tur = True
+    rep = st.session_state.get("v20_otopilot_raporu")
+    if isinstance(rep, dict):
+        rep["kazanan_ad"] = p["aday_ad"]
+        rep["kazanan_sablon_str"] = p["sablon_str"]
+        rep["neden_secildi"] = p["neden_secildi"]
+        rep["aktif_garanti"] = int(g_sec)
+
+
+def _v201_radio_degisti():
+    sec = st.session_state.get("v201_garanti_secici_radio")
+    if sec is not None:
+        _v201_paket_aktive_et(int(sec))
+
+
 V20_VARSAYILAN_OTOPILOT_AYAR = {
     "garanti_derecesi": 13,
     "mutlak_sablon_garantisi": False,
@@ -245,14 +280,14 @@ V20_VARSAYILAN_OTOPILOT_AYAR = {
 }
 
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v20.0")
-    st.caption("OTOPİLOT PRO — Kendi kendini ayarlayan sürpriz & ikramiye motoru")
+    st.markdown("## 🏆 Spor Toto AI v20.1")
+    st.caption("3'LÜ OTOPİLOT PRO — 14 / 13 / 12 Garanti Seçim Paneli")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı • Kazanç garantisi yoktur")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v20_0_Otopilot_Kullanim_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v20_1_Otopilot_Kullanim_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -1313,23 +1348,23 @@ def tablo_halk_verisi_derle_v191(sirali_df):
 def butceye_gore_sablon_optimize_et(
     veriler, hedef_kolon, garanti_derecesi,
     mutlak_mod=True, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="kati",
-    max_banko=None, surpriz_kapatma_odakli=False, ikramiye_filtre_aktif=False, halk_map=None
+    max_banko=None, surpriz_kapatma_odakli=False, ikramiye_filtre_aktif=False, halk_map=None,
+    min_kapali=None, raw_cap_override=None
 ):
-    """Garanti derecesi (12-15), evren modu, banko tavanı ve sürpriz kapatma önceliğine duyarlı 15 maçlık şablon kurar.
-
-    r = 15 - garanti_derecesi için her (ikili, üçlü) şablonun tahmini nihai kolon sayısı
-    Hamming küresi alt sınırı + muhafazakâr örtme katsayısıyla bütçeye göre kıyaslanır.
-    risk_politikasi='kati': banko risk vetosunu kesin uygular.
-    risk_politikasi='butce_uyumlu': bütçe katı alt sınıra yetmiyorsa riskli bankolara açık uyarı ile izin verir.
+    """Garanti derecesi (12-15), evren modu, banko tavanı, minimum kapalı maç (min_kapali) ve sürpriz kapatma
+    önceliğine duyarlı 15 maçlık şablon kurar.
     """
     if risk_politikasi not in ("kati", "butce_uyumlu"):
         raise ValueError("Gecersiz banko risk politikasi")
     r = max(0, min(3, 15 - int(garanti_derecesi)))
     limit = max(0, min(160000, int(hedef_kolon)))
-    if r == 0 and mutlak_mod:
+    if raw_cap_override is not None:
+        raw_cap = max(1, min(250000, int(raw_cap_override)))
+    elif r == 0 and mutlak_mod:
         raw_cap = limit
     elif not mutlak_mod and r >= 1:
-        raw_cap = min(120000, max(limit * 4, 60000))
+        r_default_cap = {1: 60000, 2: 95000, 3: 165000}.get(r, 95000)
+        raw_cap = min(220000, max(limit * 5, r_default_cap))
     else:
         raw_cap = min(60000 if r >= 1 else 160000, max(limit, 60000 if r >= 1 else limit * 2))
 
@@ -1348,8 +1383,11 @@ def butceye_gore_sablon_optimize_et(
 
     kati_min_k = [2 if reasons else 1 for reasons in riskler]
     kati_n2 = sum(1 for k in kati_min_k if k == 2)
-    kati_asgari_ham = 2 ** kati_n2
-    kati_asgari_tahmini = _tahmini_nihai_kolon(kati_n2, 0, garanti_derecesi, mutlak_mod, hibrit_mod, ikramiye_filtre_aktif)
+    _mk_kati = int(min_kapali) if (min_kapali is not None and int(min_kapali) > 0) else 0
+    _kati_n3_req = min(_mk_kati, kati_n2)
+    _kati_n2_rem = kati_n2 - _kati_n3_req
+    kati_asgari_ham = (2 ** _kati_n2_rem) * (3 ** _kati_n3_req)
+    kati_asgari_tahmini = _tahmini_nihai_kolon(_kati_n2_rem, _kati_n3_req, garanti_derecesi, mutlak_mod, hibrit_mod, ikramiye_filtre_aktif)
     kati_korunabilir = (kati_asgari_tahmini <= limit) and (kati_asgari_ham <= raw_cap)
     min_k = (kati_min_k if risk_politikasi == "kati" or kati_korunabilir
              else [1] * len(veriler))
@@ -1393,7 +1431,7 @@ def butceye_gore_sablon_optimize_et(
                 surp_bonus = 0.0
                 if surpriz_kapatma_odakli:
                     if k == 3:
-                        surp_bonus = 0.095 * surp_skor
+                        surp_bonus = 0.145 * surp_skor
                     elif k == 2:
                         surp_bonus = 0.025 * surp_skor
                     elif k == 1 and (probs[0] / den < 0.64 or tuzak_fark >= 10.0):
@@ -1407,16 +1445,25 @@ def butceye_gore_sablon_optimize_et(
             raise RuntimeError("Butce/Banko DP durumu beklenmedik bicimde bosaldi.")
 
     gecerli_tumu = []
+    gecerli_tam_uyumlu = []
+    gecerli_kapali_uyumlu = []
     gecerli_banko_uyumlu = []
     n_mac = len(veriler)
+    mk_hedef = int(min_kapali) if (min_kapali is not None and int(min_kapali) > 0) else 0
     for (n2, n3), (score, path) in dp.items():
         est = _tahmini_nihai_kolon(n2, n3, garanti_derecesi, mutlak_mod, hibrit_mod, ikramiye_filtre_aktif)
         if est <= limit:
             raw = (2 ** n2) * (3 ** n3)
             n1 = n_mac - n2 - n3
-            aday = (score, raw, est, n1, path)
+            aday = (score, raw, est, n1, n3, path)
             gecerli_tumu.append(aday)
-            if max_banko is None or n1 <= int(max_banko):
+            b_ok = (max_banko is None or n1 <= int(max_banko))
+            k_ok = (n3 >= mk_hedef)
+            if b_ok and k_ok:
+                gecerli_tam_uyumlu.append(aday)
+            if k_ok:
+                gecerli_kapali_uyumlu.append(aday)
+            if b_ok:
                 gecerli_banko_uyumlu.append(aday)
 
     if not gecerli_tumu:
@@ -1430,20 +1477,33 @@ def butceye_gore_sablon_optimize_et(
             "riskli_banko": sum(bool(r_i) for r_i in riskler),
             "secim_ham": min_ham, "neden": "butce_yetersiz",
             "risk_politikasi": risk_politikasi, "uyarili_bankolar": [],
-            "max_banko": max_banko, "banko_tavani_esnetildi": False,
+            "max_banko": max_banko, "min_kapali": min_kapali,
+            "banko_tavani_esnetildi": False,
             "surpriz_kapatma_odakli": bool(surpriz_kapatma_odakli),
         }
         return secim
 
     banko_tavani_esnetildi = False
-    if gecerli_banko_uyumlu:
-        score, ham, est_nihai, n1_sec, path = max(gecerli_banko_uyumlu, key=lambda x: (x[0], x[1]))
+    if gecerli_tam_uyumlu:
+        score, ham, est_nihai, n1_sec, n3_sec, path = max(gecerli_tam_uyumlu, key=lambda x: (x[0], x[4], x[1]))
+    elif mk_hedef > 0 and gecerli_kapali_uyumlu:
+        # Kapalı maç koruması (sürpriz gücü) önceliklidir; en az bankolu kapalı-uyumlu şablon seçilir.
+        banko_tavani_esnetildi = (max_banko is not None)
+        min_n1_k = min(x[3] for x in gecerli_kapali_uyumlu)
+        aday_k = [x for x in gecerli_kapali_uyumlu if x[3] == min_n1_k]
+        score, ham, est_nihai, n1_sec, n3_sec, path = max(aday_k, key=lambda x: (x[0], x[4], x[1]))
+    elif gecerli_banko_uyumlu:
+        if mk_hedef > 0:
+            max_n3_b = max(x[4] for x in gecerli_banko_uyumlu)
+            aday_b = [x for x in gecerli_banko_uyumlu if x[4] == max_n3_b]
+            score, ham, est_nihai, n1_sec, n3_sec, path = max(aday_b, key=lambda x: (x[0], x[1]))
+        else:
+            score, ham, est_nihai, n1_sec, n3_sec, path = max(gecerli_banko_uyumlu, key=lambda x: (x[0], x[1]))
     else:
-        # Bütçe/hedef yüzünden banko tavanı sığmadıysa en az bankolu geçerli şablonu seç ve uyar.
         banko_tavani_esnetildi = True
         min_n1_mumkun = min(x[3] for x in gecerli_tumu)
         en_az_bankolular = [x for x in gecerli_tumu if x[3] == min_n1_mumkun]
-        score, ham, est_nihai, n1_sec, path = max(en_az_bankolular, key=lambda x: (x[0], x[1]))
+        score, ham, est_nihai, n1_sec, n3_sec, path = max(en_az_bankolular, key=lambda x: (x[4], x[0], x[1]))
 
     uyarili = [
         {"sira": i + 1, "mac": str(v.get("mac", i + 1)), "nedenler": list(riskler[i])}
@@ -2676,8 +2736,8 @@ def v20_bulten_teshis(veriler, halk_map=None):
 
 
 def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=None, kolon_fiyati=10.0):
-    """Bütçeye ve bülten zorluğuna göre birden fazla stratejiyi yarıştırır, kendi hatasını düzeltir
-    ve bütçeye tam sığan en güçlü kupon setini deterministik olarak seçer.
+    """v20.1 3'lü Otopilot: Aynı bütçe içinde 14 Garanti, 13 Garanti ve 12 Garanti sistemlerinin
+    ÜÇÜNÜ BİRDEN zorunlu kapalı maç (sürpriz) korumasıyla hazırlar; kullanıcı dilediği sistemi tek tıkla seçer.
     """
     hedef_k = int(hedef_kolon)
     if hedef_k <= 0:
@@ -2696,28 +2756,6 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
     strateji_etiket = "⚖️ Dengeli (Log-Olasılık)"
     on_lim = tam_otonom_analiz(veriler, strateji_etiket)
 
-    if surpriz_tarzi:
-        adaylar = [
-            {"ad": "A1 • 13 Hedef • Sürpriz Avcısı (Maks 3B)", "garanti": 13, "max_banko": 3, "surp_kapat": True, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.90, "pop": 15 if halk_tam else 0},
-            {"ad": "A2 • 13 Hedef • Geniş Dengeli (Maks 4B)", "garanti": 13, "max_banko": 4, "surp_kapat": True, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.10, "pop": 10 if halk_tam else 0},
-            {"ad": "A3 • 14 Hedef • Sendika Sürpriz (Maks 4B)", "garanti": 14, "max_banko": 4, "surp_kapat": True, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0},
-            {"ad": "A4 • 12 Hedef • Geniş Kuşatma (Maks 2B)", "garanti": 12, "max_banko": 2, "surp_kapat": True, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0},
-        ]
-    else:
-        adaylar = [
-            {"ad": "B1 • 14 Hedef • Dengeli Sendika (Maks 4B)", "garanti": 14, "max_banko": 4, "surp_kapat": True, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0},
-            {"ad": "B2 • 14 Hedef • Güvenli Banko (Maks 5B)", "garanti": 14, "max_banko": 5, "surp_kapat": True, "max_fav": 12, "min_fav_disi": 2, "min_agir": 0, "z_ust": 1.35, "pop": 5 if halk_tam else 0},
-            {"ad": "B3 • 13 Hedef • Sürpriz Korumalı (Maks 3B)", "garanti": 13, "max_banko": 3, "surp_kapat": True, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0},
-            {"ad": "B4 • 12 Hedef • Ekonomik Kuşatma (Maks 3B)", "garanti": 12, "max_banko": 3, "surp_kapat": True, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.10, "pop": 10 if halk_tam else 0},
-        ]
-
-    if hedef_k <= 120:
-        adaylar.append({
-            "ad": "E1 • 12 Hedef • Küçük Bütçe Korumalı (Maks 5B)", "garanti": 12, "max_banko": 5,
-            "surp_kapat": True, "max_fav": 12, "min_fav_disi": 2, "min_agir": 0, "z_ust": 1.45, "pop": 0
-        })
-
-    # s_veriler listesini sabit ve temiz oluştur
     def _df_ve_sablon_hazirla(oto_durum):
         df_c = tablo_verisi_olustur(
             veriler, on_lim, tuzak_aktif=True, mod="butce_oto",
@@ -2751,43 +2789,64 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
         g2_ar = (0, max(2, int(math.ceil(len(g2_idx) * 0.80)))) if g2_idx else (0, 15)
         return df_c, sablon_c, s_ver_c, g1_idx, g2_idx, g1_ar, g2_ar
 
-    sonuclar = []
-    gorulen_anahtarlar = set()
-    for aday in adaylar:
-        # CPU koruması: ham evreni 60.000 altında tut
-        oto_durum = butceye_gore_sablon_optimize_et(
-            veriler, hedef_k, aday["garanti"],
-            mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
-            max_banko=aday["max_banko"], surpriz_kapatma_odakli=aday["surp_kapat"],
-            ikramiye_filtre_aktif=True, halk_map=halk_map
-        )
-        # Eğer ham şablon 60.000'i geçiyorsa bütçe hedefini hafifçe daraltıp CPU dostu hale getir
-        if math.prod(oto_durum) > 60000:
-            oto_durum = butceye_gore_sablon_optimize_et(
-                veriler, max(1, int(hedef_k * 0.72)), aday["garanti"],
-                mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
-                max_banko=aday["max_banko"], surpriz_kapatma_odakli=aday["surp_kapat"],
-                ikramiye_filtre_aktif=True, halk_map=halk_map
-            )
-        dedup_key = (tuple(oto_durum), aday["garanti"], aday["max_fav"], aday["min_fav_disi"], aday["min_agir"])
-        if dedup_key in gorulen_anahtarlar:
-            continue
-        gorulen_anahtarlar.add(dedup_key)
+    # Her garanti derecesi (14, 13, 12) için zorunlu kapalı maç korumalı aday havuzu
+    if hedef_k <= 120:
+        tier_adaylari = {
+            14: [
+                {"ad": "🥇 14 Garanti • Ekonomik Keskin", "garanti": 14, "max_banko": 6, "min_kapali": 2, "raw_cap": 30000, "max_fav": 12, "min_fav_disi": 2, "min_agir": 0, "z_ust": 1.35, "pop": 5 if halk_tam else 0},
+                {"ad": "🥇 14 Garanti • Sürprizli", "garanti": 14, "max_banko": 7, "min_kapali": 3, "raw_cap": 30000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.25, "pop": 5 if halk_tam else 0},
+            ],
+            13: [
+                {"ad": "🥈 13 Garanti • Ekonomik Sürpriz", "garanti": 13, "max_banko": 5, "min_kapali": 3, "raw_cap": 50000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0},
+                {"ad": "🥈 13 Garanti • Geniş Kapalı", "garanti": 13, "max_banko": 6, "min_kapali": 4, "raw_cap": 50000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.10, "pop": 10 if halk_tam else 0},
+            ],
+            12: [
+                {"ad": "🥉 12 Garanti • Geniş Sürpriz Kuşatması", "garanti": 12, "max_banko": 3, "min_kapali": 5, "raw_cap": 95000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 1.00, "pop": 15 if halk_tam else 0},
+                {"ad": "🥉 12 Garanti • Dengeli Kuşatma", "garanti": 12, "max_banko": 4, "min_kapali": 4, "raw_cap": 95000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0},
+            ],
+        }
+    else:
+        tier_adaylari = {
+            14: [
+                {"ad": "🥇 14 Garanti • Keskin Sendika (Min 3K)", "garanti": 14, "max_banko": 4, "min_kapali": 3, "raw_cap": 45000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0},
+                {"ad": "🥇 14 Garanti • Sürpriz Korumalı (Min 4K)", "garanti": 14, "max_banko": 5, "min_kapali": 4, "raw_cap": 45000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.10, "pop": 10 if halk_tam else 0},
+            ],
+            13: [
+                {"ad": "🥈 13 Garanti • İdeal İkramiye (Min 5K)", "garanti": 13, "max_banko": 3, "min_kapali": 5, "raw_cap": 85000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0},
+                {"ad": "🥈 13 Garanti • Geniş Sürpriz (Min 6K)", "garanti": 13, "max_banko": 4, "min_kapali": 6, "raw_cap": 85000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.90, "pop": 15 if halk_tam else 0},
+            ],
+            12: [
+                {"ad": "🥉 12 Garanti • Maksimum Sürpriz (Min 7K)", "garanti": 12, "max_banko": 2, "min_kapali": 7, "raw_cap": 155000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0},
+                {"ad": "🥉 12 Garanti • Dengeli Kuşatma (Min 6K)", "garanti": 12, "max_banko": 3, "min_kapali": 6, "raw_cap": 155000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 1.00, "pop": 15 if halk_tam else 0},
+            ],
+        }
 
+    def _aday_degerlendir(aday):
+        gar_d = int(aday["garanti"])
+        oto_durum = butceye_gore_sablon_optimize_et(
+            veriler, hedef_k, gar_d,
+            mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
+            max_banko=aday["max_banko"], surpriz_kapatma_odakli=True,
+            ikramiye_filtre_aktif=True, halk_map=halk_map,
+            min_kapali=aday["min_kapali"], raw_cap_override=aday["raw_cap"]
+        )
         df_c, sablon_c, s_ver_c, g1_idx, g2_idx, g1_ar, g2_ar = _df_ve_sablon_hazirla(oto_durum)
         lim_c = tam_otonom_analiz(s_ver_c, strateji_etiket, aktif_sablon=sablon_c)
 
-        # Kendi hatasını düzelten (Self-Healing) filtreleme basamağı
         ikr_aktif_c = True
         max_f_c, min_fd_c, min_ag_c, z_ust_c, pop_c = (
             aday["max_fav"], aday["min_fav_disi"], aday["min_agir"], aday["z_ust"], aday["pop"]
         )
         self_heal_notu = ""
+        mat_c = np.empty((0, 15))
+        puan_c = np.empty(0)
+        komp_c = np.empty(0)
+        ham_ev_c = np.empty((0, 15))
+        ikr_meta_c = {}
         for deneme_no in range(3):
             (
-                mat_c, puan_c, komp_c, esn_c,
-                ham_ev_c, ham_p_c, ham_k_c,
-                _, _, _
+                mat_c, puan_c, komp_c, _,
+                ham_ev_c, _, _, _, _, _
             ) = vektorel_filtrele(
                 sablon_c, s_ver_c, lim_c,
                 g1_indeksleri=g1_idx, g1_aralik=g1_ar,
@@ -2797,10 +2856,8 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
                 kati_filtre=True,
                 public_prob=pub_arr, crowd_strength=crowd_w,
                 ikramiye_filtre_aktif=ikr_aktif_c,
-                ikramiye_max_fav=max_f_c,
-                ikramiye_min_fav_disi=min_fd_c,
-                ikramiye_min_agir_surp=min_ag_c,
-                ikramiye_z_ust_tavan=z_ust_c,
+                ikramiye_max_fav=max_f_c, ikramiye_min_fav_disi=min_fd_c,
+                ikramiye_min_agir_surp=min_ag_c, ikramiye_z_ust_tavan=z_ust_c,
                 ikramiye_populer_ele_yuzde=pop_c
             )
             ikr_meta_c = dict(getattr(vektorel_filtrele, "meta", {}))
@@ -2815,41 +2872,64 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
                 self_heal_notu = "İkramiye filtresi boş evreni önlemek için otomatik yumuşatıldı."
             else:
                 ikr_aktif_c = False
-                self_heal_notu = "İkramiye filtresi çok dar kaldığı için bu adayda otomatik kapatıldı."
+                self_heal_notu = "İkramiye filtresi bu adayda otomatik kapatıldı."
 
         if len(mat_c) == 0:
-            continue
+            return None
 
-        # Hızlı eleme: ortogonal_aktif=False ile hızlı kapsama kontrolü
+        # Filtreli evren çok büyükse (>55.000) şablonu kontrollü küçült (Streamlit Cloud CPU koruması)
+        if len(mat_c) > 55000:
+            oto_kucuk = butceye_gore_sablon_optimize_et(
+                veriler, max(1, int(hedef_k * 0.72)), gar_d,
+                mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
+                max_banko=min(8, aday["max_banko"] + 1), surpriz_kapatma_odakli=True,
+                ikramiye_filtre_aktif=True, halk_map=halk_map,
+                min_kapali=max(2, aday["min_kapali"] - 1), raw_cap_override=min(80000, aday["raw_cap"])
+            )
+            df_c, sablon_c, s_ver_c, g1_idx, g2_idx, g1_ar, g2_ar = _df_ve_sablon_hazirla(oto_kucuk)
+            lim_c = tam_otonom_analiz(s_ver_c, strateji_etiket, aktif_sablon=sablon_c)
+            mat_c, puan_c, komp_c, _, ham_ev_c, _, _, _, _, _ = vektorel_filtrele(
+                sablon_c, s_ver_c, lim_c,
+                g1_indeksleri=g1_idx, g1_aralik=g1_ar,
+                g2_indeksleri=g2_idx, g2_aralik=g2_ar,
+                log_zarf_aktif=True, kademe_aktif=True, kati_filtre=True,
+                public_prob=pub_arr, crowd_strength=crowd_w,
+                ikramiye_filtre_aktif=ikr_aktif_c,
+                ikramiye_max_fav=max_f_c, ikramiye_min_fav_disi=min_fd_c,
+                ikramiye_min_agir_surp=min_ag_c, ikramiye_z_ust_tavan=z_ust_c,
+                ikramiye_populer_ele_yuzde=pop_c
+            )
+            ikr_meta_c = dict(getattr(vektorel_filtrele, "meta", {}))
+            oto_durum = oto_kucuk
+            if len(mat_c) == 0:
+                return None
+
         garanti_c, g_puan_c, kapsama_c, bud_c, swp_c = gelismis_garanti_ve_budama_uygula(
-            mat_c, puan_c, komp_c, aday["garanti"],
+            mat_c, puan_c, komp_c, gar_d,
             max_k=hedef_k, akilli_merkez=True, min_fark=1, hedef_kapsama=100.0,
             sablon=sablon_c, ortogonal_aktif=False, veriler=s_ver_c, arama_derinligi="Dengeli"
         )
         meta_c = dict(gelismis_garanti_ve_budama_uygula.meta)
 
-        # Kendi kendini kalibre etme: eğer aday bütçe sınırına kıl payı sığmadıysa (hedef_tam=False),
-        # şablonu bir kademe daraltıp %100 doğrulanmış kapsama yakalamayı dene.
+        # Kendi kendini kalibre etme: eğer bütçeye tam sığmadıysa (%100 kapsama olmadıysa) şablonu 1 kademe daralt.
         if (not meta_c.get("hedef_tam", False)) and hedef_k >= 20:
-            oto_dar = butceye_gore_sablon_optimize_et(
-                veriler, max(1, int(hedef_k * 0.62)), aday["garanti"],
-                mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
-                max_banko=min(8, aday["max_banko"] + 1), surpriz_kapatma_odakli=aday["surp_kapat"],
-                ikramiye_filtre_aktif=True, halk_map=halk_map
-            )
-            if tuple(oto_dar) != tuple(oto_durum) and math.prod(oto_dar) <= 60000:
+            for carpan in (0.62, 0.42):
+                oto_dar = butceye_gore_sablon_optimize_et(
+                    veriler, max(1, int(hedef_k * carpan)), gar_d,
+                    mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
+                    max_banko=min(8, aday["max_banko"] + 1), surpriz_kapatma_odakli=True,
+                    ikramiye_filtre_aktif=True, halk_map=halk_map,
+                    min_kapali=max(2, aday["min_kapali"] - 1), raw_cap_override=aday["raw_cap"]
+                )
+                if tuple(oto_dar) == tuple(oto_durum):
+                    continue
                 df_d, sablon_d, s_ver_d, g1_d, g2_d, g1_ar_d, g2_ar_d = _df_ve_sablon_hazirla(oto_dar)
                 lim_d = tam_otonom_analiz(s_ver_d, strateji_etiket, aktif_sablon=sablon_d)
-                (
-                    mat_d, puan_d, komp_d, _,
-                    ham_ev_d, _, _, _, _, _
-                ) = vektorel_filtrele(
+                mat_d, puan_d, komp_d, _, ham_ev_d, _, _, _, _, _ = vektorel_filtrele(
                     sablon_d, s_ver_d, lim_d,
                     g1_indeksleri=g1_d, g1_aralik=g1_ar_d,
                     g2_indeksleri=g2_d, g2_aralik=g2_ar_d,
-                    log_zarf_aktif=True, kademe_aktif=True,
-                    entropi_aktif=False, homojen_aktif=False,
-                    kati_filtre=True,
+                    log_zarf_aktif=True, kademe_aktif=True, kati_filtre=True,
                     public_prob=pub_arr, crowd_strength=crowd_w,
                     ikramiye_filtre_aktif=ikr_aktif_c,
                     ikramiye_max_fav=max_f_c, ikramiye_min_fav_disi=min_fd_c,
@@ -2858,24 +2938,26 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
                 )
                 ikr_meta_d = dict(getattr(vektorel_filtrele, "meta", {}))
                 if len(mat_d) >= 1:
-                    gar_d, gp_d, kap_d, bud_d, swp_d = gelismis_garanti_ve_budama_uygula(
-                        mat_d, puan_d, komp_d, aday["garanti"],
+                    gar_d_arr, gp_d, kap_d, bud_d, swp_d = gelismis_garanti_ve_budama_uygula(
+                        mat_d, puan_d, komp_d, gar_d,
                         max_k=hedef_k, akilli_merkez=True, min_fark=1, hedef_kapsama=100.0,
                         sablon=sablon_d, ortogonal_aktif=False, veriler=s_ver_d, arama_derinligi="Dengeli"
                     )
                     meta_d = dict(gelismis_garanti_ve_budama_uygula.meta)
-                    if len(gar_d) > 0 and (meta_d.get("hedef_tam", False) or meta_d.get("kapsama_adet", 0.0) > meta_c.get("kapsama_adet", 0.0) + 3.0):
+                    if len(gar_d_arr) > 0 and (meta_d.get("hedef_tam", False) or meta_d.get("kapsama_adet", 0.0) > meta_c.get("kapsama_adet", 0.0) + 3.0):
                         oto_durum, df_c, sablon_c, s_ver_c = oto_dar, df_d, sablon_d, s_ver_d
                         g1_idx, g2_idx, g1_ar, g2_ar, lim_c = g1_d, g2_d, g1_ar_d, g2_ar_d, lim_d
                         mat_c, puan_c, komp_c, ham_ev_c = mat_d, puan_d, komp_d, ham_ev_d
-                        ikr_meta_c, garanti_c, g_puan_c, kapsama_c, meta_c = ikr_meta_d, gar_d, gp_d, kap_d, meta_d
+                        ikr_meta_c, garanti_c, g_puan_c, kapsama_c, bud_c, swp_c, meta_c = ikr_meta_d, gar_d_arr, gp_d, kap_d, bud_d, swp_d, meta_d
                         self_heal_notu = (self_heal_notu + " " if self_heal_notu else "") + "Şablon bütçe içinde %100 kapsama için otomatik ölçeklendi."
+                        if meta_c.get("hedef_tam", False):
+                            break
 
         if len(garanti_c) == 0:
-            continue
+            return None
 
-        stres_hizli = surpriz_stres_testi_simule_et_v191(garanti_c, s_ver_c, sablon_c, hedef_evren=mat_c, n_sim=1500)
-        ideal_satir = next((x for x in stres_hizli["satirlar"] if "İdeal" in x["Hafta Senaryosu"]), {})
+        stres_c = surpriz_stres_testi_simule_et_v191(garanti_c, s_ver_c, sablon_c, hedef_evren=mat_c, n_sim=2500)
+        ideal_satir = next((x for x in stres_c["satirlar"] if "İdeal" in x["Hafta Senaryosu"]), {})
         ideal_s15 = float(ideal_satir.get("Şablon 15'i Kapsar (%)", 0.0))
         ideal_13p = float(ideal_satir.get("13+ (%)", 0.0))
         ideal_14p = float(ideal_satir.get("14+ (%)", 0.0))
@@ -2886,170 +2968,200 @@ def v20_otopilot_calistir(veriler, hedef_kolon, tarz, halk_map=None, halk_ctx=No
         cifte_say_c = sum(1 for s in sablon_c if len(s) == 2)
         kapali_say_c = sum(1 for s in sablon_c if len(s) == 3)
         garanti_bonus = (
-            {14: 72.0, 13: 48.0, 12: 10.0}.get(aday["garanti"], 0.0)
+            {14: 64.0, 13: 52.0, 12: 24.0}.get(gar_d, 0.0)
             if not surpriz_tarzi else
-            {13: 68.0, 14: 54.0, 12: 12.0}.get(aday["garanti"], 0.0)
+            {13: 68.0, 14: 52.0, 12: 42.0}.get(gar_d, 0.0)
         )
-        # Bütçe verimliliği: bütçenin makul bir kısmını (%40-%100) değerlendirip daha yüksek garanti/kapsama sunan aday ödüllendirilir
         butce_oran = min(1.0, len(garanti_c) / max(1, hedef_k))
-        verim_bonus = 18.0 * min(1.0, butce_oran / 0.55)
+        verim_bonus = 18.0 * min(1.0, butce_oran / 0.50)
 
+        # Tier içi puan (aynı garanti derecesinde en yüksek sürpriz + kapsama dengesi)
         puan_oto = (
             (1000.0 if (hedef_tam_c and butce_uygun_c) else 0.0)
             + float(meta_c.get("kapsama_adet", 0.0)) * 3.5
             + garanti_bonus
             + verim_bonus
-            + (ideal_s15 * (4.0 if surpriz_tarzi else 2.6))
+            + (ideal_s15 * (5.0 if surpriz_tarzi else 3.2))
             + (ideal_13p * (1.8 if surpriz_tarzi else 2.2))
-            + (ideal_14p * (3.2 if not surpriz_tarzi else 2.0))
-            + (stres_hizli["genel_13_arti"] * (1.1 if not surpriz_tarzi else 0.8))
-            + (kapali_say_c * (3.5 if surpriz_tarzi else 2.0))
-            - (stres_hizli["banko_hata_riski_yuzde"] * 0.30)
-            - (max(0, banko_say_c - 4) * 7.0)
+            + (ideal_14p * (3.0 if not surpriz_tarzi else 1.8))
+            + (stres_c["genel_13_arti"] * (1.0 if not surpriz_tarzi else 0.8))
+            + (kapali_say_c * (5.5 if surpriz_tarzi else 3.5))
+            - (stres_c["banko_hata_riski_yuzde"] * 0.28)
+            - (max(0, banko_say_c - 4) * 6.0)
         )
 
-        sonuclar.append({
-            "aday": aday,
-            "puan_oto": round(puan_oto, 2),
-            "oto_durum": oto_durum,
-            "df": df_c,
-            "sablon": sablon_c,
-            "s_veriler": s_ver_c,
+        return {
+            "aday": aday, "garanti_d": gar_d, "puan_oto": round(puan_oto, 2),
+            "df": df_c, "sablon": sablon_c, "s_veriler": s_ver_c,
             "g1_idx": g1_idx, "g2_idx": g2_idx, "g1_ar": g1_ar, "g2_ar": g2_ar,
-            "lim": lim_c,
-            "mat": mat_c, "puan": puan_c, "komp": komp_c,
-            "ham_ev": ham_ev_c,
+            "mat": mat_c, "puan": puan_c, "komp": komp_c, "ham_ev": ham_ev_c,
             "ikr_aktif": ikr_aktif_c, "max_fav": max_f_c, "min_fav_disi": min_fd_c,
             "min_agir": min_ag_c, "z_ust": z_ust_c, "pop": pop_c,
             "ikr_meta": ikr_meta_c, "self_heal_notu": self_heal_notu,
-            "garanti_on": garanti_c, "meta_on": meta_c,
-            "hedef_tam": hedef_tam_c, "kapsama": float(meta_c.get("kapsama_adet", 0.0)),
-            "kolon_on": len(garanti_c),
-            "sablon_str": f"{banko_say_c}B-{cifte_say_c}Ç-{kapali_say_c}K",
+            "garanti": garanti_c, "kapsama": float(kapsama_c), "bud": bud_c, "swp": swp_c,
+            "meta": meta_c, "stres": stres_c,
+            "hedef_tam": hedef_tam_c, "sablon_str": f"{banko_say_c}B-{cifte_say_c}Ç-{kapali_say_c}K",
+            "banko_say": banko_say_c, "cifte_say": cifte_say_c, "kapali_say": kapali_say_c,
             "ham_adet": len(ham_ev_c), "filtreli_adet": len(mat_c),
-            "ideal_s15": ideal_s15, "ideal_13p": ideal_13p,
-            "banko_risk": stres_hizli["banko_hata_riski_yuzde"],
+            "ideal_s15": ideal_s15, "ideal_13p": ideal_13p, "ideal_14p": ideal_14p,
+            "banko_risk": stres_c["banko_hata_riski_yuzde"],
+        }
+
+    # Her 3 garanti derecesi (14, 13, 12) için en iyi adayı bul ve tam pakete dönüştür
+    paketler = {}
+    for g_tier in (14, 13, 12):
+        tier_sonuclar = []
+        for aday in tier_adaylari[g_tier]:
+            s_res = _aday_degerlendir(aday)
+            if s_res is not None:
+                tier_sonuclar.append(s_res)
+        if not tier_sonuclar:
+            continue
+        tier_sonuclar.sort(key=lambda x: x["puan_oto"], reverse=True)
+        en_iyi = tier_sonuclar[0]
+
+        # Tam deterministik denetim & Monte Carlo
+        mc_t = monte_carlo_simule_et(en_iyi["garanti"], en_iyi["s_veriler"], en_iyi["sablon"])
+        den_sec_t = deterministik_garanti_denetle(en_iyi["garanti"], en_iyi["mat"])
+        den_ham_t = deterministik_garanti_denetle(en_iyi["garanti"], en_iyi["ham_ev"])
+
+        aktif_ayar_t = dict(V20_VARSAYILAN_OTOPILOT_AYAR)
+        aktif_ayar_t.update({
+            "garanti_derecesi": g_tier,
+            "mutlak_sablon_garantisi": False,
+            "hibrit_ekonomi_modu": False,
+            "kati_filtre_kilidi": True,
+            "v173_opt_in": bool(halk_tam),
+            "v173_weight": float(crowd_w),
+            "ikramiye_filtre_aktif": bool(en_iyi["ikr_aktif"]),
+            "ikramiye_max_fav": int(en_iyi["max_fav"]),
+            "ikramiye_min_fav_disi": int(en_iyi["min_fav_disi"]),
+            "ikramiye_min_agir_surp": int(en_iyi["min_agir"]),
+            "ikramiye_z_ust_tavan": float(en_iyi["z_ust"]),
+            "ikramiye_populer_ele_yuzde": int(en_iyi["pop"]),
+            "max_banko_tavani": int(en_iyi["aday"]["max_banko"]),
+            "surpriz_kapatma_odakli": True,
         })
 
-    if not sonuclar:
-        raise RuntimeError("Otopilot bu bütçede geçerli bir şablon oluşturamadı. Bütçenizi artırmayı veya Uzman Modu'nu deneyin.")
+        sol_imza_t, param_imza_t = _v20_imza_hesapla(
+            en_iyi["sablon"], en_iyi["s_veriler"], en_iyi["g1_idx"], en_iyi["g2_idx"],
+            aktif_ayar_t["garanti_derecesi"], aktif_ayar_t["mutlak_sablon_garantisi"], aktif_ayar_t["hibrit_ekonomi_modu"],
+            aktif_ayar_t["ortogonal_anahtar_aktif"], aktif_ayar_t["kati_filtre_kilidi"], aktif_ayar_t["hedef_kapsama_orani"],
+            hedef_k, "Bütçe kontrollü", kolon_fiyati,
+            halk_ctx if halk_tam else None, aktif_ayar_t["v173_opt_in"], aktif_ayar_t["v173_weight"], crowd_w,
+            aktif_ayar_t["strateji_modu"], aktif_ayar_t["benzerlik_elemesi"], aktif_ayar_t["akilli_merkez"], aktif_ayar_t["arama_derinligi"],
+            aktif_ayar_t["log_zarf_aktif"], aktif_ayar_t["kademe_filtre_aktif"], aktif_ayar_t["homojen_bulten"], aktif_ayar_t["entropi_filtresi"],
+            aktif_ayar_t["ikramiye_filtre_aktif"], aktif_ayar_t["ikramiye_max_fav"], aktif_ayar_t["ikramiye_min_fav_disi"],
+            aktif_ayar_t["ikramiye_min_agir_surp"], aktif_ayar_t["ikramiye_z_ust_tavan"], aktif_ayar_t["ikramiye_populer_ele_yuzde"],
+            aktif_ayar_t["ai_filtre_modu"], None, aktif_ayar_t["grup_guvence_aktif"], en_iyi["g1_ar"], en_iyi["g2_ar"]
+        )
 
-    sonuclar.sort(key=lambda x: x["puan_oto"], reverse=True)
-    kazanan = sonuclar[0]
+        ozet_t = {
+            "optimizasyon": en_iyi["meta"],
+            "karsilastirma": [], "uretim_modu": "Bütçe kontrollü", "kolon_fiyati": kolon_fiyati, "imza": param_imza_t,
+            "mac_ids": [v["id"] for v in en_iyi["s_veriler"]],
+            "filtreli_adet": en_iyi["filtreli_adet"],
+            "saf_filtreli_adet": en_iyi["filtreli_adet"],
+            "ham_adet": en_iyi["ham_adet"],
+            "garanti_derecesi": g_tier,
+            "mutlak_sablon": False,
+            "hibrit_mod": False,
+            "kapsama": en_iyi["kapsama"],
+            "budanan_adet": en_iyi["bud"],
+            "swap_adet": en_iyi["swp"],
+            "mc": mc_t,
+            "stres_testi": en_iyi["stres"],
+            "ikramiye_meta": en_iyi["ikr_meta"],
+            "denetim": den_sec_t,
+            "denetim_ham": den_ham_t,
+            "s_veriler": en_iyi["s_veriler"],
+            "g_sablon": en_iyi["sablon"],
+            "esnetilenler": [],
+            "v173_public_sha256": halk_ctx["sha256"] if halk_tam else None,
+            "v173_crowd_weight": crowd_w,
+            "v173_note": "Crowd proxy is not payout, EV, or true joint popularity"
+        }
 
-    # Kazanan adayı tam motor (ortogonal_aktif=True + 4000 simülasyon) ile son kez kesinleştir
-    garanti_fin, g_puan_fin, kapsama_fin, bud_fin, swp_fin = gelismis_garanti_ve_budama_uygula(
-        kazanan["mat"], kazanan["puan"], kazanan["komp"], kazanan["aday"]["garanti"],
-        max_k=hedef_k, akilli_merkez=True, min_fark=1, hedef_kapsama=100.0,
-        sablon=kazanan["sablon"], ortogonal_aktif=True, veriler=kazanan["s_veriler"], arama_derinligi="Dengeli"
-    )
-    meta_fin = dict(gelismis_garanti_ve_budama_uygula.meta)
-    mc_fin = monte_carlo_simule_et(garanti_fin, kazanan["s_veriler"], kazanan["sablon"])
-    stres_fin = surpriz_stres_testi_simule_et_v191(garanti_fin, kazanan["s_veriler"], kazanan["sablon"], hedef_evren=kazanan["mat"], n_sim=4000)
-    den_sec_fin = deterministik_garanti_denetle(garanti_fin, kazanan["mat"])
-    den_ham_fin = deterministik_garanti_denetle(garanti_fin, kazanan["ham_ev"])
+        halk_notu = (
+            f"15 maçlık halk oranları algılandı; Anti-Public (ağırlık 0.12) ve {teshis['tuzak_sayisi']} tuzak koruması otomatik uygulandı."
+            if halk_tam else
+            "Halk oranları girilmediği için saf piyasa/model olasılıklarıyla sorunsuz üretildi."
+        )
+        neden_t = (
+            f"**{en_iyi['aday']['ad']}** aktif: **{en_iyi['sablon_str']}** şablonu kuruldu (**{en_iyi['kapali_say']} kapalı maç** ile sürpriz koruması), "
+            f"İkramiye Bandı ile **{en_iyi['ikr_meta'].get('elenen_ucuz_kolon', 0):,}** ucuz kolon elendi ve "
+            f"**{len(en_iyi['garanti']):,} nihai kolon ({len(en_iyi['garanti']) * float(kolon_fiyati):,.0f} TL)** ile "
+            f"**{g_tier} hedefinde %{en_iyi['meta'].get('kapsama_adet', 0.0):.1f} kapsama** "
+            f"({'doğrulandı ✅' if en_iyi['hedef_tam'] else 'kısmi kapsama ⚠️'}). {halk_notu}"
+        )
+        if en_iyi["self_heal_notu"]:
+            neden_t += f" *(Otomatik ölçekleme: {en_iyi['self_heal_notu']})*"
 
-    aktif_ayar = dict(V20_VARSAYILAN_OTOPILOT_AYAR)
-    aktif_ayar.update({
-        "garanti_derecesi": int(kazanan["aday"]["garanti"]),
-        "mutlak_sablon_garantisi": False,
-        "hibrit_ekonomi_modu": False,
-        "kati_filtre_kilidi": True,
-        "v173_opt_in": bool(halk_tam),
-        "v173_weight": float(crowd_w),
-        "ikramiye_filtre_aktif": bool(kazanan["ikr_aktif"]),
-        "ikramiye_max_fav": int(kazanan["max_fav"]),
-        "ikramiye_min_fav_disi": int(kazanan["min_fav_disi"]),
-        "ikramiye_min_agir_surp": int(kazanan["min_agir"]),
-        "ikramiye_z_ust_tavan": float(kazanan["z_ust"]),
-        "ikramiye_populer_ele_yuzde": int(kazanan["pop"]),
-        "max_banko_tavani": int(kazanan["aday"]["max_banko"]),
-        "surpriz_kapatma_odakli": bool(kazanan["aday"]["surp_kapat"]),
-    })
+        paketler[g_tier] = {
+            "garanti_d": g_tier,
+            "aday_ad": en_iyi["aday"]["ad"],
+            "puan_oto": en_iyi["puan_oto"],
+            "sablon_str": en_iyi["sablon_str"],
+            "banko_say": en_iyi["banko_say"],
+            "cifte_say": en_iyi["cifte_say"],
+            "kapali_say": en_iyi["kapali_say"],
+            "ham_adet": en_iyi["ham_adet"],
+            "filtreli_adet": en_iyi["filtreli_adet"],
+            "kolon_say": len(en_iyi["garanti"]),
+            "maliyet_tl": float(len(en_iyi["garanti"]) * float(kolon_fiyati)),
+            "kapsama_yuzde": float(en_iyi["meta"].get("kapsama_adet", 0.0)),
+            "hedef_tam": en_iyi["hedef_tam"],
+            "ideal_s15": en_iyi["ideal_s15"],
+            "ideal_13p": en_iyi["ideal_13p"],
+            "ideal_14p": en_iyi["ideal_14p"],
+            "banko_risk": en_iyi["banko_risk"],
+            "elenen_ucuz": int(en_iyi["ikr_meta"].get("elenen_ucuz_kolon", 0)),
+            "df": en_iyi["df"],
+            "garanti": en_iyi["garanti"],
+            "ozet": ozet_t,
+            "aktif_ayar": aktif_ayar_t,
+            "sol_imza": sol_imza_t,
+            "param_imza": param_imza_t,
+            "neden_secildi": neden_t,
+        }
 
-    sol_imza, param_imza = _v20_imza_hesapla(
-        kazanan["sablon"], kazanan["s_veriler"], kazanan["g1_idx"], kazanan["g2_idx"],
-        aktif_ayar["garanti_derecesi"], aktif_ayar["mutlak_sablon_garantisi"], aktif_ayar["hibrit_ekonomi_modu"],
-        aktif_ayar["ortogonal_anahtar_aktif"], aktif_ayar["kati_filtre_kilidi"], aktif_ayar["hedef_kapsama_orani"],
-        hedef_k, "Bütçe kontrollü", kolon_fiyati,
-        halk_ctx if halk_tam else None, aktif_ayar["v173_opt_in"], aktif_ayar["v173_weight"], crowd_w,
-        aktif_ayar["strateji_modu"], aktif_ayar["benzerlik_elemesi"], aktif_ayar["akilli_merkez"], aktif_ayar["arama_derinligi"],
-        aktif_ayar["log_zarf_aktif"], aktif_ayar["kademe_filtre_aktif"], aktif_ayar["homojen_bulten"], aktif_ayar["entropi_filtresi"],
-        aktif_ayar["ikramiye_filtre_aktif"], aktif_ayar["ikramiye_max_fav"], aktif_ayar["ikramiye_min_fav_disi"],
-        aktif_ayar["ikramiye_min_agir_surp"], aktif_ayar["ikramiye_z_ust_tavan"], aktif_ayar["ikramiye_populer_ele_yuzde"],
-        aktif_ayar["ai_filtre_modu"], None, aktif_ayar["grup_guvence_aktif"], kazanan["g1_ar"], kazanan["g2_ar"]
-    )
+    if not paketler:
+        raise RuntimeError("Otopilot bu bütçede geçerli bir sistem oluşturamadı. Bütçenizi artırmayı veya Uzman Modu'nu deneyin.")
 
-    ozet_fin = {
-        "optimizasyon": meta_fin,
-        "karsilastirma": [], "uretim_modu": "Bütçe kontrollü", "kolon_fiyati": kolon_fiyati, "imza": param_imza,
-        "mac_ids": [v["id"] for v in kazanan["s_veriler"]],
-        "filtreli_adet": len(kazanan["mat"]),
-        "saf_filtreli_adet": len(kazanan["mat"]),
-        "ham_adet": len(kazanan["ham_ev"]),
-        "garanti_derecesi": int(kazanan["aday"]["garanti"]),
-        "mutlak_sablon": False,
-        "hibrit_mod": False,
-        "kapsama": float(kapsama_fin),
-        "budanan_adet": bud_fin,
-        "swap_adet": swp_fin,
-        "mc": mc_fin,
-        "stres_testi": stres_fin,
-        "ikramiye_meta": kazanan["ikr_meta"],
-        "denetim": den_sec_fin,
-        "denetim_ham": den_ham_fin,
-        "s_veriler": kazanan["s_veriler"],
-        "g_sablon": kazanan["sablon"],
-        "esnetilenler": [],
-        "v173_public_sha256": halk_ctx["sha256"] if halk_tam else None,
-        "v173_crowd_weight": crowd_w,
-        "v173_note": "Crowd proxy is not payout, EV, or true joint popularity"
-    }
+    onerilen_g = max(paketler.keys(), key=lambda g: paketler[g]["puan_oto"])
+    kazanan = paketler[onerilen_g]
 
     yarisma_tablosu = []
-    for idx_s, s_item in enumerate(sonuclar, 1):
-        kolon_goster = len(garanti_fin) if idx_s == 1 else s_item["kolon_on"]
-        kapsama_goster = float(meta_fin.get("kapsama_adet", 0.0)) if idx_s == 1 else s_item["kapsama"]
-        hedef_goster = bool(meta_fin.get("hedef_tam", False)) if idx_s == 1 else s_item["hedef_tam"]
+    for g_tier in (14, 13, 12):
+        if g_tier not in paketler:
+            continue
+        p = paketler[g_tier]
         yarisma_tablosu.append({
-            "Seçim": "🏆 KAZANAN" if idx_s == 1 else f"#{idx_s}",
-            "Strateji Adayı": s_item["aday"]["ad"],
-            "Şablon": s_item["sablon_str"],
-            "Ham → Filtreli": f"{s_item['ham_adet']:,} → {s_item['filtreli_adet']:,}",
-            "Nihai Kolon": kolon_goster,
-            "Maliyet (TL)": round(kolon_goster * float(kolon_fiyati), 0),
-            "Kapsama": f"%{kapsama_goster:.1f} {'✅' if hedef_goster else '⚠️'}",
-            "2–3 Sürprizde 15'i Kapsar": f"%{s_item['ideal_s15']:.2f}",
-            "Banko Riski": f"%{s_item['banko_risk']:.1f}",
-            "Otopilot Skoru": s_item["puan_oto"],
+            "Seçenek": f"⭐ {g_tier} Garanti (Önerilen)" if g_tier == onerilen_g else f"{g_tier} Garanti",
+            "Strateji": p["aday_ad"],
+            "Şablon": p["sablon_str"],
+            "Ham → Filtreli": f"{p['ham_adet']:,} → {p['filtreli_adet']:,}",
+            "Nihai Kolon": p["kolon_say"],
+            "Maliyet (TL)": round(p["maliyet_tl"], 0),
+            "Kapsama": f"%{p['kapsama_yuzde']:.1f} {'✅' if p['hedef_tam'] else '⚠️'}",
+            "2–3 Sürprizde 15'i Kapsar": f"%{p['ideal_s15']:.2f}",
+            "Banko Riski": f"%{p['banko_risk']:.1f}",
+            "Otopilot Skoru": p["puan_oto"],
         })
 
-    halk_notu = (
-        f"15 maçlık halk oranları algılandı; Anti-Public (ağırlık 0.12) ve {teshis['tuzak_sayisi']} tuzak koruması otomatik uygulandı."
-        if halk_tam else
-        "Halk oranları girilmediği için saf piyasa/model olasılıklarıyla sorunsuz üretildi."
-    )
-    neden_secildi = (
-        f"**{kazanan['aday']['ad']}** seçildi: **{kazanan['sablon_str']}** şablonu kuruldu, "
-        f"İkramiye Bandı filtresiyle **{kazanan['ikr_meta'].get('elenen_ucuz_kolon', 0):,}** ucuz/kolay kolon elendi ve "
-        f"**{len(garanti_fin):,} nihai kolon ({len(garanti_fin) * float(kolon_fiyati):,.0f} TL)** ile bütçenizin içinde "
-        f"**{kazanan['aday']['garanti']} hedefinde %{meta_fin.get('kapsama_adet', 0.0):.1f} kapsama** "
-        f"({'doğrulandı ✅' if meta_fin.get('hedef_tam') else 'kısmi kapsama ⚠️'}). {halk_notu}"
-    )
-    if kazanan["self_heal_notu"]:
-        neden_secildi += f" *(Otomatik onarım: {kazanan['self_heal_notu']})*"
-
     return {
+        "paketler": paketler,
+        "onerilen_garanti": int(onerilen_g),
         "df": kazanan["df"],
-        "garanti": garanti_fin,
-        "ozet": ozet_fin,
-        "aktif_ayar": aktif_ayar,
-        "sol_imza": sol_imza,
-        "param_imza": param_imza,
+        "garanti": kazanan["garanti"],
+        "ozet": kazanan["ozet"],
+        "aktif_ayar": kazanan["aktif_ayar"],
+        "sol_imza": kazanan["sol_imza"],
+        "param_imza": kazanan["param_imza"],
         "bulten_teshis": teshis,
         "yarisma_tablosu": yarisma_tablosu,
-        "neden_secildi": neden_secildi,
-        "kazanan_ad": kazanan["aday"]["ad"],
+        "neden_secildi": kazanan["neden_secildi"],
+        "kazanan_ad": kazanan["aday_ad"],
         "kazanan_sablon_str": kazanan["sablon_str"],
         "tarz": tarz,
         "hedef_kolon": hedef_k,
@@ -4419,7 +4531,7 @@ def v18_zip_kontrol(zip_bytes, skip_recount=False):
             'txt_sha256':m['txt_sha256'],'matches':len(m['matches']),
             'analyzed_at':report.get('checked_at_utc')}
 
-st.markdown("### 🏆 Spor Toto AI Pro v20.0 — Otopilot Pro" if otopilot_modu else "### 🏆 Spor Toto AI Pro v20.0 — Uzman Modu")
+st.markdown("### 🏆 Spor Toto AI Pro v20.1 — 3'lü Otopilot Pro (14 / 13 / 12 Garanti)" if otopilot_modu else "### 🏆 Spor Toto AI Pro v20.1 — Uzman Modu")
 _secili = len(st.session_state.secilen_15_mac)
 _analiz_var = st.session_state.analiz_verisi is not None
 _kolon_var = st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0
@@ -4623,6 +4735,9 @@ with tab_uretim:
                     st.session_state.v19_paket_cache = {}
                     st.session_state.v19_exact_audit_cache = {}
                     st.session_state.v19_kabul_zip_cache = {}
+                    st.session_state.v20_otopilot_paketler = None
+                    st.session_state.v20_otopilot_raporu = None
+                    st.session_state.v20_otopilot_secili_garanti = None
                     st.rerun()
 
             if st.session_state.mac_listesi:
@@ -4781,7 +4896,7 @@ with tab_uretim:
             _oc1, _oc2 = st.columns([3.2, 1.3])
             with _oc1:
                 _oto_baslat = st.button(
-                    f"🚀 TEK TIKLA OTOPİLOTU BAŞLAT ({hedef_butce_tl:,.0f} TL • {otopilot_tarz.split('(')[0].strip()})",
+                    f"🚀 TEK TIKLA 3'LÜ OTOPİLOTU BAŞLAT — 14 / 13 / 12 GARANTİ ({hedef_butce_tl:,.0f} TL)",
                     type="primary",
                     use_container_width=True,
                     disabled=_oto_buton_engel,
@@ -4804,7 +4919,7 @@ with tab_uretim:
                 st.warning("👈 Sol menüde en az 1 kolonluk bütçe belirleyin.")
 
             if (_oto_baslat or _oto_api_yenile) and not _oto_buton_engel:
-                with st.spinner("🤖 Otopilot çalışıyor: oranlar doğrulanıyor, stratejiler yarıştırılıyor, en güçlü kupon seti seçiliyor..."):
+                with st.spinner("🤖 3'lü Otopilot çalışıyor: 14, 13 ve 12 Garanti sistemleri kapalı-maç korumasıyla ayrı ayrı hazırlanıyor..."):
                     try:
                         _sec_ids_now = [int(m["id"]) for m in st.session_state.secilen_15_mac]
                         _analiz_guncel_mi = (
@@ -4859,6 +4974,9 @@ with tab_uretim:
                         ):
                             raise ValueError("Bütçe koruma sınırı aşıldı; çıktı reddedildi.")
 
+                        st.session_state.v20_otopilot_paketler = _oto_sonuc["paketler"]
+                        st.session_state.v20_otopilot_secili_garanti = int(_oto_sonuc["onerilen_garanti"])
+                        st.session_state["v201_garanti_secici_radio"] = int(_oto_sonuc["onerilen_garanti"])
                         st.session_state.v20_otopilot_aktif_ayar = dict(_oto_sonuc["aktif_ayar"])
                         st.session_state.v20_otopilot_raporu = {
                             "bulten_teshis": _oto_sonuc["bulten_teshis"],
@@ -4866,6 +4984,8 @@ with tab_uretim:
                             "neden_secildi": _oto_sonuc["neden_secildi"],
                             "kazanan_ad": _oto_sonuc["kazanan_ad"],
                             "kazanan_sablon_str": _oto_sonuc["kazanan_sablon_str"],
+                            "onerilen_garanti": int(_oto_sonuc["onerilen_garanti"]),
+                            "aktif_garanti": int(_oto_sonuc["onerilen_garanti"]),
                             "tarz": _oto_sonuc["tarz"],
                             "hedef_kolon": _oto_sonuc["hedef_kolon"],
                             "kolon_fiyati": _oto_sonuc["kolon_fiyati"],
@@ -4882,7 +5002,7 @@ with tab_uretim:
                         st.session_state.son_param_imzasi = _oto_sonuc["param_imza"]
                         st.session_state.v19_ilk_uretim_yapildi = True
                         st.session_state.v19_sablon_koru_bir_tur = True
-                        st.toast("✅ Otopilot tamamlandı! En güçlü kupon seti bütçenize göre hazırlandı.")
+                        st.toast("✅ 14, 13 ve 12 Garanti sistemlerinin üçü de hazır! İstediğinizi seçip indirebilirsiniz.")
                         st.rerun()
                     except Exception as _oto_exc:
                         st.error(f"Otopilot çalıştırılamadı: {_oto_exc}")
@@ -4934,17 +5054,62 @@ with tab_uretim:
                     _maliyet_o = Decimal(len(_gar_o)) * Decimal(str(kolon_fiyati))
                     _bakiye_o = Decimal(str(hedef_butce_tl)) - _maliyet_o
 
-                    st.markdown("#### 🏆 Otopilot Karar Kartı")
+                    st.markdown("#### 🏆 3'lü Otopilot Karar Paneli — 14 / 13 / 12 Garanti Seçimi")
                     st.info(f"**Bülten Teşhisi:** {_tes_o['sinif']}  •  Ort. Favori: **%{_tes_o['ort_fav']}** | Net Favori: **{_tes_o['net_fav']}** | Ortada Maç: **{_tes_o['ortada']}**")
+
+                    _paketler_o = st.session_state.get("v20_otopilot_paketler") or {}
+                    _mevcut_tiers = [g for g in (14, 13, 12) if g in _paketler_o]
+                    if len(_mevcut_tiers) >= 1:
+                        _onerilen_g_o = int(_oto_rep.get("onerilen_garanti", _ozet_o["garanti_derecesi"]))
+                        _aktif_g_o = int(st.session_state.get("v20_otopilot_secili_garanti") or _ozet_o["garanti_derecesi"])
+                        if _aktif_g_o not in _mevcut_tiers:
+                            _aktif_g_o = _mevcut_tiers[0]
+
+                        # 3'lü Görsel Karşılaştırma Kartları
+                        _tier_cols = st.columns(len(_mevcut_tiers))
+                        _madalya = {14: "🥇", 13: "🥈", 12: "🥉"}
+                        for _tc, _gt in zip(_tier_cols, _mevcut_tiers):
+                            _pk = _paketler_o[_gt]
+                            _is_akt = (_gt == _aktif_g_o)
+                            _is_on = (_gt == _onerilen_g_o)
+                            _rozet = " ⭐ ÖNERİLEN" if _is_on else ""
+                            _sec_etiket = " ✅ SEÇİLİ" if _is_akt else ""
+                            with _tc:
+                                with st.container(border=True):
+                                    st.markdown(f"**{_madalya[_gt]} {_gt} Garanti{_rozet}{_sec_etiket}**")
+                                    st.caption(f"Şablon: **{_pk['sablon_str']}** ({_pk['kapali_say']} Kapalı)")
+                                    st.metric("Kolon / Maliyet", f"{_pk['kolon_say']:,} K", f"{_pk['maliyet_tl']:,.0f} TL • %{_pk['kapsama_yuzde']:.0f}")
+                                    st.caption(
+                                        f"2–3 Sürprizde 15: **%{_pk['ideal_s15']:.2f}**  •  "
+                                        f"Banko Riski: **%{_pk['banko_risk']:.1f}**"
+                                    )
+
+                        # Tek Tıkla Anında Sistem Değiştirici (on_change ile bekletmeden günceller)
+                        def _v201_lbl(g_val):
+                            _pk_l = _paketler_o[g_val]
+                            _tag = " ⭐ (Otopilot Önerisi)" if g_val == _onerilen_g_o else ""
+                            return f"{_madalya[g_val]} {g_val} Garanti — {_pk_l['sablon_str']} • {_pk_l['kolon_say']:,} Kolon ({_pk_l['maliyet_tl']:,.0f} TL){_tag}"
+
+                        if st.session_state.get("v201_garanti_secici_radio") not in _mevcut_tiers:
+                            st.session_state["v201_garanti_secici_radio"] = _aktif_g_o
+                        st.radio(
+                            "🎯 Oynamak / İndirmek İstediğiniz Sistemi Seçin (anında güncellenir, tekrar hesaplama beklemez):",
+                            options=_mevcut_tiers,
+                            format_func=_v201_lbl,
+                            key="v201_garanti_secici_radio",
+                            on_change=_v201_radio_degisti,
+                            horizontal=False,
+                        )
+
                     st.success(_oto_rep["neden_secildi"])
 
                     _k1, _k2, _k3, _k4 = st.columns(4)
-                    _k1.metric("🎯 Seçilen Şablon", _oto_rep["kazanan_sablon_str"], f"{_ozet_o['garanti_derecesi']} Garanti Hedefi")
+                    _k1.metric("🎯 Aktif Şablon", _oto_rep["kazanan_sablon_str"], f"{_ozet_o['garanti_derecesi']} Garanti Sistemi")
                     _k2.metric("✅ Üretilen Nihai Kolon", f"{len(_gar_o):,}", f"Kapsama: %{_meta_o.get('kapsama_adet', 0.0):.1f}")
                     _k3.metric("💰 Toplam Maliyet", f"{_maliyet_o:,.0f} TL", f"Bakiye: {_bakiye_o:,.0f} TL")
                     _k4.metric("💎 Elenen Ucuz Kolon", f"{(_ozet_o.get('ikramiye_meta') or {}).get('elenen_ucuz_kolon', 0):,}", f"Evren: {_ozet_o['filtreli_adet']:,}")
 
-                    with st.expander("🏁 Otopilot Aday Yarışı — Neden Bu Strateji Seçildi?", expanded=False):
+                    with st.expander("🏁 14 / 13 / 12 Garanti Karşılaştırma Tablosu", expanded=False):
                         st.dataframe(pd.DataFrame(_oto_rep["yarisma_tablosu"]), hide_index=True, use_container_width=True)
 
                     if _tes_o.get("tuzaklar"):
@@ -5025,21 +5190,21 @@ with tab_uretim:
                                     st.download_button(
                                         "📥 Spor Toto 1-0-2 TXT İndir",
                                         v171_toto_0_txt(_raw20),
-                                        file_name=f"SPOR_TOTO_V200_102_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
+                                        file_name=f"SPOR_TOTO_V201_{_ozet_o['garanti_derecesi']}G_102_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
                                         mime="text/plain", type="primary", use_container_width=True, key="v20_dl_102"
                                     )
                                 with _dl2:
                                     st.download_button(
                                         "📥 Analiz 1-X-2 TXT İndir",
                                         _raw20,
-                                        file_name=f"SPOR_TOTO_V200_1X2_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
+                                        file_name=f"SPOR_TOTO_V201_{_ozet_o['garanti_derecesi']}G_1X2_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
                                         mime="text/plain", use_container_width=True, key="v20_dl_1x2"
                                     )
                                 with _dl3:
                                     st.download_button(
                                         "📦 Tam Denetimli Paket (ZIP)",
                                         _zip20,
-                                        file_name=f"SPOR_TOTO_V200_PAKET_{_val20['txt_sha256'][:10]}.zip",
+                                        file_name=f"SPOR_TOTO_V201_{_ozet_o['garanti_derecesi']}G_PAKET_{_val20['txt_sha256'][:10]}.zip",
                                         mime="application/zip", use_container_width=True, key="v20_dl_zip"
                                     )
                                 st.caption(f"TXT SHA-256: `{_val20['txt_sha256']}` • Canlı bahis/ödeme otomasyonu kapalıdır.")
