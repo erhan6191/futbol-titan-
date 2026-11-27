@@ -17,7 +17,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 import pandas as pd
 
 st.set_page_config(
-    page_title="Spor Toto AI Pro v21.1 — ULTIMATE OTOPILOT PRO (ANALIZ)",
+    page_title="Spor Toto AI Pro v21.2 — ULTIMATE OTOPILOT PRO (ANALIZ)",
     page_icon="🏆",
     layout="wide"
 )
@@ -70,7 +70,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HTML KULLANIM KILAVUZU ---
-KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v21.1 — Ultimate Otopilot Pro</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v21.1 — ULTIMATE OTOPİLOT PRO</h1><p>v20.1 3'lü Otopilot (14/13/12 Garanti) motoruna 5 ileri modül eklendi: (1) <b>1 Hata Toleranslı Çekirdek (G0)</b>, (2) <b>Boşta Kalan Bütçe Yükseltici (2. Geçiş)</b>, (3) <b>Otopilot Kilitli Maçlarım</b>, (4) <b>Son Maçlar Finansal Sigorta (Hedge / Dutching) Hesaplayıcısı</b> ve (5) <b>İddaa 1-X-2 Oranı Hızlı Yapıştır</b> yedeği.</p><ol><li>Sol menüde <b>🟢 Otopilot</b> modunu, API anahtarınızı ve bütçenizi (varsayılan 5.000 TL / 500 kolon) belirleyin.</li><li><b>ADIM 1:</b> Bülten günlerini yükleyip resmî 15 maçı seçin ve sırayı onaylayın.</li><li><b>ADIM 2 (İsteğe Bağlı):</b> Varsa halk yüzdelerini, İddaa 1-X-2 oranlarını ve kesinleştirmek istediğiniz kilitli maçlarınızı girin.</li><li><b>ADIM 3:</b> <b>🚀 TEK TIKLA 3'LÜ OTOPİLOTU BAŞLAT</b> düğmesine basın; 14, 13 ve 12 Garanti paketleri G0 çekirdek ve 2. geçiş bütçe yükseltici ile hazır olsun.</li><li><b>3'lü Karşılaştırma Paneli</b>nden istediğiniz sistemi anında seçip <b>ADIM 4</b>'te A01–A10 denetimli TXT/ZIP dosyalarınızı indirin.</li><li><b>3. Sonuç Takibi:</b> Son maçlara 14/15 adayı girdiğinizde <b>Son Maçlar Sigorta Hesaplayıcısı</b> ile Eşit Net Kâr veya Sıfır Zarar sigorta tutarlarını anında görün.</li></ol><p class='note'><b>Önemli:</b> Kapsama, simülasyon ve sigorta hesapları tanımlı varsayımlara dayalı analiz araçlarıdır; gerçek maç sonucu veya kazanç garantisi yoktur.</p></body></html>"
+KULLANIM_KILAVUZU_HTML = "<!doctype html><html lang='tr'><head><meta charset='utf-8'><title>Spor Toto AI Pro v21.2 — Ultimate Otopilot Pro</title><style>body{max-width:760px;margin:48px auto;font:17px/1.65 system-ui,Arial;color:#243044;padding:0 20px}h1{color:#14375b}li{margin-bottom:10px}.note{padding:12px 16px;border-left:4px solid #2563eb;background:#f5f8ff}</style></head><body><h1>SPOR TOTO AI PRO v21.2 — ULTIMATE OTOPİLOT PRO</h1><p>v21.2 yükseltmeleri: (1) <b>%85 Eşikli 2. Geçiş + Boşta Kalan Bütçeyle 13+/14+ Yoğunlaştırma (3. Geçiş)</b>, (2) <b>+15p Kritik Halk Tuzağı Banko Engeli</b>, (3) <b>Dengeli 14/13/12 Otopilot Puanlama</b>, (4) <b>Tam v21.2 Oturum Yedekleme & Kupon Koruyucu Geri Yükleme</b> ve (5) <b>Deterministik Eşit Olasılık Kademe Sıralaması</b>.</p><ol><li>Sol menüde <b>🟢 Otopilot</b> modunu, API anahtarınızı ve bütçenizi (varsayılan 5.000 TL / 500 kolon) belirleyin.</li><li><b>ADIM 1:</b> Bülten günlerini yükleyip resmî 15 maçı seçin ve sırayı onaylayın.</li><li><b>ADIM 2 (İsteğe Bağlı):</b> Varsa halk yüzdelerini, İddaa 1-X-2 oranlarını ve kesinleştirmek istediğiniz kilitli maçlarınızı girin.</li><li><b>ADIM 3:</b> <b>🚀 TEK TIKLA 3'LÜ OTOPİLOTU BAŞLAT</b> düğmesine basın; 14, 13 ve 12 Garanti paketleri G0 çekirdek ve 2. geçiş bütçe yükseltici ile hazır olsun.</li><li><b>3'lü Karşılaştırma Paneli</b>nden istediğiniz sistemi anında seçip <b>ADIM 4</b>'te A01–A10 denetimli TXT/ZIP dosyalarınızı indirin.</li><li><b>3. Sonuç Takibi:</b> Son maçlara 14/15 adayı girdiğinizde <b>Son Maçlar Sigorta Hesaplayıcısı</b> ile Eşit Net Kâr veya Sıfır Zarar sigorta tutarlarını anında görün.</li></ol><p class='note'><b>Önemli:</b> Kapsama, simülasyon ve sigorta hesapları tanımlı varsayımlara dayalı analiz araçlarıdır; gerçek maç sonucu veya kazanç garantisi yoktur.</p></body></html>"
 
 # --- SESSION STATE BAŞLATMA ---
 varsayilan_state = {
@@ -97,8 +97,9 @@ varsayilan_state = {
     "canli_sonuclar_baz": ["⏳ Bekliyor"] * 15,
     "canli_skor_metni": ["-"] * 15,
     "kalan_kota": "Bilinmiyor",
-    "sema_versiyonu": "21.1",
+    "sema_versiyonu": "21.2",
     "v211_ham_analiz_verisi": None,
+    "v212_yedek_takip_modu": False,
     "v20_otopilot_aktif_ayar": None,
     "v20_otopilot_raporu": None,
     "v20_otopilot_paketler": None,
@@ -116,7 +117,7 @@ for anahtar, deger in varsayilan_state.items():
     if anahtar not in st.session_state:
         st.session_state[anahtar] = deger
 
-if st.session_state.get("sema_versiyonu") != "21.1":
+if st.session_state.get("sema_versiyonu") != "21.2":
     st.session_state.uretilen_kuponlar = None
     st.session_state.son_uretim_ozeti = None
     st.session_state.son_param_imzasi = None
@@ -138,7 +139,8 @@ if st.session_state.get("sema_versiyonu") != "21.1":
     st.session_state.v20_otopilot_secili_garanti = None
     st.session_state.v21_mac_kilitleri_map = {}
     st.session_state.v211_ham_analiz_verisi = None
-    st.session_state.sema_versiyonu = "21.1"
+    st.session_state.v212_yedek_takip_modu = False
+    st.session_state.sema_versiyonu = "21.2"
 
 DESTEKLENEN_LIGLER = {
     203: "🇹🇷 Süper Lig", 204: "🇹🇷 1. Lig", 205: "🇹🇷 Türkiye Kupası",
@@ -255,7 +257,7 @@ V20_VARSAYILAN_OTOPILOT_AYAR = {
     "garanti_derecesi": 13,
     "mutlak_sablon_garantisi": False,
     "hibrit_ekonomi_modu": False,
-    "ortogonal_anahtar_aktif": True,
+    "ortogonal_anahtar_aktif": False,
     "kati_filtre_kilidi": True,
     "hedef_kapsama_orani": 100.0,
     "v173_opt_in": False,
@@ -289,14 +291,14 @@ V20_VARSAYILAN_OTOPILOT_AYAR = {
 }
 
 with st.sidebar:
-    st.markdown("## 🏆 Spor Toto AI v21.1")
-    st.caption("ULTIMATE OTOPİLOT PRO — G0 Çekirdek • 2. Geçiş • Kilit • Sigorta")
+    st.markdown("## 🏆 Spor Toto AI v21.2")
+    st.caption("ULTIMATE OTOPİLOT PRO — Tuzak Kalkanı • 13+/14+ Yoğunlaştırıcı • Tam Yedek")
     st.caption("Denetimli analiz • Canlı otomatik oynama kapalı • Kazanç garantisi yoktur")
 
     st.download_button(
         label="📄 Kullanım Kılavuzunu İndir (HTML)",
         data=KULLANIM_KILAVUZU_HTML.encode("utf-8"),
-        file_name="Spor_Toto_AI_v21_1_Ultimate_Otopilot_Kilavuzu.html",
+        file_name="Spor_Toto_AI_v21_2_Ultimate_Otopilot_Kilavuzu.html",
         mime="text/html",
         use_container_width=True
     )
@@ -351,9 +353,9 @@ with st.sidebar:
             help="Katı bankoları tek işarette bırakmak yerine 4–5 sağlam favoriyi çifte açıp 'en fazla 1 hata' şartıyla korur; bir ağır favori patlasa bile 15 şansı yaşar."
         )
         v21_butce_yukselt = st.toggle(
-            "📈 Boşta Kalan Bütçeyi Yükselt (2. Geçiş)",
+            "📈 Boşta Kalan Bütçeyi Yükselt & Yoğunlaştır (2./3. Geçiş)",
             value=True, key="v21_oto_boost_toggle",
-            help="Üretilen kolonlar bütçenin %65'inin altında kalırsa, %100 kapsama korunacak şekilde en riskli bankoyu çifteye veya en kararsız çifteyi kapalıya yükseltir."
+            help="Üretilen kolonlar bütçenin %85'inin altında kalırsa önce şablonu yükseltmeyi dener; hâlâ boş bütçe kalırsa 13+/14+ üst kademe kapsamasını artıran ek kolonlarla bütçeyi verimli kullanır."
         )
         st.caption("🛡️ Otopilot; bütçe kilidini, katı filtreyi, G0 çekirdeği, 2. geçiş yükselticiyi, halk tuzak korumasını ve ikramiye bandını **otomatik yönetir**.")
 
@@ -654,20 +656,49 @@ with st.sidebar:
             "Bütçe koruması için gelişmiş ayarlardaki analiz iznini kapatın."
         )
 
-    with st.expander("💾 Oturumu kaydet / geri yükle", expanded=False):
+    with st.expander("💾 Oturumu kaydet / geri yükle (v21.2 Tam Yedek)", expanded=False):
         st.markdown("---")
-        st.markdown("### 💾 4. Haftalık Bülten Yedeği")
+        st.markdown("### 💾 4. Haftalık Bülten & Otopilot Tam Yedeği")
         if st.session_state.analiz_verisi is not None:
+            _ser_paketler = None
+            _ham_pk = st.session_state.get("v20_otopilot_paketler")
+            if isinstance(_ham_pk, dict):
+                _ser_paketler = {}
+                for _gk, _pv in _ham_pk.items():
+                    _p_copy = dict(_pv)
+                    if isinstance(_p_copy.get("df"), pd.DataFrame):
+                        _p_copy["df"] = _p_copy["df"].to_dict(orient="records")
+                    if isinstance(_p_copy.get("garanti"), np.ndarray):
+                        _p_copy["garanti"] = _p_copy["garanti"].tolist()
+                    _ser_paketler[str(_gk)] = _p_copy
             yedek_paket = {
-                "versiyon": "19.0",
+                "versiyon": "21.2",
+                "kayit_zamani_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "hedef_butce_tl": float(hedef_butce_tl),
+                "kolon_fiyati": float(kolon_fiyati),
+                "calisma_modu": str(calisma_modu),
+                "otopilot_tarz": str(otopilot_tarz),
+                "g0_aktif": bool(v21_g0_aktif),
+                "butce_yukselt_aktif": bool(v21_butce_yukselt),
                 "secilen_15_mac": st.session_state.secilen_15_mac,
                 "secilen_mac_idleri": st.session_state.secilen_mac_idleri,
                 "analiz_verisi": st.session_state.analiz_verisi,
+                "v211_ham_analiz_verisi": st.session_state.get("v211_ham_analiz_verisi"),
                 "tablo_df": st.session_state.tablo_df.to_dict(orient="records") if st.session_state.tablo_df is not None else None,
                 "uretilen_kuponlar": st.session_state.uretilen_kuponlar.tolist() if st.session_state.uretilen_kuponlar is not None else None,
                 "son_uretim_ozeti": st.session_state.son_uretim_ozeti,
+                "son_param_imzasi": st.session_state.son_param_imzasi,
+                "son_sol_menu_imzasi": st.session_state.son_sol_menu_imzasi,
+                "v20_otopilot_aktif_ayar": st.session_state.get("v20_otopilot_aktif_ayar"),
+                "v20_otopilot_raporu": st.session_state.get("v20_otopilot_raporu"),
+                "v20_otopilot_secili_garanti": st.session_state.get("v20_otopilot_secili_garanti"),
+                "v20_otopilot_paketler": _ser_paketler,
+                "v20_otopilot_halk_raw": st.session_state.get("v20_otopilot_halk_raw", ""),
+                "v21_iddaa_oran_raw": st.session_state.get("v21_iddaa_oran_raw", ""),
+                "v21_iddaa_oran_mod": st.session_state.get("v21_iddaa_oran_mod", "Yalnızca eksik (VERİ YOK) maçları doldur"),
+                "v21_mac_kilitleri_map": {str(k): str(v) for k, v in (st.session_state.get("v21_mac_kilitleri_map") or {}).items()},
                 "canli_sonuclar": st.session_state.canli_sonuclar,
-                "canli_skor_metni": st.session_state.canli_skor_metni
+                "canli_skor_metni": st.session_state.canli_skor_metni,
             }
             st.download_button(
                 "📥 Haftalık Oturumu Kaydet (.JSON)",
@@ -677,50 +708,58 @@ with st.sidebar:
                     indent=2,
                     default=lambda x: int(x) if isinstance(x, np.integer) else (float(x) if isinstance(x, np.floating) else str(x))
                 ).encode("utf-8"),
-                file_name=f"spor_toto_v19_0_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                file_name=f"spor_toto_v21_2_oturum_{datetime.now().strftime('%Y%m%d_%H%M')}.json",
                 mime="application/json",
                 use_container_width=True
             )
 
         if st.session_state.get('v172_restore_notice'):
-            st.warning(st.session_state.v172_restore_notice)
-        yuklenen_oturum = st.file_uploader("📂 Kayıtlı Oturumu Yükle (.JSON):", type=["json"])
+            st.info(st.session_state.v172_restore_notice)
+        yuklenen_oturum = st.file_uploader("📂 Kayıtlı Oturumu Yükle (.JSON — v21.2 / v19.0 uyumlu):", type=["json"])
         if yuklenen_oturum is not None:
             if st.button("♻️ Oturumu Geri Yükle", use_container_width=True):
                 try:
                     veri_json = json.loads(yuklenen_oturum.getvalue().decode("utf-8"))
-                    ids=veri_json.get('secilen_mac_idleri',[]); av=veri_json.get('analiz_verisi') or []
-                    if len(ids)!=15 or len(set(ids))!=15 or len(av)!=15 or set(ids)!={v['id'] for v in av}: raise ValueError('Bülten kimlikleri geçersiz.')
+                    ids = [int(x) for x in (veri_json.get('secilen_mac_idleri') or [])]
+                    av = veri_json.get('analiz_verisi') or []
+                    if len(ids) != 15 or len(set(ids)) != 15 or len(av) != 15 or set(ids) != {int(v['id']) for v in av}:
+                        raise ValueError('Bülten kimlikleri geçersiz.')
+                    kupon_arr = None
                     if veri_json.get('uretilen_kuponlar'):
-                        arr=np.asarray(veri_json['uretilen_kuponlar'])
-                        if arr.ndim!=2 or arr.shape[1]!=15 or not np.isin(arr,['1','X','2']).all(): raise ValueError('Geçersiz kolon kaydı')
-                    st.session_state.uretilen_kuponlar=None
-                    st.session_state.tablo_df=None;st.session_state.tablo_baz_df=None
+                        arr = np.asarray(veri_json['uretilen_kuponlar'])
+                        if arr.ndim != 2 or arr.shape[1] != 15 or not np.isin(arr, ['1', 'X', '2']).all():
+                            raise ValueError('Geçersiz kolon kaydı')
+                        kupon_arr = arr
 
+                    st.session_state.tablo_df = None
+                    st.session_state.tablo_baz_df = None
                     st.session_state.secilen_mac_idleri = ids
-                    # Eski JSON'larda secilen_15_mac bulunmuyordu: mac sirasini tahmin etmeyiz.
-                    yeniden_secim=veri_json.get('secilen_15_mac')
-                    if isinstance(yeniden_secim,list) and len(yeniden_secim)==15:
-                        if [int(x['id']) for x in yeniden_secim]!=[int(x) for x in ids] or any(
-                            not all(str(x.get(k,'')).strip() for k in ('ev','dep','tarih','saat')) for x in yeniden_secim):
-                            raise ValueError('Yedek 15 mac ayrintilari eksik veya sirasi farkli.')
-                        restored=[]
+                    yeniden_secim = veri_json.get('secilen_15_mac')
+                    if isinstance(yeniden_secim, list) and len(yeniden_secim) == 15:
+                        if [int(x['id']) for x in yeniden_secim] != ids or any(
+                            not all(str(x.get(k, '')).strip() for k in ('ev', 'dep', 'tarih', 'saat')) for x in yeniden_secim
+                        ):
+                            raise ValueError('Yedek 15 maç ayrıntıları eksik veya sırası farklı.')
+                        restored = []
                         for m in yeniden_secim:
-                            mm=dict(m)
-                            mm['karsilasma']=f"{mm['ev']} - {mm['dep']}"
-                            mm['label']=mm.get('label') or mm['karsilasma']
+                            mm = dict(m)
+                            mm['karsilasma'] = f"{mm['ev']} - {mm['dep']}"
+                            mm['label'] = mm.get('label') or mm['karsilasma']
                             restored.append(mm)
-                        st.session_state.secilen_15_mac=restored
-                        st.session_state.mac_listesi=list(restored)
-                        st.session_state.v172_restore_notice='15 maç sırası yedekten geri getirildi. Eski tahmin/kuponlar güncel sayılmaz.'
+                        st.session_state.secilen_15_mac = restored
+                        st.session_state.mac_listesi = list(restored)
+                        st.session_state["bulten_onay14"] = True
                     else:
-                        in_session=st.session_state.get('secilen_15_mac',[])
-                        if len(in_session)!=15 or [int(m['id']) for m in in_session]!=[int(x) for x in ids]:
-                            st.session_state.secilen_15_mac=[]
-                            st.session_state.mac_listesi=[]
-                        st.session_state.v172_restore_notice='Eski JSON dosyasında 15 maçın tam seçimi bulunmuyor. Maçları resmî sırasıyla yeniden seçin.'
-                    st.session_state.v171_api_proof=None
-                    st.session_state.analiz_verisi = veri_json.get("analiz_verisi")
+                        in_session = st.session_state.get('secilen_15_mac', [])
+                        if len(in_session) != 15 or [int(m['id']) for m in in_session] != ids:
+                            st.session_state.secilen_15_mac = []
+                            st.session_state.mac_listesi = []
+                    st.session_state.v171_api_proof = None
+                    st.session_state.analiz_verisi = av
+                    ham_av = veri_json.get("v211_ham_analiz_verisi")
+                    st.session_state.v211_ham_analiz_verisi = ham_av if (isinstance(ham_av, list) and len(ham_av) == 15) else [dict(v) for v in av]
+
+                    yuklenen_df = None
                     if veri_json.get("tablo_df"):
                         yuklenen_df = pd.DataFrame(veri_json["tablo_df"])
                         for _hc_r in ("Halk 1 (%)", "Halk X (%)", "Halk 2 (%)"):
@@ -730,17 +769,83 @@ with st.sidebar:
                         st.session_state.tablo_df = yuklenen_df.copy()
                         st.session_state.tablo_versiyon += 1
                         st.session_state.v19_sablon_koru_bir_tur = True
-                    if veri_json.get("uretilen_kuponlar"):
-                        st.session_state.uretilen_kuponlar = None  # eski üretimi yeniden hesapla
-                    st.session_state.son_uretim_ozeti = None # Önceki üretim yeni analize taşınamaz.
+
+                    # Halk metni & Kilit haritası (v21.2'den doğrudan, eski v19.0 yedeklerinden tablo_df üzerinden kurtarılır)
+                    _halk_raw_rec = veri_json.get("v20_otopilot_halk_raw")
+                    if not _halk_raw_rec and yuklenen_df is not None and all(c in yuklenen_df.columns for c in ("Halk 1 (%)", "Halk X (%)", "Halk 2 (%)")):
+                        _sdf_h = yuklenen_df.sort_values("Sıra", kind="stable") if "Sıra" in yuklenen_df.columns else yuklenen_df
+                        _h_lines = []
+                        for _, _hr in _sdf_h.iterrows():
+                            if pd.notna(_hr["Halk 1 (%)"]) and pd.notna(_hr["Halk X (%)"]) and pd.notna(_hr["Halk 2 (%)"]):
+                                _h_lines.append(f"{float(_hr['Halk 1 (%)']):g} {float(_hr['Halk X (%)']):g} {float(_hr['Halk 2 (%)']):g}")
+                        if len(_h_lines) == 15:
+                            _halk_raw_rec = "\n".join(_h_lines)
+                    st.session_state.v20_otopilot_halk_raw = str(_halk_raw_rec or "")
+                    st.session_state.v21_iddaa_oran_raw = str(veri_json.get("v21_iddaa_oran_raw") or "")
+                    if veri_json.get("v21_iddaa_oran_mod"):
+                        st.session_state.v21_iddaa_oran_mod = str(veri_json["v21_iddaa_oran_mod"])
+
+                    _kilit_rec = {}
+                    if isinstance(veri_json.get("v21_mac_kilitleri_map"), dict):
+                        for _kk, _kv in veri_json["v21_mac_kilitleri_map"].items():
+                            try:
+                                _kilit_rec[int(_kk)] = str(_kv)
+                            except (ValueError, TypeError):
+                                pass
+                    elif yuklenen_df is not None and "Analiz" in yuklenen_df.columns and "ID" in yuklenen_df.columns:
+                        _ter_map = {
+                            "1": "🔒 Banko 1", "X": "🔒 Banko X", "2": "🔒 Banko 2",
+                            "1-X": "✌️ Çifte 1-X", "1-2": "✌️ Çifte 1-2", "X-2": "✌️ Çifte X-2",
+                            "1-X-2": "🛡️ Kapalı (1-X-2)",
+                        }
+                        for _, _kr in yuklenen_df.iterrows():
+                            _an_s = str(_kr.get("Analiz", ""))
+                            if "🔒 KİLİTLİ (" in _an_s:
+                                _kod = _an_s.split("🔒 KİLİTLİ (", 1)[1].split(")", 1)[0].strip()
+                                if _kod in _ter_map:
+                                    _kilit_rec[int(_kr["ID"])] = _ter_map[_kod]
+                    st.session_state.v21_mac_kilitleri_map = _kilit_rec
+
+                    # v21.2 Otopilot paketlerini ve oynanan kuponları (canlı takip için) koruyarak geri yükle
+                    _rest_pk = None
+                    if isinstance(veri_json.get("v20_otopilot_paketler"), dict):
+                        _rest_pk = {}
+                        for _gk, _pv in veri_json["v20_otopilot_paketler"].items():
+                            _pc = dict(_pv)
+                            if isinstance(_pc.get("df"), list):
+                                _pc["df"] = pd.DataFrame(_pc["df"])
+                            if isinstance(_pc.get("garanti"), list):
+                                _pc["garanti"] = np.asarray(_pc["garanti"])
+                            _rest_pk[int(_gk)] = _pc
+                    st.session_state.v20_otopilot_paketler = _rest_pk
+                    st.session_state.v20_otopilot_raporu = veri_json.get("v20_otopilot_raporu")
+                    st.session_state.v20_otopilot_aktif_ayar = veri_json.get("v20_otopilot_aktif_ayar")
+                    _sec_g_rec = veri_json.get("v20_otopilot_secili_garanti")
+                    st.session_state.v20_otopilot_secili_garanti = int(_sec_g_rec) if _sec_g_rec is not None else None
+                    if _sec_g_rec is not None:
+                        st.session_state["v201_garanti_secici_radio"] = int(_sec_g_rec)
+
+                    st.session_state.uretilen_kuponlar = kupon_arr
+                    st.session_state.son_uretim_ozeti = veri_json.get("son_uretim_ozeti") if kupon_arr is not None else None
+                    st.session_state.v212_yedek_takip_modu = bool(kupon_arr is not None)
                     st.session_state.canli_sonuclar = list(veri_json.get("canli_sonuclar", ["⏳ Bekliyor"] * 15))
                     st.session_state.canli_sonuclar_baz = list(st.session_state.canli_sonuclar)
                     st.session_state.canli_skor_metni = list(veri_json.get("canli_skor_metni", ["-"] * 15))
                     st.session_state["skor_revision14"] = st.session_state.get("skor_revision14", 0) + 1
-                    st.session_state.son_param_imzasi = None
-                    st.session_state.son_sol_menu_imzasi = None
+                    st.session_state.son_param_imzasi = veri_json.get("son_param_imzasi")
+                    st.session_state.son_sol_menu_imzasi = veri_json.get("son_sol_menu_imzasi")
                     st.session_state.v19_ilk_uretim_yapildi = True
-                    st.toast("✅ Oturumun 15 maçı, analiz bilgileri ve şablonunuz yüklendi; kuponlar için KAPSAMA HESAPLA'ya basın.")
+                    _kupon_not = (
+                        f"{len(kupon_arr):,} oynanan kolon 3. sekmede (Sonuç Takibi) anında takip edilmeye hazır!"
+                        if kupon_arr is not None else
+                        "Kupon üretmek için Otopilotu Başlat / KAPSAMA HESAPLA düğmesine basın."
+                    )
+                    st.session_state.v172_restore_notice = (
+                        f"♻️ Oturum yedekten geri yüklendi ({len(_kilit_rec)} kilitli maç"
+                        + (", 15 halk yüzdesi" if st.session_state.v20_otopilot_halk_raw else "")
+                        + f"). {_kupon_not} Yeni denetimli ZIP/TXT dışa aktarımı için taze analiz önerilir."
+                    )
+                    st.toast(f"✅ Oturum geri yüklendi! {_kupon_not}")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Yedek dosyası okunamadı: {e}")
@@ -1210,8 +1315,16 @@ def canli_skorlari_cek(fixture_id_listesi, api_key):
 # ==============================================================================
 # v15.1 ULTRA HIZLI ŞABLON KURUCU, TEK GEÇİŞLİ ORTOGONAL & 2-OPT MOTORU
 # ==============================================================================
+def _mac_kademe_sirala_v212(v):
+    """Eşit olasılıklarda tüm modüllerin aynı deterministik sırayı (1 -> X -> 2) üretmesini sağlar."""
+    keys = ("1", "X", "2")
+    vals = [float(v[k]) for k in keys]
+    order = sorted(range(3), key=lambda idx: (-vals[idx], idx))
+    return [keys[i] for i in order]
+
+
 def akilli_cifte_sec(v):
-    return sorted(['1','X','2'],key=lambda k:v[k],reverse=True)[:2]
+    return _mac_kademe_sirala_v212(v)[:2]
 
 
 def _hamming_kure_boyutu(n2, n3, r):
@@ -1584,10 +1697,26 @@ def butceye_gore_sablon_optimize_et(
     kati_asgari_ham = (2 ** _kati_n2_rem) * (3 ** _kati_n3_req)
     kati_asgari_tahmini = _tahmini_nihai_kolon(_kati_n2_rem, _kati_n3_req, garanti_derecesi, mutlak_mod, hibrit_mod, ikramiye_filtre_aktif)
     kati_korunabilir = (kati_asgari_tahmini <= limit) and (kati_asgari_ham <= raw_cap)
-    min_k = (
-        kati_min_k if risk_politikasi == "kati" or kati_korunabilir
-        else [sabit_k[i] if sabit_k[i] is not None else 1 for i in range(len(veriler))]
-    )
+    tuzak_min_k = [
+        sabit_k[i] if sabit_k[i] is not None else (
+            2 if (tuzak_aktif and surpriz_bilgileri[i][1] >= 15.0 and max(float(veriler[i]["1"]), float(veriler[i]["X"]), float(veriler[i]["2"])) < 66.0) else 1
+        )
+        for i in range(len(veriler))
+    ]
+    _tz_n2 = sum(1 for k in tuzak_min_k if k == 2)
+    _tz_n3 = sum(1 for k in tuzak_min_k if k == 3)
+    _tz_ek3 = max(0, _mk_kati - _tz_n3)
+    _tz_n3_req = _tz_n3 + min(_tz_ek3, _tz_n2)
+    _tz_n2_rem = _tz_n2 - min(_tz_ek3, _tz_n2)
+    _tz_ham = (2 ** _tz_n2_rem) * (3 ** _tz_n3_req)
+    _tz_tah = _tahmini_nihai_kolon(_tz_n2_rem, _tz_n3_req, garanti_derecesi, mutlak_mod, hibrit_mod, ikramiye_filtre_aktif)
+    tuzak_korunabilir = tuzak_aktif and (_tz_tah <= limit) and (_tz_ham <= raw_cap)
+    if risk_politikasi == "kati" or kati_korunabilir:
+        min_k = kati_min_k
+    elif tuzak_korunabilir:
+        min_k = tuzak_min_k
+    else:
+        min_k = [sabit_k[i] if sabit_k[i] is not None else 1 for i in range(len(veriler))]
     min_n2 = sum(1 for k in min_k if k == 2)
     min_n3 = sum(1 for k in min_k if k == 3)
     min_ham = (2 ** min_n2) * (3 ** min_n3)
@@ -1616,7 +1745,7 @@ def butceye_gore_sablon_optimize_et(
         den = max(1e-12, sum(probs))
         surp_skor, tuzak_fark, _ = surpriz_bilgileri[i]
         kararsiz_ceza = 0.02 if (tuzak_aktif and float(v.get("piyasa_std", 0.0) or 0.0) >= 2.2) else 0.0
-        tuzak_ceza = 0.06 if (tuzak_aktif and tuzak_fark >= float(risk_gap)) else 0.0
+        tuzak_ceza = (0.32 + 0.015 * (tuzak_fark - 15.0)) if (tuzak_aktif and tuzak_fark >= 15.0 and (probs[0] / den) < 0.66) else (0.10 if (tuzak_aktif and tuzak_fark >= float(risk_gap)) else 0.0)
         new = {}
         k_secenekler = (sabit_k[i],) if sabit_k[i] is not None else tuple(range(min_k[i], 4))
         for (n2, n3), (score, path) in dp.items():
@@ -1758,7 +1887,7 @@ def tam_otonom_analiz(mac_verileri, strateji, aktif_sablon=None):
     zorunlu_surp, acik_surp, exp_surp = 0, 0, 0.0
 
     for v, s in zip(mac_verileri, aktif_sablon):
-        sirali_tercihler = [k for _, k in sorted([(v["1"], "1"), (v["X"], "X"), (v["2"], "2")], reverse=True)]
+        sirali_tercihler = _mac_kademe_sirala_v212(v)
         f_harf, p_harf, u_harf = sirali_tercihler[0], sirali_tercihler[1], sirali_tercihler[2]
         toplam_s = max(1.0, float(sum(v[k] for k in s)))
 
@@ -2051,7 +2180,7 @@ def vektorel_filtrele(
     oran_mat = np.array([[v["1"], v["X"], v["2"]] for v in mac_verileri], dtype=np.float32)
     # Model olasiliklarini halk tercihi sanmak yasak: bos veri = yalniz model skoru.
 
-    sira_mat = np.argsort(-oran_mat, axis=1)
+    sira_mat = np.argsort(-oran_mat, axis=1, kind="stable")
     kademe_haritasi = np.zeros((15, 3), dtype=np.int8)
     for m_i in range(15):
         kademe_haritasi[m_i, sira_mat[m_i, 0]] = 0
@@ -2768,7 +2897,7 @@ def surpriz_stres_testi_simule_et_v191(kuponlar, veriler, sablon, hedef_evren=No
     banko_hata_riski = float(100.0 * (1.0 - banko_hata_dagilimi16(banko_probs)[0])) if banko_probs else 0.0
 
     # Kademe haritası: 0=favori, 1=plase, 2=3. tercih (ağır sürpriz)
-    sira_mat = np.argsort(-p_mat, axis=1)
+    sira_mat = np.argsort(-p_mat, axis=1, kind="stable")
     kademe_mat = np.zeros((15, 3), dtype=np.int8)
     for i in range(15):
         kademe_mat[i, sira_mat[i, 0]] = 0
@@ -3218,19 +3347,20 @@ def v20_otopilot_calistir(
         cifte_say_c = sum(1 for s in sablon_c if len(s) == 2)
         kapali_say_c = sum(1 for s in sablon_c if len(s) == 3)
         garanti_bonus = (
-            {14: 60.0, 13: 45.0, 12: 12.0}.get(gar_d, 0.0)
+            {14: 40.0, 13: 32.0, 12: 14.0}.get(gar_d, 0.0)
             if not surpriz_tarzi else
-            {13: 55.0, 14: 45.0, 12: 18.0}.get(gar_d, 0.0)
+            {13: 32.0, 14: 26.0, 12: 22.0}.get(gar_d, 0.0)
         )
         butce_oran = min(1.0, len(garanti_c) / max(1, hedef_k))
-        verim_bonus = 24.0 * min(1.0, butce_oran / 0.75)
+        verim_bonus = 24.0 * min(1.0, butce_oran / 0.85)
+        yuksek_risk_cezasi = max(0.0, efektif_risk_c - 68.0) * 1.15
 
         puan_oto = (
             (1000.0 if (hedef_tam_c and butce_uygun_c) else 0.0)
             + float(meta_c.get("kapsama_adet", 0.0)) * 3.5
             + garanti_bonus
             + verim_bonus
-            + (hedef_evren_15 * (6.5 if surpriz_tarzi else 5.0))
+            + (hedef_evren_15 * (8.5 if surpriz_tarzi else 6.0))
             + (ideal_13p * (4.2 if surpriz_tarzi else 3.2))
             + (ideal_14p * (9.5 if not surpriz_tarzi else 7.5))
             + (ideal_15p * 18.0)
@@ -3239,8 +3369,9 @@ def v20_otopilot_calistir(
             + (float(stres_c["genel_15"]) * 12.0)
             + (ideal_12p * (0.45 if surpriz_tarzi else 0.25))
             - kutle_kaybi_cezasi
-            - (efektif_risk_c * 0.28)
-            - (max(0, banko_say_c - 4) * 5.0)
+            - (efektif_risk_c * 0.35)
+            - yuksek_risk_cezasi
+            - (max(0, banko_say_c - 4) * 6.0)
         )
 
         return {
@@ -3292,25 +3423,154 @@ def v20_otopilot_calistir(
         tier_adaylari = {
             14: [
                 {"ad": "🥇 14 Garanti • Keskin Sendika (Min 3K)", "garanti": 14, "max_banko": 4, "min_kapali": 3, "raw_cap": 45000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0, "g0_modu": False},
-                {"ad": "🥇 14 Garanti • G0 Çekirdek (1 Hata Tolerans)", "garanti": 14, "max_banko": 5, "min_kapali": 3, "raw_cap": 20000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 3},
+                {"ad": "🥇 14 Garanti • G0 Çekirdek (1 Hata Tolerans)", "garanti": 14, "max_banko": 5, "min_kapali": 3, "raw_cap": 32000, "max_fav": 11, "min_fav_disi": 3, "min_agir": 1, "z_ust": 1.15, "pop": 10 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 3},
             ],
             13: [
                 {"ad": "🥈 13 Garanti • İdeal İkramiye (Min 5K)", "garanti": 13, "max_banko": 3, "min_kapali": 5, "raw_cap": 85000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": False},
-                {"ad": "🥈 13 Garanti • G0 Çekirdek Sürpriz (Maks 1 Hata)", "garanti": 13, "max_banko": 5, "min_kapali": 5, "raw_cap": 30000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 4},
+                {"ad": "🥈 13 Garanti • G0 Çekirdek Sürpriz (Maks 1 Hata)", "garanti": 13, "max_banko": 5, "min_kapali": 5, "raw_cap": 55000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 4},
             ],
             12: [
                 {"ad": "🥉 12 Garanti • Maksimum Sürpriz (Min 7K)", "garanti": 12, "max_banko": 2, "min_kapali": 7, "raw_cap": 155000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": False},
-                {"ad": "🥉 12 Garanti • G0 Çekirdek Kuşatma (Maks 1 Hata)", "garanti": 12, "max_banko": 4, "min_kapali": 6, "raw_cap": 45000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 4},
+                {"ad": "🥉 12 Garanti • G0 Çekirdek Kuşatma (Maks 1 Hata)", "garanti": 12, "max_banko": 4, "min_kapali": 6, "raw_cap": 90000, "max_fav": 10, "min_fav_disi": 4, "min_agir": 1, "z_ust": 0.95, "pop": 15 if halk_tam else 0, "g0_modu": True, "g0_hedef_say": 4},
             ],
         }
 
-    # --- 2. GEÇİŞ BÜTÇE YÜKSELTİCİ (BOŞTA KALAN BÜTÇEYİ DEĞERLENDİRİR) ---
+    # --- 3. GEÇİŞ YARDIMCISI: BOŞTA KALAN BÜTÇEYLE ÜST KADEME (13+/14+/15) YOĞUNLAŞTIRMA ---
+    def _yogunlastir_ust_kademe_v212(cur):
+        gar_d = int(cur["garanti_d"])
+        garanti_c = cur["garanti"]
+        mat_c = cur["mat"]
+        komp_c = cur["komp"]
+        n_cur = len(garanti_c)
+        if gar_d >= 15 or n_cur == 0 or n_cur >= hedef_k or len(mat_c) <= n_cur:
+            return cur
+        ek_limit = min(hedef_k - n_cur, len(mat_c) - n_cur)
+        if ek_limit <= 0:
+            return cur
+        lookup = {tuple(row): idx for idx, row in enumerate(mat_c.tolist())}
+        mevcut_idx = [lookup[tuple(row)] for row in garanti_c.tolist() if tuple(row) in lookup]
+        if len(mevcut_idx) != n_cur:
+            return cur
+
+        hedef_ust = gar_d + 1
+        r_ust = 15 - hedef_ust
+        n_mat = len(mat_c)
+        order = np.argsort(-np.asarray(komp_c, dtype=float), kind="stable")
+        w = _kutle(mat_c, cur["s_veriler"])
+        w = w / max(1e-15, float(w.sum()))
+        eklenen = []
+
+        if r_ust == 0:
+            sec_set = set(mevcut_idx)
+            for j in order:
+                j_i = int(j)
+                if j_i not in sec_set:
+                    eklenen.append(j_i)
+                    sec_set.add(j_i)
+                    if len(eklenen) >= ek_limit:
+                        break
+        else:
+            try:
+                code_mat = _kodla(mat_c)
+                eng_ust = _OrtukKomsuluk143(code_mat, r_ust)
+            except (OverflowError, MemoryError, ValueError):
+                return cur
+            uncovered = np.ones(n_mat, dtype=bool)
+            eligible = np.ones(n_mat, dtype=bool)
+            eligible[mevcut_idx] = False
+            for j in mevcut_idx:
+                nb = eng_ust.neighbors([j]).ravel()
+                nb = nb[nb >= 0]
+                uncovered[nb] = False
+            if uncovered.any():
+                unc_w = np.where(uncovered, w, 0.0)
+                gains, _ = eng_ust.initial(unc_w)
+                rank = np.empty(n_mat, dtype=np.int32)
+                rank[order] = np.arange(n_mat, dtype=np.int32)
+                for _ in range(ek_limit):
+                    g_arr = np.where(eligible, gains, -np.inf)
+                    best_g = float(g_arr.max())
+                    if best_g <= 1e-12:
+                        break
+                    ties = np.flatnonzero(g_arr >= best_g - 1e-12)
+                    j_best = int(ties[np.argmin(rank[ties])])
+                    eklenen.append(j_best)
+                    eligible[j_best] = False
+                    nb = eng_ust.neighbors([j_best]).ravel()
+                    nb = nb[nb >= 0]
+                    newly = nb[uncovered[nb]]
+                    if len(newly):
+                        uncovered[newly] = False
+                        eng_ust.update(gains, newly, w)
+
+        if not eklenen:
+            return cur
+        yeni_garanti = mat_c[mevcut_idx + eklenen]
+        if len(yeni_garanti) > hedef_k:
+            return cur
+
+        # Metrikleri ve stres testini yeni yoğunlaştırılmış kuponlarla tazele (100% alt kademe garantisi korunur)
+        stres_n = surpriz_stres_testi_simule_et_v191(yeni_garanti, cur["s_veriler"], cur["sablon"], hedef_evren=mat_c, n_sim=2500)
+        ideal_sat = next((x for x in stres_n["satirlar"] if "İdeal" in x["Hafta Senaryosu"]), {})
+        ideal_12p = float(ideal_sat.get("12+ (%)", 0.0))
+        ideal_13p = float(ideal_sat.get("13+ (%)", 0.0))
+        ideal_14p = float(ideal_sat.get("14+ (%)", 0.0))
+        ideal_15p = float(ideal_sat.get("15/15 (%)", 0.0))
+        hedef_evren_15 = float(stres_n["hedef_evren_15_yuzde"])
+        ham_sablon_15 = float(stres_n["ham_sablon_15_yuzde"])
+        kutle_koruma = hedef_evren_15 / max(1e-6, ham_sablon_15)
+        kutle_kaybi_cezasi = max(0.0, 0.35 - kutle_koruma) * 140.0
+        efektif_risk_c = float(cur["efektif_cekirdek_riski"])
+        banko_say_c = int(cur["banko_say"])
+        garanti_bonus = (
+            {14: 40.0, 13: 32.0, 12: 14.0}.get(gar_d, 0.0)
+            if not surpriz_tarzi else
+            {13: 32.0, 14: 26.0, 12: 22.0}.get(gar_d, 0.0)
+        )
+        butce_oran = min(1.0, len(yeni_garanti) / max(1, hedef_k))
+        verim_bonus = 24.0 * min(1.0, butce_oran / 0.85)
+        yuksek_risk_cezasi = max(0.0, efektif_risk_c - 68.0) * 1.15
+        puan_n = (
+            1000.0
+            + float(cur["meta"].get("kapsama_adet", 100.0)) * 3.5
+            + garanti_bonus
+            + verim_bonus
+            + (hedef_evren_15 * (8.5 if surpriz_tarzi else 6.0))
+            + (ideal_13p * (4.2 if surpriz_tarzi else 3.2))
+            + (ideal_14p * (9.5 if not surpriz_tarzi else 7.5))
+            + (ideal_15p * 18.0)
+            + (float(stres_n["genel_13_arti"]) * (2.6 if surpriz_tarzi else 3.0))
+            + (float(stres_n["genel_14_arti"]) * (6.5 if not surpriz_tarzi else 4.5))
+            + (float(stres_n["genel_15"]) * 12.0)
+            + (ideal_12p * (0.45 if surpriz_tarzi else 0.25))
+            - kutle_kaybi_cezasi
+            - (efektif_risk_c * 0.35)
+            - yuksek_risk_cezasi
+            - (max(0, banko_say_c - 4) * 6.0)
+        )
+        yeni_cur = dict(cur)
+        yeni_cur["garanti"] = yeni_garanti
+        yeni_cur["stres"] = stres_n
+        yeni_cur["ideal_s15"] = float(ideal_sat.get("Şablon 15'i Kapsar (%)", 0.0))
+        yeni_cur["ideal_12p"] = ideal_12p
+        yeni_cur["ideal_13p"] = ideal_13p
+        yeni_cur["ideal_14p"] = ideal_14p
+        yeni_cur["ideal_15p"] = ideal_15p
+        yeni_cur["puan_oto"] = round(puan_n, 2)
+        yeni_cur["meta"] = dict(cur["meta"])
+        yeni_cur["meta"]["yontem"] = str(cur["meta"].get("yontem", "")) + f" + {hedef_ust}+ Yoğunlaştırıcı (+{len(eklenen)}K)"
+        yeni_cur["boost_notlari"] = list(cur.get("boost_notlari", [])) + [
+            f"+{len(eklenen)} kolon ile {hedef_ust}+ yoğunlaştırma"
+        ]
+        return yeni_cur
+
+    # --- 2. & 3. GEÇİŞ BÜTÇE YÜKSELTİCİ (v21.2: %85 EŞİĞİ + 13+/14+ YOĞUNLAŞTIRMA) ---
     def _butce_yukselt_v21(mevcut):
         if (not butce_yukselt_aktif) or (not mevcut["hedef_tam"]) or hedef_k < 50:
             return mevcut
         cur = mevcut
-        for _step in range(2):
-            if len(cur["garanti"]) >= int(hedef_k * 0.65):
+        for _step in range(3):
+            if len(cur["garanti"]) >= int(hedef_k * 0.85):
                 break
             durum = list(cur["oto_durum"])
             mevcut_raw = math.prod(durum)
@@ -3319,9 +3579,14 @@ def v20_otopilot_calistir(
             yeni_g0 = list(g0_cur)
             etiket_b = ""
 
-            # Öncelik A: En riskli kilitsiz bankoyu çifteye çıkar (banko patlama riskini düşür!)
+            # Öncelik A: En riskli / en yüksek tuzaklı kilitsiz bankoyu çifteye çıkar (banko patlama riskini düşür!)
             banko_aday = [i for i, k in enumerate(durum) if k == 1 and i not in kilitli_idx_set]
-            banko_aday.sort(key=lambda i: max(veriler[i]["1"], veriler[i]["X"], veriler[i]["2"]))
+            banko_aday.sort(
+                key=lambda i: (
+                    - _mac_surpriz_potansiyeli_v191(veriler[i], (halk_map or {}).get(int(veriler[i]["id"])))[1],
+                    max(veriler[i]["1"], veriler[i]["X"], veriler[i]["2"])
+                )
+            )
             if banko_aday and mevcut_raw * 2 <= 240000:
                 b_i = banko_aday[0]
                 yeni_durum = list(durum)
@@ -3366,12 +3631,19 @@ def v20_otopilot_calistir(
                 deneme is not None
                 and deneme["hedef_tam"]
                 and len(deneme["garanti"]) <= hedef_k
-                and deneme["puan_oto"] > cur["puan_oto"]
+                and (
+                    deneme["puan_oto"] > cur["puan_oto"]
+                    or (deneme["banko_say"] < cur["banko_say"] and deneme["efektif_cekirdek_riski"] <= cur["efektif_cekirdek_riski"] - 5.0 and deneme["puan_oto"] >= cur["puan_oto"] - 10.0)
+                )
             ):
                 deneme["boost_notlari"] = list(cur.get("boost_notlari", [])) + [etiket_b]
                 cur = deneme
             else:
                 break
+
+        # 3. Geçiş: Şablon yükseltmeden sonra hâlâ boş bütçe kaldıysa üst kademe (13+/14+/15) yoğunlaştırma uygula
+        if len(cur["garanti"]) < hedef_k:
+            cur = _yogunlastir_ust_kademe_v212(cur)
         return cur
 
     # Her 3 garanti derecesi (14, 13, 12) için en iyi adayı bul, bütçe yükselticiyi uygula ve tam pakete dönüştür
@@ -3381,7 +3653,7 @@ def v20_otopilot_calistir(
         for aday in tier_adaylari[g_tier]:
             if aday.get("g0_modu") and not g0_aktif:
                 continue
-            hedef_opt_k = max(1, int(hedef_k * 0.78)) if aday.get("g0_modu") else hedef_k
+            hedef_opt_k = max(1, int(hedef_k * 0.86)) if aday.get("g0_modu") else hedef_k
             oto_durum = butceye_gore_sablon_optimize_et(
                 veriler, hedef_opt_k, g_tier,
                 mutlak_mod=False, hibrit_mod=False, tuzak_aktif=True, risk_politikasi="butce_uyumlu",
@@ -3484,7 +3756,7 @@ def v20_otopilot_calistir(
         )
         kilit_notu = f" **🔒 Kilitli:** {len(kilit_dict)} maç kullanıcı tercihine kilitlendi." if kilit_dict else ""
         boost_notu = (
-            f" **📈 2. Geçiş Yükseltici:** {', '.join(en_iyi['boost_notlari'])}."
+            f" **📈 2./3. Geçiş Bütçe Yükseltici:** {', '.join(en_iyi['boost_notlari'])}."
             if en_iyi.get("boost_notlari") else ""
         )
         neden_t = (
@@ -4943,7 +5215,7 @@ def v18_zip_kontrol(zip_bytes, skip_recount=False):
             'txt_sha256':m['txt_sha256'],'matches':len(m['matches']),
             'analyzed_at':report.get('checked_at_utc')}
 
-st.markdown("### 🏆 Spor Toto AI Pro v21.1 — Ultimate Otopilot Pro (G0 Çekirdek • 14 / 13 / 12)" if otopilot_modu else "### 🏆 Spor Toto AI Pro v21.1 — Uzman Modu")
+st.markdown("### 🏆 Spor Toto AI Pro v21.2 — Ultimate Otopilot Pro (Tuzak Kalkanı • 13+/14+ Yoğunlaştırıcı • Tam Yedek)" if otopilot_modu else "### 🏆 Spor Toto AI Pro v21.2 — Uzman Modu")
 _secili = len(st.session_state.secilen_15_mac)
 _analiz_var = st.session_state.analiz_verisi is not None
 _kolon_var = st.session_state.uretilen_kuponlar is not None and len(st.session_state.uretilen_kuponlar) > 0
@@ -5467,6 +5739,15 @@ with tab_uretim:
                                     for i, v in enumerate(_veriler_oto)
                                 ])
                                 _halk_map_oto, _, _halk_ctx_oto = tablo_halk_verisi_derle_v191(_tmp_df)
+                                if _halk_map_oto:
+                                    for _vo in _veriler_oto:
+                                        _hro = _halk_map_oto.get(int(_vo["id"]))
+                                        if _hro:
+                                            _vo["h1"], _vo["hX"], _vo["h2"] = _hro["h1"], _hro["hx"], _hro["h2"]
+                                            _vo["halk_favori"] = max(_hro["h1"], _hro["hx"], _hro["h2"])
+                                            _ti_o = tuzak_tespit_et_v191(_vo, _hro, gap_esik=risk_gap)
+                                            _vo["tuzak_farki"] = _ti_o["fark_puan"] if _ti_o else 0.0
+                                    st.session_state.analiz_verisi = [dict(v) for v in _veriler_oto]
                             except Exception as _h_err:
                                 st.warning(f"Halk yüzdeleri biçim hatası nedeniyle atlandı ({_h_err}); saf piyasa/modelle devam edildi.")
 
@@ -5522,6 +5803,7 @@ with tab_uretim:
                         st.session_state.son_param_imzasi = _oto_sonuc["param_imza"]
                         st.session_state.v19_ilk_uretim_yapildi = True
                         st.session_state.v19_sablon_koru_bir_tur = True
+                        st.session_state.v212_yedek_takip_modu = False
                         st.toast("✅ 14, 13 ve 12 Garanti sistemlerinin üçü de hazır! İstediğinizi seçip indirebilirsiniz.")
                         st.rerun()
                     except Exception as _oto_exc:
@@ -5750,21 +6032,21 @@ with tab_uretim:
                                     st.download_button(
                                         "📥 Spor Toto 1-0-2 TXT İndir",
                                         v171_toto_0_txt(_raw20),
-                                        file_name=f"SPOR_TOTO_V211_{_ozet_o['garanti_derecesi']}G_102_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
+                                        file_name=f"SPOR_TOTO_V212_{_ozet_o['garanti_derecesi']}G_102_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
                                         mime="text/plain", type="primary", use_container_width=True, key="v20_dl_102"
                                     )
                                 with _dl2:
                                     st.download_button(
                                         "📥 Analiz 1-X-2 TXT İndir",
                                         _raw20,
-                                        file_name=f"SPOR_TOTO_V211_{_ozet_o['garanti_derecesi']}G_1X2_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
+                                        file_name=f"SPOR_TOTO_V212_{_ozet_o['garanti_derecesi']}G_1X2_{_inf20['columns']}K_{_val20['txt_sha256'][:10]}.txt",
                                         mime="text/plain", use_container_width=True, key="v20_dl_1x2"
                                     )
                                 with _dl3:
                                     st.download_button(
                                         "📦 Tam Denetimli Paket (ZIP)",
                                         _zip20,
-                                        file_name=f"SPOR_TOTO_V211_{_ozet_o['garanti_derecesi']}G_PAKET_{_val20['txt_sha256'][:10]}.zip",
+                                        file_name=f"SPOR_TOTO_V212_{_ozet_o['garanti_derecesi']}G_PAKET_{_val20['txt_sha256'][:10]}.zip",
                                         mime="application/zip", use_container_width=True, key="v20_dl_zip"
                                     )
                                 st.caption(f"TXT SHA-256: `{_val20['txt_sha256']}` • Canlı bahis/ödeme otomasyonu kapalıdır.")
@@ -6817,6 +7099,8 @@ with tab_takip:
 
     with col_t2:
         if aktif_k is not None and len(aktif_k) > 0:
+            if "Oturumdaki" in kaynak and st.session_state.get("v212_yedek_takip_modu"):
+                st.info(f"♻️ **Yedekten Geri Yüklenen Kuponlar Aktif:** `{len(aktif_k):,} kolon` canlı sonuç takibi için hazır (ekstra .txt yüklemenize gerek yok).")
             if "Oturumdaki" in kaynak and st.session_state.son_uretim_ozeti is not None:
                 ozet_bilgi = st.session_state.son_uretim_ozeti
                 evren_turu = "🛡️ %100 Kesin Şablon" if ozet_bilgi.get("mutlak_sablon") else ("🧬 Akıllı Hibrit Ekonomi" if ozet_bilgi.get("hibrit_mod") else "📐 Filtreli Evren")
